@@ -271,3 +271,45 @@ export const MOCK_DEPLOYMENTS = [
     note: 'Post-cutover error rate exceeded threshold 5%; auto-rollback executed in 90s',
   },
 ]
+
+export const MOCK_COST_TIMESERIES = {
+  interval: 'hour',
+  series: ['ml', 'core', 'data', 'platform', 'frontend'].map((team, tIdx) => {
+    const points: Array<[string, number]> = []
+    const now = Date.now()
+    for (let i = 23; i >= 0; i--) {
+      const ts = new Date(now - i * 3600000).toISOString()
+      const base = 25 + tIdx * 15 + Math.sin(i / 3) * 8
+      const spike = tIdx === 0 && i === 2 ? 140 : 0
+      points.push([ts, Math.round((base + spike) * 10) / 10])
+    }
+    return { name: team, points }
+  }),
+}
+
+const heatmapResources = [
+  'ec2-ml-gpu-07',
+  'rds-core-pg-prod',
+  'eks-platform-ingress',
+  'lambda-data-sync',
+  's3-security-audit',
+  'elasticache-ml-redis',
+  'ec2-core-compute-02',
+  'rds-data-warehouse',
+]
+
+const heatmapValues: Array<[number, number, number]> = []
+for (let r = 0; r < heatmapResources.length; r++) {
+  for (let h = 0; h < 24; h++) {
+    const isSpike = r === 0 && h >= 14 && h <= 17
+    const base = 5 + ((r * 7) % 25) + Math.sin(h / 3.8) * 4
+    const val = isSpike ? base * 4.2 : base
+    heatmapValues.push([h, r, Math.round(val * 10) / 10])
+  }
+}
+
+export const MOCK_HEATMAP = {
+  resources: heatmapResources,
+  hours: Array.from({ length: 24 }, (_, i) => i),
+  values: heatmapValues,
+}

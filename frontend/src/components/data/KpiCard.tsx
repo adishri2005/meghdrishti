@@ -18,6 +18,7 @@ interface KpiCardProps {
   isLoading?: boolean
   isError?: boolean
   errorMessage?: string
+  onRetry?: () => void
   className?: string
   onClick?: () => void
 }
@@ -36,6 +37,7 @@ export function KpiCard({
   isLoading = false,
   isError = false,
   errorMessage = 'Failed to load metric',
+  onRetry,
   className = '',
   onClick,
 }: KpiCardProps) {
@@ -83,7 +85,21 @@ export function KpiCard({
           <span className="font-medium text-foreground">{label}</span>
           <AlertCircle className="w-4 h-4 text-danger" />
         </div>
-        <div className="text-xs text-danger font-mono">{errorMessage}</div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs text-danger font-mono truncate">{errorMessage}</div>
+          {onRetry && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onRetry()
+              }}
+              type="button"
+              className="text-[11px] underline text-muted-foreground hover:text-foreground shrink-0"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       </div>
     )
   }

@@ -1,0 +1,143 @@
+import { z } from 'zod'
+
+export const SeveritySchema = z.enum(['critical', 'high', 'medium', 'low'])
+export type Severity = z.infer<typeof SeveritySchema>
+
+export const AnomalyStatusSchema = z.enum(['open', 'acknowledged', 'resolved', 'ignored'])
+export type AnomalyStatus = z.infer<typeof AnomalyStatusSchema>
+
+export const TopSpenderSchema = z.object({
+  resource_id: z.string(),
+  team: z.string(),
+  cost: z.number(),
+  share_pct: z.number(),
+})
+export type TopSpender = z.infer<typeof TopSpenderSchema>
+
+export const AnomalySchema = z.object({
+  id: z.union([z.string(), z.number()]).transform((v) => String(v)),
+  resource_id: z.union([z.string(), z.number(), z.null()]).transform((v) => (v ? String(v) : 'unknown')),
+  resource_name: z.string().optional(),
+  anomaly_type: z.string().optional().default('statistical_spike'),
+  severity: SeveritySchema,
+  status: AnomalyStatusSchema,
+  expected_cost: z.number(),
+  actual_cost: z.number().optional(),
+  observed_cost: z.number().optional(),
+  z_score: z.number().optional().default(3.0),
+  detected_at: z.string(),
+  root_cause_summary: z.string().optional().nullable(),
+  acknowledged_at: z.string().optional().nullable(),
+  resolved_at: z.string().optional().nullable(),
+  occurrences: z.number().optional().default(1),
+  detection_delay_seconds: z.number().optional(),
+}).transform((data) => ({
+  ...data,
+  actual_cost: data.actual_cost ?? data.observed_cost ?? data.expected_cost * 2,
+  resource_id: data.resource_name || data.resource_id,
+}))
+export type Anomaly = z.infer<typeof AnomalySchema>
+
+export const StatsOverviewSchema = z.object({
+  generated_at: z.string(),
+  cost_24h: z.number(),
+  cost_prev_24h: z.number(),
+  cost_change_pct: z.number(),
+  records_24h: z.number(),
+  active_resources: z.number(),
+  anomalies_open: z.object({
+    critical: z.number(),
+    high: z.number(),
+    medium: z.number(),
+    low: z.number(),
+    total: z.number(),
+  }),
+  anomalies_24h: z.number(),
+  mttd_seconds_p95: z.number(),
+  top_spenders: z.array(TopSpenderSchema),
+  latest_anomaly: z.any().optional().nullable(),
+})
+export type StatsOverview = z.infer<typeof StatsOverviewSchema>
+
+export const CostTimeSeriesSchema = z.object({
+  interval: z.string(),
+  series: z.array(
+    z.object({
+      name: z.string(),
+      points: z.array(z.tuple([z.string(), z.number()])),
+    })
+  ),
+})
+export type CostTimeSeries = z.infer<typeof CostTimeSeriesSchema>
+
+export const CostHeatmapSchema = z.object({
+  resources: z.array(z.string()),
+  hours: z.array(z.number()),
+  values: z.array(z.tuple([z.number(), z.number(), z.number()])),
+})
+export type CostHeatmap = z.infer<typeof CostHeatmapSchema>
+
+export const ResourceRowSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  resource_id: z.string(),
+  team: z.string(),
+  service: z.string(),
+  region: z.string(),
+  type: z.string(),
+  last_cost: z.number(),
+  baseline_mean_now: z.number(),
+  cost_24h: z.number(),
+  open_anomalies: z.number(),
+  status: z.enum(['normal', 'warning', 'anomalous']),
+})
+export type ResourceRow = z.infer<typeof ResourceRowSchema>
+
+export const DeploymentRecordSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform((v) => String(v)),
+  version: z.string(),
+  color: z.enum(['blue', 'green']),
+  status: z.enum(['active', 'standby', 'rolled_back', 'failed']),
+  deployed_at: z.string(),
+  activated_at: z.string().optional().nullable(),
+  rolled_back_at: z.string().optional().nullable(),
+  note: z.string().optional().nullable(),
+})
+export type DeploymentRecord = z.infer<typeof DeploymentRecordSchema>
+
+export const SystemStatusSchema = z.object({
+  api: z.object({
+    status: z.string(),
+    version: z.string(),
+    color: z.string(),
+    uptime_seconds: z.number().optional(),
+  }),
+  postgres: z.object({
+    status: z.string(),
+    latency_ms: z.number().optional(),
+    connected: z.boolean().optional(),
+  }),
+  redis: z.object({
+    status: z.string(),
+    latency_ms: z.number().optional(),
+    connected: z.boolean().optional(),
+  }),
+  queue: z.object({
+    stream_length: z.number().optional(),
+    pending: z.number().optional(),
+    lag: z.number().optional(),
+  }).optional(),
+  worker: z.object({
+    active_workers: z.number().optional(),
+    dlq_length: z.number().optional(),
+    status: z.string().optional(),
+  }).optional(),
+  prometheus: z.object({
+    reachable: z.boolean().optional(),
+    status: z.string().optional(),
+  }).optional(),
+  grafana: z.object({
+    reachable: z.boolean().optional(),
+    status: z.string().optional(),
+  }).optional(),
+})
+export type SystemStatus = z.infer<typeof SystemStatusSchema>
