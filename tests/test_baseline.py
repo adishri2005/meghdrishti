@@ -53,3 +53,20 @@ class TestWelfordUpdate:
         stats = BaselineStats(n=3, mean=1.0, m2=1.0)
         assert stats.is_cold_for(5) is True
         assert stats.is_cold_for(3) is False
+
+    def test_std_numerical_underflow_guard(self):
+        """std should safely clamp m2 to 0 if rounding error produces negative m2."""
+        stats = BaselineStats(n=5, mean=2.0, m2=-1e-15)
+        assert stats.std == 0.0
+
+    def test_welford_rejects_non_finite_values(self):
+        stats = BaselineStats(n=5, mean=2.0, m2=1.0)
+        with pytest.raises(ValueError, match="non-finite"):
+            welford_update(stats, float("nan"))
+        with pytest.raises(ValueError, match="non-finite"):
+            welford_update(stats, float("inf"))
+
+    def test_welford_rejects_negative_cost(self):
+        stats = BaselineStats()
+        with pytest.raises(ValueError, match="negative"):
+            welford_update(stats, -0.5)

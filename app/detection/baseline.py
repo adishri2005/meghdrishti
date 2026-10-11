@@ -33,7 +33,8 @@ class BaselineStats:
         """Population-corrected standard deviation (Bessel's correction)."""
         if self.n < 2:
             return 0.0
-        return math.sqrt(self.m2 / (self.n - 1))
+        # Safeguard against floating point precision errors where m2 < 0
+        return math.sqrt(max(0.0, self.m2) / (self.n - 1))
 
     @property
     def is_cold(self) -> bool:
@@ -58,9 +59,14 @@ def welford_update(stats: BaselineStats, value: float) -> BaselineStats:
         delta2← value - mean        (note: uses the *updated* mean)
         m2    ← m2 + delta * delta2
     """
+    if not math.isfinite(value):
+        raise ValueError(f"Cannot update baseline with non-finite value: {value}")
+    if value < 0:
+        raise ValueError(f"Cost value cannot be negative: {value}")
+
     n = stats.n + 1
     delta = value - stats.mean
     mean = stats.mean + delta / n
     delta2 = value - mean
-    m2 = stats.m2 + delta * delta2
+    m2 = max(0.0, stats.m2 + delta * delta2)
     return BaselineStats(n=n, mean=mean, m2=m2)
