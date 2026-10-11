@@ -8,8 +8,9 @@ at the boundary, not in the database layer.
 
 from __future__ import annotations
 
+import math
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -69,6 +70,22 @@ class CostRecordIn(BaseModel):
     usage_quantity: float = Field(..., ge=0)
     unit_cost: float = Field(..., ge=0)
     cost: float = Field(..., ge=0)
+
+    @field_validator("usage_quantity", "unit_cost", "cost", mode="before")
+    @classmethod
+    def validate_finite_non_negative(cls, v: float, info) -> float:
+        if isinstance(v, (int, float)) and not math.isfinite(v):
+            raise ValueError(f"{info.field_name} must be a finite number")
+        return v
+
+    @field_validator("timestamp")
+    @classmethod
+    def validate_timestamp_sanity(cls, v: datetime) -> datetime:
+        min_ts = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        ts = v if v.tzinfo is not None else v.replace(tzinfo=timezone.utc)
+        if ts < min_ts:
+            raise ValueError("timestamp cannot be earlier than 2020-01-01T00:00:00Z")
+        return v
 
 
 class BatchIngestRequest(BaseModel):
