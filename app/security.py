@@ -104,6 +104,21 @@ class Principal:
     kind: str  # "user" | "api_client"
 
 
+def get_client_ip(request: Request) -> str:
+    """Extract client IP, taking into account reverse proxy headers."""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+        if parts:
+            return parts[0]
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip and real_ip.strip():
+        return real_ip.strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "unknown"
+
+
 # ---------------------------------------------------------------------------
 # Login rate limiting (Redis counter per IP)
 # ---------------------------------------------------------------------------
@@ -117,7 +132,7 @@ async def check_login_rate_limit(request: Request) -> None:
     """
     from app.cache import get_redis  # avoid circular import
 
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request)
     key = f"login_rate:{ip}"
     try:
         redis = get_redis()
@@ -161,7 +176,8 @@ def _get_jwt_principal(request: Request, db: Session) -> Optional[Principal]:
         user = db.query(User).filter(User.username == username).first()
         if not user or not user.is_active:
             return None
-        return Principal(name=username, role=role, kind="user")
+        # Bind role directly from current DB state to reflect any administrative updates immediately
+        return Principal(name=user.username, role=user.role, kind="user")
     except JWTError:
         return None
 
@@ -318,5 +334,5 @@ def audit(
 
 def _audit_denied(request: Request, db: Session, actor: str, action: str) -> None:
     """Convenience: record a denied access attempt."""
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     audit(db, actor=actor, action=action, ip=ip, result="denied")

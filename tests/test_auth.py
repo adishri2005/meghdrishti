@@ -3,6 +3,7 @@
 import pytest
 from app.security import (
     generate_api_key,
+    get_client_ip,
     hash_api_key,
     hash_password,
     verify_api_key_hash,
@@ -10,6 +11,7 @@ from app.security import (
     create_access_token,
     decode_access_token,
 )
+from starlette.requests import Request
 
 
 class TestPasswordHashing:
@@ -76,3 +78,41 @@ class TestJWT:
         t1, _ = create_access_token("admin", "admin")
         t2, _ = create_access_token("analyst", "analyst")
         assert t1 != t2
+
+
+class TestGetClientIP:
+    def test_x_forwarded_for_first_ip(self):
+        scope = {
+            "type": "http",
+            "headers": [(b"x-forwarded-for", b"203.0.113.195, 70.41.3.18, 150.172.238.178")],
+            "client": ("127.0.0.1", 8000),
+        }
+        req = Request(scope)
+        assert get_client_ip(req) == "203.0.113.195"
+
+    def test_x_real_ip(self):
+        scope = {
+            "type": "http",
+            "headers": [(b"x-real-ip", b"198.51.100.1")],
+            "client": ("127.0.0.1", 8000),
+        }
+        req = Request(scope)
+        assert get_client_ip(req) == "198.51.100.1"
+
+    def test_fallback_to_client_host(self):
+        scope = {
+            "type": "http",
+            "headers": [],
+            "client": ("192.0.2.1", 54321),
+        }
+        req = Request(scope)
+        assert get_client_ip(req) == "192.0.2.1"
+
+    def test_unknown_when_no_client(self):
+        scope = {
+            "type": "http",
+            "headers": [],
+            "client": None,
+        }
+        req = Request(scope)
+        assert get_client_ip(req) == "unknown"
