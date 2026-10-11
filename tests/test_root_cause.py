@@ -108,3 +108,43 @@ class TestBuildResourceRootCause:
             aggregate_result=agg,
         )
         assert result["root_cause"]["aggregate_share_pct"] == 90.0
+
+
+class TestRootCauseEdgeCases:
+    def test_missing_metadata_defaults_to_unknown(self):
+        records = [
+            {"resource_id": "r1", "cost": 100.0, "mean": 10.0, "team": None, "service": None, "region": None},
+            {"resource_id": "r2", "cost": 10.0, "mean": 10.0, "team": "core", "service": "s3", "region": "us-east-1"},
+        ]
+        res = check_aggregate(records, threshold_pct=50.0, hour_ts="2026-10-11T12:00:00Z")
+        assert res is not None
+        assert res.is_anomaly is True
+        assert len(res.top_contributors) == 1
+        assert res.top_contributors[0].resource_id == "r1"
+        assert res.top_contributors[0].team == "unknown"
+        # Group by team should handle None gracefully
+        assert any(g["group"] == "unknown" for g in res.group_by_team)
+
+    def test_top_contributors_caps_at_five(self):
+        records = [
+            {"resource_id": f"r{i}", "cost": 10.0 + i * 5, "mean": 5.0, "team": "dev", "service": "ec2", "region": "us-west-2"}
+            for i in range(10)
+        ]
+        res = check_aggregate(records, threshold_pct=10.0)
+        assert res is not None
+        assert len(res.top_contributors) == 5
+        # First contributor should be highest delta (r9)
+        assert res.top_contributors[0].resource_id == "r9"
+
+    def test_resources_below_mean_excluded_from_delta(self):
+        records = [
+            {"resource_id": "r1", "cost": 100.0, "mean": 20.0, "team": "a", "service": "s", "region": "r"},
+            {"resource_id": "r2", "cost": 5.0, "mean": 20.0, "team": "b", "service": "s", "region": "r"},  # cost dropped
+        ]
+        res = check_aggregate(records, threshold_pct=50.0)
+        assert res is not None
+        # Only r1 has positive delta (80.0)
+        assert len(res.top_contributors) == 1
+        assert res.top_contributors[0].resource_id == "r1"
+        assert res.top_contributors[0].delta == pytest.approx(80.0)
+        assert res.top_contributors[0].share_pct == 100.0

@@ -90,18 +90,19 @@ def check_aggregate(
     if total_delta <= 0:
         return None
 
-    # Sort descending by delta
+    # Sort descending by delta and filter to positive contributors
     deltas.sort(key=lambda x: x[1], reverse=True)
+    positive_deltas = [d for d in deltas if d[1] > 0.0]
 
     top = []
-    for rec, delta in deltas[:5]:
+    for rec, delta in positive_deltas[:5]:
         top.append(ResourceContribution(
             resource_id=rec["resource_id"],
             delta=round(delta, 4),
             share_pct=round(delta / total_delta * 100, 2),
-            team=rec.get("team", ""),
-            service=rec.get("service", ""),
-            region=rec.get("region", ""),
+            team=rec.get("team") or "unknown",
+            service=rec.get("service") or "unknown",
+            region=rec.get("region") or "unknown",
         ))
 
     # --- Group by dimensions ---
@@ -182,7 +183,9 @@ def _group_deltas(
     """Group deltas by a dimension (team, service, region) and return top groups."""
     groups: dict[str, float] = {}
     for rec, delta in deltas:
-        group_val = rec.get(key, "unknown")
+        if delta <= 0.0:
+            continue
+        group_val = rec.get(key) or "unknown"
         groups[group_val] = groups.get(group_val, 0.0) + delta
 
     total = sum(groups.values())
