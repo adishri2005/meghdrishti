@@ -34,11 +34,34 @@ function generatePrometheusMatrix(query: string, start: number, end: number, ste
   ]
 }
 
+function getMockUser(): { username: string; role: 'admin' | 'analyst' } | null {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('ccad_mock_user') : null
+    if (raw) return JSON.parse(raw)
+  } catch {
+    // ignore
+  }
+  return { username: 'admin', role: 'admin' }
+}
+
+function setMockUser(user: { username: string; role: 'admin' | 'analyst' } | null) {
+  try {
+    if (user && typeof window !== 'undefined') {
+      localStorage.setItem('ccad_mock_user', JSON.stringify(user))
+    } else if (typeof window !== 'undefined') {
+      localStorage.removeItem('ccad_mock_user')
+    }
+  } catch {
+    // ignore
+  }
+}
+
 export const handlers = [
   // --- Auth ---
   http.post('/api/v1/auth/login', async ({ request }) => {
     const body = (await request.json()) as any
-    if (body.username === 'admin' && body.password === 'Admin@12345') {
+    if (body.username === 'admin' && (body.password === 'admin123' || body.password === 'Admin@12345')) {
+      setMockUser({ username: 'admin', role: 'admin' })
       return HttpResponse.json({
         access_token: 'mock-jwt-admin-token',
         token_type: 'bearer',
@@ -46,7 +69,8 @@ export const handlers = [
         role: 'admin',
       })
     }
-    if (body.username === 'analyst' && body.password === 'Analyst@12345') {
+    if (body.username === 'analyst' && (body.password === 'analyst123' || body.password === 'Analyst@12345')) {
+      setMockUser({ username: 'analyst', role: 'analyst' })
       return HttpResponse.json({
         access_token: 'mock-jwt-analyst-token',
         token_type: 'bearer',
@@ -58,18 +82,27 @@ export const handlers = [
   }),
 
   http.get('/api/v1/auth/me', () => {
+    const user = getMockUser()
+    if (!user) {
+      return HttpResponse.json({ detail: 'Not authenticated' }, { status: 401 })
+    }
     return HttpResponse.json({
-      username: 'admin',
-      role: 'admin',
+      username: user.username,
+      role: user.role,
       expires_at: Math.floor(Date.now() / 1000) + 1800,
     })
   }),
 
   http.get('/api/v1/auth/verify', () => {
+    const user = getMockUser()
+    if (!user) {
+      return HttpResponse.json({ detail: 'Not authenticated' }, { status: 401 })
+    }
     return new HttpResponse(null, { status: 204 })
   }),
 
   http.post('/api/v1/auth/logout', () => {
+    setMockUser(null)
     return HttpResponse.json({ status: 'ok', message: 'Logged out' })
   }),
 
@@ -287,9 +320,11 @@ export const handlers = [
 
   http.post('/api/v1/admin/simulate', () => {
     return HttpResponse.json({
+      job_id: 'sim-job-12345',
       job_ids: ['sim-job-12345'],
+      message: 'Simulation scenario initiated successfully',
       records_generated: 40,
-      injection: { kind: 'spike', resource_id: 'eks-ml-storage-04', multiplier: 8.0 },
+      injection: { kind: 'spike', resource_id: 'ec2-ml-gpu-07', multiplier: 12.0 },
     })
   }),
 

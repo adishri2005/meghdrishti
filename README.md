@@ -35,20 +35,38 @@ curl -sk https://localhost:8443/api/v1/anomalies \
     | python -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')"
 ```
 
+## CostGuard Web Console
+
+CostGuard is the unified FinOps & Observability mission control web console built with React 18, TypeScript, Tailwind CSS, and Apache ECharts. One secure URL exposes the entire platform:
+- **CostGuard Web Console**: `https://localhost:8443/`
+- **Embedded Grafana Dashboards**: `https://localhost:8443/monitoring?tab=grafana`
+- **Embedded Prometheus PromQL Console**: `https://localhost:8443/monitoring?tab=prometheus`
+- **Interactive API Documentation**: `https://localhost:8443/docs`
+
+**Demo Credentials**:
+- **Admin**: `admin` / `admin123` (Full permissions: live SSE log stream, simulation controls, thresholds, user management)
+- **Analyst**: `analyst` / `analyst123` (Read-only analytics and observability; restricted from administrative actions)
+
 ## Architecture
 
 ```
-Client → Nginx (TLS) → API Blue/Green → Redis Streams → Worker → PostgreSQL
-                                                           ↓
-                                                     Detection Engine
-                                                     (z-score, pct, EWMA, new-resource)
-                                                           ↓
-                                                     Anomaly + Root Cause → Alerts
+Client / Browser → Nginx :8443 (TLS + Auth Gate)
+                     ├── /*             → CostGuard Frontend (React + TS + ECharts)
+                     ├── /api/*         → API Blue/Green (FastAPI)
+                     ├── /grafana/*     → Grafana Kiosk (Protected by auth_request)
+                     └── /prometheus/*  → Prometheus Metrics (Protected by auth_request)
+                                            ↓
+               API Blue/Green → Redis Streams → Worker → PostgreSQL
+                                                  ↓
+                                            Detection Engine
+                                            (z-score, pct, EWMA, new-resource)
+                                                  ↓
+                                            Anomaly + Root Cause → Webhooks / Alerts
 ```
 
-**10 containers**: PostgreSQL, Redis, API (blue), Worker, Nginx, Prometheus, Grafana, Redis Exporter, Postgres Exporter, Node Exporter.
+**11 containers**: Frontend (Nginx), PostgreSQL, Redis, API (blue), Worker, Nginx Gateway, Prometheus, Grafana, Redis Exporter, Postgres Exporter, Node Exporter.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full diagram and design rationale.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/FRONTEND.md](docs/FRONTEND.md) for full design rationale.
 
 ## Key Commands
 

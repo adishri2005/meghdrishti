@@ -14,24 +14,28 @@ test.describe('Flow 2: Ingestion Simulator, Spike Injection, and Anomaly Drill-D
     await expect(page.locator('h1')).toContainText('Ingestion')
 
     // Check pipeline nodes
-    await expect(page.getByText('FastAPI Gateway')).toBeVisible()
-    await expect(page.getByText('Redis Streams')).toBeVisible()
+    await expect(page.getByText('1. API Gateway')).toBeVisible()
+    await expect(page.getByText('2. Redis Streams')).toBeVisible()
+
+    // Wait for auth initialization so simulator controls enable
+    const executeBtn = page.getByRole('button', { name: 'Execute Simulator Scenario' })
+    await expect(executeBtn).toBeEnabled({ timeout: 10000 })
 
     // Simulator panel: switch to Inject Spike tab
-    await page.click('button:has-text("Inject Spike")')
-    await expect(page.getByText('Multiplier (relative spike)')).toBeVisible()
+    await page.getByRole('button', { name: /Inject Spike/ }).click()
+    await expect(page.getByText('Cost Multiplier')).toBeVisible()
 
     // Trigger simulation
-    await page.click('button:has-text("Simulate Cost Spike")')
+    await executeBtn.click()
 
     // Verify Active Watch Mode / Toast notification triggers
-    await expect(page.getByText(/Anomaly Detection Watch Active|Simulation Triggered/i)).toBeVisible({
+    await expect(page.getByText(/Watching stream|scenario queued/i)).toBeVisible({
       timeout: 10000,
     })
 
     // Navigate to Anomalies page
     await page.goto('/anomalies')
-    await expect(page.locator('h1')).toContainText('Anomalies')
-    await expect(page.getByText('CRITICAL')).first().toBeVisible()
+    await expect(page.locator('h1')).toContainText('Anomaly')
+    await expect(page.getByText('CRITICAL').first()).toBeVisible()
   })
 })

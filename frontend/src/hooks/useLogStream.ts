@@ -90,6 +90,10 @@ export function useLogStream(options: UseLogStreamOptions = {}) {
 
     const connectSSE = () => {
       if (!isSubscribed) return
+      if (import.meta.env.VITE_MOCK === 'true') {
+        startPollingFallback()
+        return
+      }
       try {
         const streamUrl = '/api/v1/admin/logs/stream'
         const es = new EventSource(streamUrl, { withCredentials: true })

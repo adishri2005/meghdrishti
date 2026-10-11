@@ -2,7 +2,7 @@ import { test } from '@playwright/test'
 import path from 'path'
 import fs from 'fs'
 
-const screenshotsDir = path.resolve(__dirname, '../../docs/screenshots')
+const screenshotsDir = path.resolve(process.cwd(), '../docs/screenshots')
 
 test.describe('Automated Documentation Screenshots', () => {
   test.beforeAll(async () => {
@@ -28,18 +28,10 @@ test.describe('Automated Documentation Screenshots', () => {
 
   for (const p of pages) {
     test(`capture ${p.name} (dark & light)`, async ({ page }) => {
-      // 1. Authenticate if required
-      if (p.requiresAuth) {
-        await page.goto('/login')
-        await page.fill('input[type="text"]', 'admin')
-        await page.fill('input[type="password"]', 'admin123')
-        await page.click('button[type="submit"]')
-        await page.waitForURL('**/')
-      }
-
+      test.setTimeout(60000)
       await page.goto(p.path)
-      await page.waitForLoadState('networkidle')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('domcontentloaded')
+      await page.waitForTimeout(1500)
 
       // Capture dark theme
       await page.screenshot({

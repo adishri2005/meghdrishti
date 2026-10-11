@@ -12,36 +12,46 @@ Cost data is structured and relational: it needs time-range aggregation (`GROUP 
 
 ```mermaid
 graph TB
-    subgraph "External"
+    subgraph "External Access"
+        User["FinOps / DevOps Engineer"]
         Client["API Client / simulate.py"]
-        Grafana["Grafana :3000"]
     end
 
-    subgraph "Nginx Reverse Proxy"
-        Nginx["Nginx :443"]
+    subgraph "Unified Gateway (Nginx :8443)"
+        Nginx["Nginx Gateway<br/>TLS + auth_request Auth Gate"]
+    end
+
+    subgraph "Frontend Layer"
+        Frontend["CostGuard Console :80<br/>React 18 + TS + ECharts"]
     end
 
     subgraph "Application Layer"
-        BlueAPI["API Blue :8000"]
-        GreenAPI["API Green :8000"]
-        Worker["Worker(s) :8001"]
+        BlueAPI["API Blue :8000 (Active)"]
+        GreenAPI["API Green :8000 (Standby)"]
+        Worker["Stream Worker :8001"]
     end
 
     subgraph "Data Layer"
-        Redis["Redis :6379<br/>Streams + Cache"]
-        Postgres["PostgreSQL :5432<br/>Cost Records, Baselines,<br/>Anomalies, Audit Logs"]
+        Redis["Redis :6379<br/>Streams + Baselines Cache"]
+        Postgres["PostgreSQL :5432<br/>Cost Records, Baselines,<br/>Anomalies, Audit, Deployments"]
     end
 
-    subgraph "Monitoring"
-        Prometheus["Prometheus :9090"]
+    subgraph "Observability Stack"
+        Prometheus["Prometheus :9090<br/>(Metrics & PromQL)"]
+        Grafana["Grafana :3000<br/>(Embedded Kiosk)"]
         RedisExp["Redis Exporter"]
         PgExp["Postgres Exporter"]
         NodeExp["Node Exporter"]
     end
 
-    Client -->|HTTPS| Nginx
-    Nginx -->|upstream.inc| BlueAPI
+    User -->|HTTPS :8443| Nginx
+    Client -->|HTTPS :8443 /api| Nginx
+
+    Nginx -->|/ (SPA)| Frontend
+    Nginx -->|/api/ (upstream.inc)| BlueAPI
     Nginx -.->|standby| GreenAPI
+    Nginx -->|/grafana/ (auth_request)| Grafana
+    Nginx -->|/prometheus/ (auth_request)| Prometheus
 
     BlueAPI -->|XADD| Redis
     BlueAPI -->|Read/Write| Postgres
@@ -49,8 +59,8 @@ graph TB
     GreenAPI -->|Read/Write| Postgres
 
     Redis -->|XREADGROUP| Worker
-    Worker -->|Write results| Postgres
-    Worker -->|Cache baselines| Redis
+    Worker -->|Write Anomalies| Postgres
+    Worker -->|Cache Baselines| Redis
 
     Prometheus -->|Scrape /metrics| BlueAPI
     Prometheus -->|Scrape /metrics| GreenAPI
@@ -62,6 +72,7 @@ graph TB
     PgExp --> Postgres
 
     Grafana -->|Query| Prometheus
+    Frontend -->|PromQL via /prometheus| Prometheus
 ```
 
 ## Cloud Components (8)

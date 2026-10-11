@@ -19,7 +19,7 @@ test.describe('Flow 3: Application Logs Viewer and Role-Based Access Control', (
 
     // Filter by level
     await page.click('button:has-text("ERROR")')
-    await expect(page.getByText('ERROR')).first().toBeVisible()
+    await expect(page.getByText('ERROR').first()).toBeVisible()
   })
 
   test('analyst user is restricted from admin settings and logs', async ({ page }) => {

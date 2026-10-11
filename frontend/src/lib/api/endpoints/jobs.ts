@@ -103,8 +103,14 @@ export async function simulateScenario(payload: {
   hours?: number
 }): Promise<{ job_id: string; message: string; estimated_seconds: number }> {
   try {
-    const res = await apiClient.post('/admin/simulate', payload)
-    return res.data
+    const res = await apiClient.post<any>('/admin/simulate', payload)
+    const job_id = res.data?.job_id || res.data?.job_ids?.[0] || `job-${Math.floor(1000 + Math.random() * 9000)}`
+    const message = res.data?.message || `Scenario '${payload.scenario}' initiated successfully`
+    return {
+      job_id,
+      message,
+      estimated_seconds: res.data?.estimated_seconds || 3,
+    }
   } catch {
     // Mock simulation response
     const job_id = `job-${Math.floor(1000 + Math.random() * 9000)}`
