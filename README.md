@@ -109,6 +109,31 @@ docs/                # Architecture, API reference, deployment, experiments, dem
 - [Demo Script (Viva)](docs/DEMO_SCRIPT.md)
 - [Assumptions](docs/ASSUMPTIONS.md)
 
+## Automated Testing
+
+The repository contains an end-to-end unit and integration test suite with cross-dialect database compatibility (in-memory SQLite fixtures for local and CI runs):
+
+```bash
+# Run the complete test suite locally
+pytest tests/ -v
+
+# Run with test coverage
+pytest tests/ --cov=app --cov-report=term-missing
+```
+
+| Test Suite | Scope |
+|------------|-------|
+| `tests/test_baseline.py` | Welford variance tracking and numerical underflow safeguards |
+| `tests/test_schemas.py` | Ingestion payload validation (finite numbers, ISO timestamps) |
+| `tests/test_auth.py` | Password hashing, API key tokens, forwarded IP extraction |
+| `tests/test_api_auth_health.py` | Authentication, RBAC, health, and Prometheus metrics endpoints |
+| `tests/test_api_anomalies.py` | Eager-loaded anomaly listing, pagination headers, and status transitions |
+| `tests/test_api_config.py` | Runtime threshold configuration and monotonic severity validation |
+| `tests/test_rules.py` | Z-score, percentage jump, EWMA drift, severity floors, and direction tags |
+| `tests/test_queue.py` | Redis stream payload deserialization and structured dead-letter queuing |
+| `tests/test_root_cause.py` | Aggregate anomaly attribution and dimension grouping |
+| `tests/test_engine.py` | Detection orchestration, baseline persistence, deduplication, and escalation |
+
 ## Tech Stack
 
 - **API**: FastAPI + Gunicorn + Uvicorn
@@ -118,4 +143,5 @@ docs/                # Architecture, API reference, deployment, experiments, dem
 - **Proxy**: Nginx (TLS, blue/green upstream switching)
 - **Monitoring**: Prometheus + Grafana (14-panel dashboard, 6 alert rules)
 - **Deploy**: Blue/green with health gate + auto-rollback
-- **Testing**: pytest (unit), Locust (load), controlled failure experiments
+- **Testing**: pytest (unit & integration), Locust (load), controlled failure experiments
+
