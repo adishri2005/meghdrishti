@@ -152,6 +152,20 @@ services:
     networks:
       - ccad-net
 
+  # --- Frontend Console ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - ccad-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   # --- Reverse Proxy ---
   nginx:
     image: nginx:1.27-alpine
@@ -164,6 +178,7 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - api-blue
+      - frontend
     restart: unless-stopped
     networks:
       - ccad-net
@@ -171,8 +186,6 @@ services:
   # --- Monitoring ---
   prometheus:
     image: prom/prometheus:v2.54.0
-    ports:
-      - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
@@ -181,17 +194,25 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
       - '--web.enable-lifecycle'
+      - '--web.external-url=/prometheus/'
+      - '--web.route-prefix=/'
     restart: unless-stopped
     networks:
       - ccad-net
 
   grafana:
     image: grafana/grafana:11.2.0
-    ports:
-      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change_me_grafana}
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_SECURITY_COOKIE_SAMESITE: "lax"
+      GF_USERS_DEFAULT_THEME: "dark"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro

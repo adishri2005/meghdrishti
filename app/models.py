@@ -156,6 +156,11 @@ class Baseline(Base):
 
     resource = relationship("Resource", back_populates="baselines")
 
+    @property
+    def std(self) -> float:
+        import math
+        return math.sqrt(max(self.m2 / (self.n - 1), 0.0)) if self.n >= 2 else 0.0
+
 
 class ResourceState(Base):
     """Per-resource EWMA state for drift detection."""

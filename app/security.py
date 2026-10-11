@@ -102,6 +102,7 @@ class Principal:
     name: str
     role: str
     kind: str  # "user" | "api_client"
+    expires_at: Optional[int] = None
 
 
 def get_client_ip(request: Request) -> str:
@@ -158,11 +159,29 @@ async def check_login_rate_limit(request: Request) -> None:
 
 
 def _get_jwt_principal(request: Request, db: Session) -> Optional[Principal]:
-    """Try to extract a principal from the Authorization: Bearer header."""
+    """Try to extract a principal from Authorization: Bearer header OR ccad_token cookie."""
     auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
+    token = None
+    from_cookie = False
+
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+    elif "ccad_token" in request.cookies:
+        token = request.cookies.get("ccad_token")
+        from_cookie = True
+
+    if not token:
         return None
-    token = auth_header[7:]
+
+    # CSRF check: For state-changing requests authenticated by cookie, require X-Requested-With: CostGuard
+    if from_cookie and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        csrf = request.headers.get("X-Requested-With", "")
+        if csrf != "CostGuard":
+            raise HTTPException(
+                status_code=403,
+                detail="CSRF validation failed: missing or invalid X-Requested-With header",
+            )
+
     try:
         payload = decode_access_token(token)
         username = payload.get("sub")
@@ -177,7 +196,12 @@ def _get_jwt_principal(request: Request, db: Session) -> Optional[Principal]:
         if not user or not user.is_active:
             return None
         # Bind role directly from current DB state to reflect any administrative updates immediately
-        return Principal(name=user.username, role=user.role, kind="user")
+        return Principal(
+            name=user.username,
+            role=user.role,
+            kind="user",
+            expires_at=payload.get("exp"),
+        )
     except JWTError:
         return None
 

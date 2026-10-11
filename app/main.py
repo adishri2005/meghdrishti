@@ -70,6 +70,10 @@ def create_app() -> FastAPI:
     from app.routers.costs import router as costs_router
     from app.routers.config_router import router as config_router
     from app.routers.admin import router as admin_router
+    from app.routers.stats import router as stats_router
+    from app.routers.resources import router as resources_router
+    from app.routers.jobs import router as jobs_router
+    from app.routers.audit_logs import router as audit_logs_router
 
     app.include_router(health_router)
     app.include_router(auth_router, prefix="/api/v1")
@@ -78,6 +82,10 @@ def create_app() -> FastAPI:
     app.include_router(costs_router, prefix="/api/v1")
     app.include_router(config_router, prefix="/api/v1")
     app.include_router(admin_router, prefix="/api/v1")
+    app.include_router(stats_router, prefix="/api/v1")
+    app.include_router(resources_router, prefix="/api/v1")
+    app.include_router(jobs_router, prefix="/api/v1")
+    app.include_router(audit_logs_router, prefix="/api/v1")
 
     # --- Exception handlers ---
     @app.exception_handler(404)

@@ -164,3 +164,154 @@ def resource_costs(
         resource_id=resource_id_str,
         points=points,
     )
+
+
+@router.get(
+    "/timeseries",
+    summary="Get cost time series grouped by dimension (stacked-chart ready)",
+)
+def cost_timeseries(
+    group_by: str = Query("none", description="Group by: none|service|region|team|resource_type"),
+    from_ts: Optional[datetime] = Query(None, alias="from"),
+    to_ts: Optional[datetime] = Query(None, alias="to"),
+    interval: str = Query("hour", pattern="^(hour|day)$"),
+    principal: Principal = Depends(require_roles("admin", "analyst")),
+    db: Session = Depends(get_db),
+):
+    """Return time-series cost points grouped by dimension, ready for stacked area or line charts.
+    Cached in Redis with 60s TTL.
+    """
+    cache_params = f"ts:{group_by}:{from_ts}:{to_ts}:{interval}"
+    cache_key = f"cost_timeseries:{hashlib.md5(cache_params.encode()).hexdigest()}"
+    cached = cache_get(cache_key, cache_name="summary")
+    if cached:
+        return cached
+
+    group_col_map = {
+        "service": Resource.service,
+        "region": Resource.region,
+        "team": Resource.team_tag,
+        "resource_type": Resource.type,
+    }
+
+    # Query records
+    query = db.query(CostRecord.ts, CostRecord.cost)
+    has_group = group_by in group_col_map
+    if has_group:
+        col = group_col_map[group_by]
+        query = db.query(CostRecord.ts, col.label("group_val"), CostRecord.cost).join(Resource, CostRecord.resource_id == Resource.id)
+
+    if from_ts:
+        query = query.filter(CostRecord.ts >= from_ts)
+    if to_ts:
+        query = query.filter(CostRecord.ts <= to_ts)
+
+    rows = query.order_by(CostRecord.ts.asc()).all()
+
+    # Bucket records by interval (hour or day) and group
+    series_map: dict[str, dict[str, float]] = {}
+    timestamps_set = set()
+
+    for row in rows:
+        ts: datetime = row[0]
+        if interval == "day":
+            ts_key = ts.strftime("%Y-%m-%d")
+        else:
+            ts_key = ts.strftime("%Y-%m-%dT%H:00:00Z")
+        timestamps_set.add(ts_key)
+
+        group_name = "total"
+        cost_val = float(row[1]) if not has_group else float(row[2])
+        if has_group:
+            group_name = str(row[1] or "unknown")
+
+        if group_name not in series_map:
+            series_map[group_name] = {}
+        series_map[group_name][ts_key] = series_map[group_name].get(ts_key, 0.0) + cost_val
+
+    sorted_ts = sorted(timestamps_set)
+    series_list = []
+    for g_name, points_dict in sorted(series_map.items()):
+        pts = [
+            [ts_str, round(points_dict.get(ts_str, 0.0), 2)]
+            for ts_str in sorted_ts
+        ]
+        series_list.append({"name": g_name, "points": pts})
+
+    result = {
+        "interval": interval,
+        "timestamps": sorted_ts,
+        "series": series_list,
+    }
+
+    cfg = get_detection_config()
+    ttl = cfg.get("cache", {}).get("summary_ttl_seconds", 60)
+    cache_set(cache_key, result, ttl, cache_name="summary")
+    return result
+
+
+@router.get(
+    "/heatmap",
+    summary="Get resource-by-hour-of-day cost heatmap matrix",
+)
+def cost_heatmap(
+    from_ts: Optional[datetime] = Query(None, alias="from"),
+    to_ts: Optional[datetime] = Query(None, alias="to"),
+    principal: Principal = Depends(require_roles("admin", "analyst")),
+    db: Session = Depends(get_db),
+):
+    """Return average cost matrix across resources and hours of day (0..23)."""
+    # 1. Top 20 resources by total cost
+    res_query = (
+        db.query(Resource.id, Resource.resource_id, func.sum(CostRecord.cost).label("tot"))
+        .join(CostRecord, CostRecord.resource_id == Resource.id)
+    )
+    if from_ts:
+        res_query = res_query.filter(CostRecord.ts >= from_ts)
+    if to_ts:
+        res_query = res_query.filter(CostRecord.ts <= to_ts)
+
+    top_resources = (
+        res_query.group_by(Resource.id, Resource.resource_id)
+        .order_by(func.sum(CostRecord.cost).desc())
+        .limit(20)
+        .all()
+    )
+
+    if not top_resources:
+        # Fall back to all resources
+        top_resources = db.query(Resource.id, Resource.resource_id, func.coalesce(func.sum(CostRecord.cost), 0)).outerjoin(CostRecord, CostRecord.resource_id == Resource.id).group_by(Resource.id, Resource.resource_id).limit(20).all()
+
+    resource_names = [r[1] for r in top_resources]
+    resource_id_to_idx = {r[0]: idx for idx, r in enumerate(top_resources)}
+
+    # 2. Query baselines or cost records by hour of day
+    hours = list(range(24))
+    matrix = [[0.0 for _ in range(24)] for _ in range(len(top_resources))]
+
+    # Use baselines for stable hour of day averages
+    res_db_ids = [r[0] for r in top_resources]
+    baselines = (
+        db.query(Baseline.resource_id, Baseline.hour_of_day, Baseline.mean)
+        .filter(Baseline.resource_id.in_(res_db_ids))
+        .all()
+    )
+    for b in baselines:
+        idx = resource_id_to_idx.get(b.resource_id)
+        if idx is not None and 0 <= b.hour_of_day < 24:
+            matrix[idx][b.hour_of_day] = round(float(b.mean), 2)
+
+    # Coordinate list format for ECharts: [resource_idx, hour_idx, value]
+    values = []
+    for r_idx in range(len(resource_names)):
+        for h_idx in range(24):
+            val = matrix[r_idx][h_idx]
+            values.append([r_idx, h_idx, val])
+
+    return {
+        "resources": resource_names,
+        "hours": hours,
+        "values": values,
+        "matrix": matrix,
+    }
+

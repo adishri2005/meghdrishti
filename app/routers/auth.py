@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -27,10 +27,13 @@ from app.schemas import (
 )
 from app.security import (
     Principal,
+    _get_jwt_principal,
     audit,
     check_login_rate_limit,
     create_access_token,
     generate_api_key,
+    get_client_ip,
+    get_current_principal,
     hash_api_key,
     hash_password,
     require_roles,
@@ -47,14 +50,20 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     summary="Authenticate and receive a JWT",
     responses={401: {"description": "Invalid credentials"}, 429: {"description": "Rate limited"}},
 )
-async def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
+async def login(
+    body: LoginRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     """Authenticate with username/password and receive a JWT access token.
 
-    Rate-limited to 10 attempts per minute per IP address.
+    Sets an HttpOnly, SameSite=Strict cookie 'ccad_token' and returns
+    the token in the JSON body.
     """
     await check_login_rate_limit(request)
 
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     user = db.query(User).filter(User.username == body.username).first()
 
     if not user or not verify_password(body.password, user.password_hash):
@@ -72,6 +81,18 @@ async def login(body: LoginRequest, request: Request, db: Session = Depends(get_
         raise HTTPException(status_code=401, detail="Account is disabled")
 
     token, expires_in = create_access_token(user.username, user.role)
+
+    # Set HttpOnly, SameSite=Strict cookie for browser sessions / gateways
+    response.set_cookie(
+        key="ccad_token",
+        value=token,
+        max_age=expires_in,
+        httponly=True,
+        samesite="strict",
+        secure=request.url.scheme == "https",
+        path="/",
+    )
+
     audit(db, actor=user.username, action="login", result="success", ip=ip)
     logger.info(
         f"Login success for {user.username}",
@@ -84,6 +105,79 @@ async def login(body: LoginRequest, request: Request, db: Session = Depends(get_
         expires_in=expires_in,
         role=user.role,
     )
+
+
+@router.get(
+    "/me",
+    summary="Get current user profile and session info",
+)
+def get_me(
+    principal: Principal = Depends(require_roles("admin", "analyst")),
+):
+    """Return the authenticated user's username, role, and expiry timestamp."""
+    return {
+        "username": principal.name,
+        "role": principal.role,
+        "expires_at": principal.expires_at,
+    }
+
+
+@router.post(
+    "/logout",
+    summary="Log out and clear session cookie",
+)
+def logout(
+    request: Request,
+    response: Response,
+    principal: Principal = Depends(get_current_principal),
+    db: Session = Depends(get_db),
+):
+    """Clear the ccad_token session cookie and record an audit log."""
+    response.delete_cookie(key="ccad_token", path="/")
+    ip = get_client_ip(request)
+    audit(db, actor=principal.name, action="logout", result="success", ip=ip)
+    return {"status": "ok", "message": "Successfully logged out"}
+
+
+@router.get(
+    "/verify",
+    status_code=204,
+    summary="Fast verification endpoint for Nginx auth_request",
+)
+def verify_session(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Returns 204 if the request (via Bearer token or cookie) has valid admin or analyst role.
+
+    Used by Nginx auth_request to secure /grafana/ and /prometheus/.
+    """
+    principal = _get_jwt_principal(request, db)
+    if not principal or principal.role not in ("admin", "analyst"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return Response(status_code=204)
+
+
+@router.get(
+    "/users",
+    summary="List all users (admin only)",
+)
+def list_users(
+    principal: Principal = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    """List system users and their active statuses."""
+    users = db.query(User).order_by(User.id.asc()).all()
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "role": u.role,
+            "is_active": u.is_active,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+        }
+        for u in users
+    ]
 
 
 @router.post(
@@ -158,3 +252,26 @@ def create_api_client(
           detail={"name": body.name})
 
     return ApiClientCreateResponse(id=client.id, name=client.name, api_key=raw_key)
+
+
+@router.get(
+    "/api-clients",
+    summary="List all API clients (admin only)",
+)
+def list_api_clients(
+    principal: Principal = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    """List API clients without secrets."""
+    clients = db.query(ApiClient).order_by(ApiClient.id.desc()).all()
+    return [
+        {
+            "id": c.id,
+            "name": c.name,
+            "role": c.role,
+            "is_active": c.is_active,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+        }
+        for c in clients
+    ]
+

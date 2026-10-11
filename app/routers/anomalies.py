@@ -9,14 +9,15 @@ audit-logged so there's a clear trail of who handled each incident.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.db import get_db
-from app.models import Alert, Anomaly, Resource
+from app.models import Alert, Anomaly, Baseline, CostRecord, Resource
 from app.schemas import (
     AlertOut,
     AnomalyDetail,
@@ -221,3 +222,96 @@ def patch_anomaly(
         peak_cost=anomaly.peak_cost,
         last_seen_ts=anomaly.last_seen_ts,
     )
+
+
+@router.get(
+    "/{anomaly_id}/timeline",
+    summary="Get cost points and expected baseline band around an anomaly",
+)
+def get_anomaly_timeline(
+    anomaly_id: int,
+    hours_before: int = Query(24, ge=1, le=168),
+    hours_after: int = Query(6, ge=0, le=48),
+    principal: Principal = Depends(require_roles("admin", "analyst")),
+    db: Session = Depends(get_db),
+):
+    """Return cost points, baseline mean, +/- 3 std band, and anomaly markers."""
+    anomaly = db.query(Anomaly).options(joinedload(Anomaly.resource)).filter(Anomaly.id == anomaly_id).first()
+    if not anomaly:
+        raise HTTPException(status_code=404, detail="Anomaly not found")
+
+    center_ts = anomaly.record_ts
+    from_ts = center_ts - timedelta(hours=hours_before)
+    to_ts = center_ts + timedelta(hours=hours_after)
+
+    res_id = anomaly.resource_id
+    points = []
+    markers = [
+        {
+            "ts": anomaly.record_ts.isoformat(),
+            "cost": anomaly.observed_cost,
+            "severity": anomaly.severity,
+            "is_target": True,
+        }
+    ]
+
+    if res_id:
+        # Query resource cost records
+        records = (
+            db.query(CostRecord)
+            .filter(
+                CostRecord.resource_id == res_id,
+                CostRecord.ts >= from_ts,
+                CostRecord.ts <= to_ts,
+            )
+            .order_by(CostRecord.ts.asc())
+            .all()
+        )
+
+        baselines = db.query(Baseline).filter(Baseline.resource_id == res_id).all()
+        base_map = {b.hour_of_day: b for b in baselines}
+
+        for r in records:
+            b = base_map.get(r.ts.hour)
+            mean = b.mean if b else 0.0
+            std = b.std if b else 0.0
+            points.append({
+                "ts": r.ts.isoformat(),
+                "cost": round(float(r.cost), 4),
+                "expected_mean": round(float(mean), 4),
+                "expected_lower": round(max(float(mean - 3 * std), 0.0), 4),
+                "expected_upper": round(float(mean + 3 * std), 4),
+            })
+    else:
+        # Aggregate scope: group all cost records by ts
+        records = (
+            db.query(CostRecord.ts, func.sum(CostRecord.cost).label("total_cost"))
+            .filter(CostRecord.ts >= from_ts, CostRecord.ts <= to_ts)
+            .group_by(CostRecord.ts)
+            .order_by(CostRecord.ts.asc())
+            .all()
+        )
+        for ts, cost in records:
+            points.append({
+                "ts": ts.isoformat(),
+                "cost": round(float(cost or 0.0), 4),
+                "expected_mean": round(float(anomaly.expected_cost), 4),
+                "expected_lower": round(max(float(anomaly.expected_cost * 0.7), 0.0), 4),
+                "expected_upper": round(float(anomaly.expected_cost * 1.3), 4),
+            })
+
+    return {
+        "anomaly_id": anomaly.id,
+        "resource_id": anomaly.resource.resource_id if anomaly.resource else "aggregate",
+        "scope": anomaly.scope,
+        "detected_at": anomaly.detected_at.isoformat(),
+        "record_ts": anomaly.record_ts.isoformat(),
+        "observed_cost": anomaly.observed_cost,
+        "expected_cost": anomaly.expected_cost,
+        "severity": anomaly.severity,
+        "from": from_ts.isoformat(),
+        "to": to_ts.isoformat(),
+        "points": points,
+        "markers": markers,
+    }
+

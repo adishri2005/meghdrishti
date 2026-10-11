@@ -7,6 +7,7 @@
   "links": [],
   "panels": [
     {
+      "id": 1,
       "title": "Request Rate",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
@@ -14,6 +15,7 @@
       "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
     },
     {
+      "id": 2,
       "title": "API Latency (p50/p95/p99)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
@@ -25,6 +27,7 @@
       "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
     },
     {
+      "id": 3,
       "title": "Error Rate by Color",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
@@ -34,6 +37,7 @@
       "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1 }, "overrides": [] }
     },
     {
+      "id": 4,
       "title": "Ingestion vs Processing Throughput",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
@@ -44,6 +48,7 @@
       "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
     },
     {
+      "id": 5,
       "title": "Queue Lag",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
@@ -51,6 +56,7 @@
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
     },
     {
+      "id": 6,
       "title": "DLQ Length",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 8 },
@@ -58,6 +64,7 @@
       "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] } }, "overrides": [] }
     },
     {
+      "id": 7,
       "title": "Active Version",
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 8 },
@@ -65,6 +72,7 @@
       "fieldConfig": { "defaults": {}, "overrides": [] }
     },
     {
+      "id": 8,
       "title": "Detection Delay (p95)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
@@ -72,6 +80,7 @@
       "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
     },
     {
+      "id": 9,
       "title": "Anomalies by Severity",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
@@ -79,6 +88,7 @@
       "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
     },
     {
+      "id": 10,
       "title": "Cache Hit Ratio",
       "type": "gauge",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
@@ -86,6 +96,7 @@
       "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "green", "value": 0.8 }] } }, "overrides": [] }
     },
     {
+      "id": 11,
       "title": "CPU Usage",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 20 },
@@ -93,6 +104,7 @@
       "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] }
     },
     {
+      "id": 12,
       "title": "Memory Usage",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
@@ -100,6 +112,7 @@
       "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] }
     },
     {
+      "id": 13,
       "title": "PostgreSQL Connections",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
@@ -107,6 +120,7 @@
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
     },
     {
+      "id": 14,
       "title": "Redis Memory",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
@@ -116,12 +130,12 @@
   ],
   "refresh": "5s",
   "schemaVersion": 39,
-  "tags": ["ccad"],
+  "tags": ["ccad", "costguard"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "CCAD - Cloud Cost Anomaly Detection",
+  "title": "CostGuard Overview",
   "uid": "ccad-main",
-  "version": 1
+  "version": 2
 }
