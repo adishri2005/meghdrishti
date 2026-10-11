@@ -88,3 +88,26 @@ redis-cli: ## Open Redis CLI
 clean: ## Remove results and cached files
 	rm -rf results/*.csv results/*.md results/*.json results/*.log results/*.txt
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+
+# === Frontend (CostGuard Console) ===
+fe-install: ## Install frontend dependencies
+	cd frontend && npm ci
+
+fe-dev: ## Run Vite development server
+	cd frontend && npm run dev
+
+fe-build: ## Build production frontend bundle
+	cd frontend && npm run build
+
+fe-test: ## Run frontend unit and component tests
+	cd frontend && npm test
+
+fe-lint: ## Run frontend TypeScript check and linter
+	cd frontend && npm run lint
+
+fe-e2e: ## Run Playwright end-to-end tests
+	cd frontend && npx playwright test
+
+fe-screenshots: ## Capture automated dark and light mode screenshots for docs
+	cd frontend && npm run screenshots
+
