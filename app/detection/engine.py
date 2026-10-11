@@ -293,12 +293,12 @@ def process_aggregate(
     if result is None:
         return
 
-    dedup_hours = cfg_cache.get("detection", {}).get("dedup_window_hours", 6)
-    existing = dedup_anomaly(db, None, "aggregate", hour_ts, dedup_hours, result.observed_total, "high")
-
     severity = "high" if result.pct_increase >= 150 else "medium"
     if result.pct_increase >= 300:
         severity = "critical"
+
+    dedup_hours = cfg_cache.get("detection", {}).get("dedup_window_hours", 6)
+    existing = dedup_anomaly(db, None, "aggregate", hour_ts, dedup_hours, result.observed_total, severity)
 
     rc_data = {
         "top_contributors": [
@@ -315,6 +315,13 @@ def process_aggregate(
         existing.occurrences += 1
         existing.peak_cost = max(existing.peak_cost or 0, result.observed_total)
         existing.last_seen_ts = hour_ts
+        existing.root_cause_summary = result.summary
+        existing.root_cause = rc_data
+
+        severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+        if severity_rank.get(severity, 0) > severity_rank.get(existing.severity, 0):
+            existing.severity = severity
+            _create_alert(db, existing, enqueued_at)
     else:
         anomaly = Anomaly(
             scope="aggregate",
