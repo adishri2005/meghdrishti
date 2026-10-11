@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session, joinedload
 
 from app.db import get_db
@@ -35,6 +35,7 @@ router = APIRouter(prefix="/anomalies", tags=["Anomalies"])
     summary="List anomalies with filters",
 )
 def list_anomalies(
+    response: Response,
     severity: Optional[str] = Query(None, description="Filter by severity"),
     status: Optional[str] = Query(None, description="Filter by status"),
     resource_id: Optional[int] = Query(None, description="Filter by resource DB ID"),
@@ -46,8 +47,8 @@ def list_anomalies(
     principal: Principal = Depends(require_roles("admin", "analyst")),
     db: Session = Depends(get_db),
 ):
-    """List anomalies sorted by detected_at descending, with optional filters."""
-    query = db.query(Anomaly).outerjoin(Resource, Anomaly.resource_id == Resource.id)
+    """List anomalies sorted by detected_at descending, with eager-loaded resources."""
+    query = db.query(Anomaly).options(joinedload(Anomaly.resource))
 
     if severity:
         query = query.filter(Anomaly.severity == severity)
@@ -62,6 +63,9 @@ def list_anomalies(
     if to_ts:
         query = query.filter(Anomaly.detected_at <= to_ts)
 
+    total_count = query.order_by(None).count()
+    response.headers["X-Total-Count"] = str(total_count)
+
     anomalies = (
         query.order_by(Anomaly.detected_at.desc())
         .offset(offset)
@@ -71,10 +75,7 @@ def list_anomalies(
 
     results = []
     for a in anomalies:
-        res_name = None
-        if a.resource_id:
-            res = db.query(Resource).filter(Resource.id == a.resource_id).first()
-            res_name = res.resource_id if res else None
+        res_name = a.resource.resource_id if a.resource else None
 
         results.append(AnomalyOut(
             id=a.id,
@@ -110,14 +111,11 @@ def get_anomaly_detail(
     db: Session = Depends(get_db),
 ):
     """Return full anomaly detail including root_cause JSON and related alerts."""
-    anomaly = db.query(Anomaly).filter(Anomaly.id == anomaly_id).first()
+    anomaly = db.query(Anomaly).options(joinedload(Anomaly.resource)).filter(Anomaly.id == anomaly_id).first()
     if not anomaly:
         raise HTTPException(status_code=404, detail="Anomaly not found")
 
-    res_name = None
-    if anomaly.resource_id:
-        res = db.query(Resource).filter(Resource.id == anomaly.resource_id).first()
-        res_name = res.resource_id if res else None
+    res_name = anomaly.resource.resource_id if anomaly.resource else None
 
     alerts = db.query(Alert).filter(Alert.anomaly_id == anomaly.id).all()
     alert_outs = [
@@ -202,10 +200,7 @@ def patch_anomaly(
         },
     )
 
-    res_name = None
-    if anomaly.resource_id:
-        res = db.query(Resource).filter(Resource.id == anomaly.resource_id).first()
-        res_name = res.resource_id if res else None
+    res_name = anomaly.resource.resource_id if anomaly.resource else None
 
     return AnomalyOut(
         id=anomaly.id,
