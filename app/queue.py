@@ -79,6 +79,34 @@ def enqueue_records(
     return count
 
 
+def format_dlq_entry(fields: dict, error: str) -> dict[str, str]:
+    """Format dictionary for writing to DLQ stream."""
+    return {**fields, "error": error, "dlq_at": str(time.time())}
+
+
+def deserialize_stream_message(fields: dict) -> tuple[Optional[dict[str, Any]], Optional[str]]:
+    """Safely decode Redis stream fields into a structured record dictionary.
+
+    Returns:
+        (record_dict, None) on success.
+        (None, error_message) on malformed envelope or corrupt JSON.
+    """
+    if "payload" not in fields:
+        return None, "Missing 'payload' field in stream message"
+
+    raw_payload = fields["payload"]
+    if isinstance(raw_payload, bytes):
+        raw_payload = raw_payload.decode("utf-8", errors="replace")
+
+    try:
+        data = json.loads(raw_payload)
+        if not isinstance(data, dict):
+            return None, f"Payload must decode to a JSON object, got {type(data).__name__}"
+        return data, None
+    except Exception as exc:
+        return None, f"JSON decode error: {exc}"
+
+
 def move_to_dlq(message_id: str, fields: dict, error: str) -> None:
     """Move a failed message to the dead-letter queue after max retries.
 
@@ -86,7 +114,7 @@ def move_to_dlq(message_id: str, fields: dict, error: str) -> None:
     so operators can inspect failures without guessing.
     """
     r = get_redis()
-    dlq_fields = {**fields, "error": error, "dlq_at": str(time.time())}
+    dlq_fields = format_dlq_entry(fields, error)
     r.xadd(STREAM_DLQ, dlq_fields)
     r.xack(STREAM_COST_RECORDS, CONSUMER_GROUP, message_id)
     logger.error(
