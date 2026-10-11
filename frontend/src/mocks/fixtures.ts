@@ -1,0 +1,273 @@
+export interface MockResource {
+  id: number
+  resource_id: string
+  type: string
+  service: string
+  region: string
+  team: string
+  first_seen: string
+  last_cost: number
+  baseline_mean_now: number
+  cost_24h: number
+  open_anomalies: number
+  status: 'normal' | 'warning' | 'anomalous'
+}
+
+export interface MockAnomaly {
+  id: number
+  scope: string
+  resource_id: number | null
+  resource_name: string
+  detected_at: string
+  record_ts: string
+  observed_cost: number
+  expected_cost: number
+  z_score: number
+  pct_increase: number
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  method: string
+  root_cause_summary: string
+  root_cause?: {
+    breakdown_by_team?: Record<string, number>
+    breakdown_by_service?: Record<string, number>
+    breakdown_by_region?: Record<string, number>
+    top_contributors?: Array<{
+      resource_id: string
+      share_pct: number
+      delta_cost: number
+      observed_cost: number
+    }>
+  }
+  status: 'open' | 'acknowledged' | 'resolved'
+  occurrences: number
+  peak_cost: number
+  last_seen_ts: string
+}
+
+const teams = ['ml', 'core', 'data', 'platform', 'frontend', 'security']
+const services = ['compute', 'database', 'storage', 'networking', 'analytics']
+const regions = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1']
+const types = ['ec2', 'rds', 's3', 'eks', 'lambda', 'elasticache']
+
+export const MOCK_RESOURCES: MockResource[] = Array.from({ length: 40 }).map((_, i) => {
+  const team = teams[i % teams.length]
+  const service = services[i % services.length]
+  const region = regions[i % regions.length]
+  const type = types[i % types.length]
+  const isAnom = i === 3 || i === 7 || i === 15
+  const isWarn = i === 12 || i === 22
+  const baseCost = Math.round((20 + (i * 7) % 80) * 100) / 100
+  const lastCost = isAnom ? baseCost * 4.5 : isWarn ? baseCost * 1.8 : baseCost
+
+  return {
+    id: i + 1,
+    resource_id: `${type}-${team}-${service}-${String(i + 1).padStart(2, '0')}`,
+    type,
+    service,
+    region,
+    team,
+    first_seen: new Date(Date.now() - 30 * 86400000).toISOString(),
+    last_cost: lastCost,
+    baseline_mean_now: baseCost,
+    cost_24h: Math.round(lastCost * 24 * 100) / 100,
+    open_anomalies: isAnom ? (i === 3 ? 2 : 1) : 0,
+    status: isAnom ? 'anomalous' : isWarn ? 'warning' : 'normal',
+  }
+})
+
+export const MOCK_ANOMALIES: MockAnomaly[] = [
+  {
+    id: 101,
+    scope: 'resource',
+    resource_id: 4,
+    resource_name: 'eks-ml-storage-04',
+    detected_at: new Date(Date.now() - 15 * 60000).toISOString(),
+    record_ts: new Date(Date.now() - 25 * 60000).toISOString(),
+    observed_cost: 324.5,
+    expected_cost: 42.1,
+    z_score: 6.8,
+    pct_increase: 670.8,
+    severity: 'critical',
+    method: 'z_score',
+    root_cause_summary: 'Sudden 671% cost spike detected on GPU training node cluster eks-ml-storage-04',
+    root_cause: {
+      breakdown_by_team: { ml: 82, core: 11, data: 7 },
+      breakdown_by_service: { compute: 75, storage: 20, database: 5 },
+      breakdown_by_region: { 'us-east-1': 90, 'eu-west-1': 10 },
+      top_contributors: [
+        { resource_id: 'eks-ml-storage-04', share_pct: 68, delta_cost: 282.4, observed_cost: 324.5 },
+        { resource_id: 'ec2-ml-compute-07', share_pct: 18, delta_cost: 65.2, observed_cost: 88.0 },
+        { resource_id: 's3-data-storage-03', share_pct: 8, delta_cost: 22.0, observed_cost: 34.1 },
+      ],
+    },
+    status: 'open',
+    occurrences: 2,
+    peak_cost: 345.0,
+    last_seen_ts: new Date(Date.now() - 5 * 60000).toISOString(),
+  },
+  {
+    id: 102,
+    scope: 'resource',
+    resource_id: 8,
+    resource_name: 'rds-core-database-08',
+    detected_at: new Date(Date.now() - 45 * 60000).toISOString(),
+    record_ts: new Date(Date.now() - 55 * 60000).toISOString(),
+    observed_cost: 189.2,
+    expected_cost: 64.0,
+    z_score: 4.2,
+    pct_increase: 195.6,
+    severity: 'high',
+    method: 'pct_jump',
+    root_cause_summary: 'Sustained throughput jump and IOPS autoscaling on rds-core-database-08',
+    root_cause: {
+      breakdown_by_team: { core: 70, platform: 25, data: 5 },
+      breakdown_by_service: { database: 85, storage: 15 },
+      breakdown_by_region: { 'eu-west-1': 100 },
+      top_contributors: [
+        { resource_id: 'rds-core-database-08', share_pct: 74, delta_cost: 125.2, observed_cost: 189.2 },
+        { resource_id: 'ec2-core-compute-02', share_pct: 19, delta_cost: 32.0, observed_cost: 58.4 },
+      ],
+    },
+    status: 'open',
+    occurrences: 3,
+    peak_cost: 195.0,
+    last_seen_ts: new Date(Date.now() - 10 * 60000).toISOString(),
+  },
+  {
+    id: 103,
+    scope: 'aggregate',
+    resource_id: null,
+    resource_name: 'aggregate (platform)',
+    detected_at: new Date(Date.now() - 120 * 60000).toISOString(),
+    record_ts: new Date(Date.now() - 130 * 60000).toISOString(),
+    observed_cost: 612.0,
+    expected_cost: 410.0,
+    z_score: 3.1,
+    pct_increase: 49.3,
+    severity: 'medium',
+    method: 'ewma_drift',
+    root_cause_summary: 'Multi-resource EWMA cost baseline drift across platform networking resources',
+    root_cause: {
+      breakdown_by_team: { platform: 60, data: 25, core: 15 },
+      breakdown_by_service: { networking: 70, compute: 30 },
+      breakdown_by_region: { 'ap-southeast-1': 80, 'us-east-1': 20 },
+      top_contributors: [
+        { resource_id: 'lambda-platform-networking-16', share_pct: 42, delta_cost: 84.8, observed_cost: 122.0 },
+        { resource_id: 'elasticache-platform-database-11', share_pct: 31, delta_cost: 62.6, observed_cost: 95.0 },
+      ],
+    },
+    status: 'acknowledged',
+    occurrences: 1,
+    peak_cost: 612.0,
+    last_seen_ts: new Date(Date.now() - 60 * 60000).toISOString(),
+  },
+  {
+    id: 104,
+    scope: 'resource',
+    resource_id: 16,
+    resource_name: 's3-security-storage-16',
+    detected_at: new Date(Date.now() - 360 * 60000).toISOString(),
+    record_ts: new Date(Date.now() - 370 * 60000).toISOString(),
+    observed_cost: 45.0,
+    expected_cost: 18.2,
+    z_score: 2.2,
+    pct_increase: 147.3,
+    severity: 'low',
+    method: 'new_resource',
+    root_cause_summary: 'New S3 audit bucket first seen with heavy initial export ingestion',
+    status: 'resolved',
+    occurrences: 1,
+    peak_cost: 45.0,
+    last_seen_ts: new Date(Date.now() - 240 * 60000).toISOString(),
+  },
+]
+
+export const MOCK_STATS_OVERVIEW = {
+  generated_at: new Date().toISOString(),
+  cost_24h: 3845.2,
+  cost_prev_24h: 3410.8,
+  cost_change_pct: 12.7,
+  records_24h: 960,
+  active_resources: 40,
+  anomalies_open: {
+    critical: 1,
+    high: 1,
+    medium: 1,
+    low: 0,
+    total: 3,
+  },
+  anomalies_24h: 5,
+  mttd_seconds_p95: 3.8,
+  top_spenders: [
+    { resource_id: 'eks-ml-storage-04', team: 'ml', cost: 324.5, share_pct: 14.8 },
+    { resource_id: 'rds-core-database-08', team: 'core', cost: 189.2, share_pct: 8.6 },
+    { resource_id: 'ec2-ml-compute-07', team: 'ml', cost: 145.0, share_pct: 6.6 },
+    { resource_id: 'lambda-platform-networking-16', team: 'platform', cost: 122.0, share_pct: 5.5 },
+    { resource_id: 'elasticache-platform-database-11', team: 'platform', cost: 95.0, share_pct: 4.3 },
+    { resource_id: 'ec2-core-compute-02', team: 'core', cost: 88.4, share_pct: 4.0 },
+    { resource_id: 's3-data-storage-03', team: 'data', cost: 72.1, share_pct: 3.3 },
+    { resource_id: 'eks-data-analytics-05', team: 'data', cost: 68.0, share_pct: 3.1 },
+  ],
+  latest_anomaly: MOCK_ANOMALIES[0],
+}
+
+export const MOCK_SYSTEM_STATUS = {
+  api: {
+    status: 'ok',
+    version: '1.0.0',
+    color: 'blue',
+    uptime_seconds: 48200,
+  },
+  postgres: {
+    connected: true,
+    status: 'up',
+  },
+  redis: {
+    connected: true,
+    status: 'up',
+    queue_lag: 0,
+    dlq_length: 0,
+  },
+  worker: {
+    count: 1,
+    status: 'up',
+    last_processed_at: new Date(Date.now() - 5000).toISOString(),
+  },
+  worker_count: 1,
+  queue_lag: 0,
+  dlq_length: 0,
+  last_record_processed_at: new Date(Date.now() - 5000).toISOString(),
+  prometheus_reachable: true,
+  grafana_reachable: true,
+  prometheus: {
+    status: 'up',
+    reachable: true,
+  },
+  grafana: {
+    status: 'up',
+    reachable: true,
+  },
+}
+
+export const MOCK_DEPLOYMENTS = [
+  {
+    id: 1,
+    version: '1.0.0',
+    color: 'blue',
+    status: 'active',
+    deployed_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    activated_at: new Date(Date.now() - 86400000 * 2 + 120000).toISOString(),
+    rolled_back_at: null,
+    note: 'Initial production release v1.0.0 (blue active)',
+  },
+  {
+    id: 2,
+    version: '1.1.0-faulty',
+    color: 'green',
+    status: 'rolled_back',
+    deployed_at: new Date(Date.now() - 86400000 + 3600000).toISOString(),
+    activated_at: new Date(Date.now() - 86400000 + 3660000).toISOString(),
+    rolled_back_at: new Date(Date.now() - 86400000 + 3750000).toISOString(),
+    note: 'Post-cutover error rate exceeded threshold 5%; auto-rollback executed in 90s',
+  },
+]

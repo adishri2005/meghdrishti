@@ -1,0 +1,120 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 216 38% 97%;
+    --foreground: 214 47% 11%;
+    --surface: 0 0% 100%;
+    --surface-elevated: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 214 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 47% 11%;
+    --primary: 172 82% 34%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 94% 68%;
+    --secondary-foreground: 214 47% 11%;
+    --muted: 210 20% 92%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 20% 94%;
+    --accent-foreground: 214 47% 11%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 33% 90%;
+    --border-strong: 214 32% 84%;
+    --input: 213 33% 90%;
+    --ring: 172 82% 34%;
+    --radius: 0.75rem;
+
+    --grid-dot-color: rgba(15, 27, 42, 0.04);
+  }
+
+  .dark {
+    --background: 213 31% 6%;
+    --foreground: 212 37% 93%;
+    --surface: 214 33% 10%;
+    --surface-elevated: 216 35% 14%;
+    --card: 214 33% 10%;
+    --card-foreground: 212 37% 93%;
+    --popover: 214 33% 10%;
+    --popover-foreground: 212 37% 93%;
+    --primary: 173 66% 50%;
+    --primary-foreground: 171 78% 7%;
+    --secondary: 213 94% 68%;
+    --secondary-foreground: 213 31% 6%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 212 21% 63%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 212 37% 93%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 31% 19%;
+    --border-strong: 213 30% 26%;
+    --input: 214 31% 19%;
+    --ring: 173 66% 50%;
+
+    --grid-dot-color: rgba(231, 237, 244, 0.04);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image: radial-gradient(var(--grid-dot-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    min-height: 100vh;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Polished Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border-strong));
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Custom visual utility classes */
+.glow-critical {
+  box-shadow: 0 0 0 1px rgb(244 63 94 / 0.35), 0 0 24px rgb(244 63 94 / 0.15);
+}
+
+.glow-primary {
+  box-shadow: 0 0 0 1px rgb(45 212 191 / 0.35), 0 0 20px rgb(45 212 191 / 0.15);
+}
+
+/* Card subtle gradient surface */
+.dark .card-surface {
+  background: linear-gradient(180deg, hsl(var(--surface-elevated)) 0%, hsl(var(--surface)) 100%);
+  border: 1px solid hsl(var(--border));
+}
+
+.card-surface {
+  background: hsl(var(--surface));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+}
