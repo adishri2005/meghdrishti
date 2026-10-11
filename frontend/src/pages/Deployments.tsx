@@ -1,10 +1,229 @@
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  Layers,
+  Terminal,
+  RefreshCw,
+  Copy,
+  Check,
+  AlertCircle,
+  HelpCircle,
+} from 'lucide-react'
+import {
+  getCurrentDeployment,
+  getDeployments,
+} from '@/lib/api/endpoints/deployments'
+import { BlueGreenDiagram } from '@/components/deployments/BlueGreenDiagram'
+import { DeploymentTimeline } from '@/components/deployments/DeploymentTimeline'
+import { ImpactPanel } from '@/components/deployments/ImpactPanel'
+import { SkeletonCard } from '@/components/data/SkeletonCard'
+import { toast } from 'sonner'
+import type { DeploymentRecord } from '@/lib/api/types'
+
+const DEPLOY_COMMANDS = [
+  {
+    title: 'Standard Blue/Green Release',
+    cmd: 'make deploy VERSION=v1.2.0',
+    desc: 'Spins up standby container, awaits healthy probe, atomically flips Nginx upstream.',
+  },
+  {
+    title: 'Faulty Canary Injection (Report Demo)',
+    cmd: 'make deploy-faulty',
+    desc: 'Deploys version with artificial 5xx error rate to demonstrate automated rollback.',
+  },
+  {
+    title: 'Manual Immediate Rollback',
+    cmd: 'make rollback',
+    desc: 'Instant zero-downtime cutover back to previous standby container.',
+  },
+  {
+    title: 'Autonomous Failure Experiment',
+    cmd: './scripts/failure_experiment.sh',
+    desc: 'Simulates worker loss, DLQ saturation, and auto-healing recovery cycle.',
+  },
+]
 
 export default function Deployments() {
+  const [selectedDeployment, setSelectedDeployment] = useState<DeploymentRecord | null>(null)
+  const [copiedCmd, setCopiedCmd] = useState<string | null>(null)
+
+  // Fetch current active cluster state
+  const {
+    data: current,
+    isLoading: loadingCurrent,
+    refetch: refetchCurrent,
+  } = useQuery({
+    queryKey: ['deployments', 'current'],
+    queryFn: getCurrentDeployment,
+    staleTime: 15000,
+  })
+
+  // Fetch deployment history
+  const {
+    data: deployments = [],
+    isLoading: loadingDeployments,
+    refetch: refetchHistory,
+    isFetching,
+  } = useQuery({
+    queryKey: ['deployments', 'history'],
+    queryFn: () => getDeployments(20),
+    staleTime: 15000,
+  })
+
+  // Select first deployment (or rolled back deployment) if none selected
+  const activeDeployment =
+    selectedDeployment ||
+    deployments.find((d) => d.status === 'rolled_back') ||
+    deployments[0] ||
+    null
+
+  const copyToClipboard = (cmd: string) => {
+    navigator.clipboard.writeText(cmd)
+    setCopiedCmd(cmd)
+    toast.success('Copied command to clipboard')
+    setTimeout(() => setCopiedCmd(null), 2000)
+  }
+
+  const handleRefresh = () => {
+    refetchCurrent()
+    refetchHistory()
+  }
+
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-      <h1 className="text-2xl font-bold tracking-tight">Deployments</h1>
-      <div className="card-surface p-6 rounded-xl border border-border">
-        <p className="text-sm text-muted-foreground">Blue/Green Deployments Timeline Loading...</p>
+      {/* Top Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+            <Layers className="h-6 w-6 text-primary" />
+            Deployments & Zero-Downtime Rollback
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Nginx upstream routing, deployment lifecycle audit, and automated failure recovery verification.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated transition-colors"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+          <span>Refresh State</span>
+        </button>
+      </div>
+
+      {/* Cluster State Diagram */}
+      {loadingCurrent ? (
+        <SkeletonCard className="h-48 w-full" />
+      ) : (
+        <BlueGreenDiagram
+          activeColor={current?.active_color || 'blue'}
+          version={current?.version || 'v1.0.0'}
+          uptimeSeconds={current?.uptime_seconds}
+        />
+      )}
+
+      {/* Main Content Layout: Timeline on Left, Impact on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Timeline (Cols 1-5) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            {loadingDeployments ? (
+              <div className="space-y-4">
+                <SkeletonCard className="h-24" />
+                <SkeletonCard className="h-24" />
+              </div>
+            ) : deployments.length > 0 ? (
+              <DeploymentTimeline
+                deployments={deployments}
+                selectedId={activeDeployment?.id}
+                onSelectDeployment={(d) => setSelectedDeployment(d)}
+              />
+            ) : (
+              <div className="text-center py-8 text-xs text-muted-foreground">
+                No deployment history found.
+              </div>
+            )}
+          </div>
+
+          {/* How to Deploy Commands Card */}
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2">
+              <Terminal className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">
+                Release Execution Cheatsheet
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Production deployments and rollbacks are executed via CI/CD and make targets to guarantee auditability:
+            </p>
+
+            <div className="space-y-2.5">
+              {DEPLOY_COMMANDS.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-lg border border-border bg-surface p-2.5 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground">
+                      {item.title}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(item.cmd)}
+                      className="inline-flex items-center gap-1 rounded bg-background px-2 py-0.5 text-[10px] font-mono text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors border border-border"
+                      title="Copy command"
+                    >
+                      {copiedCmd === item.cmd ? (
+                        <Check className="h-3 w-3 text-success" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                      <span>Copy</span>
+                    </button>
+                  </div>
+                  <pre className="rounded bg-background px-2 py-1 font-mono text-[11px] text-primary select-all">
+                    <code>{item.cmd}</code>
+                  </pre>
+                  <p className="text-[11px] text-muted-foreground leading-normal">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Impact Analysis Panel (Cols 6-12) */}
+        <div className="lg:col-span-7 space-y-6">
+          {activeDeployment ? (
+            <ImpactPanel deployment={activeDeployment} />
+          ) : (
+            <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
+              <AlertCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
+              <p className="text-sm font-medium">Select a release from the timeline</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Inspect before, during, and after cutover telemetry.
+              </p>
+            </div>
+          )}
+
+          {/* Report Viva Tips Card */}
+          <div className="rounded-xl border border-border bg-surface p-4 flex items-start gap-3">
+            <HelpCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs">
+              <span className="font-semibold text-foreground">
+                Evaluation & Report Evidence Note
+              </span>
+              <p className="text-muted-foreground leading-relaxed">
+                The before/during/after chart and comparative impact table above provide the verification evidence
+                required for Project P75. When <code className="font-mono text-primary">make deploy-faulty</code> is run,
+                the auto-rollback timeline item and recovery impact metrics can be captured directly for the project report.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
