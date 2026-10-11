@@ -126,3 +126,19 @@ export function formatRate(
   if (val === null || val === undefined || isNaN(val)) return `0 ${unit}`
   return `${val.toFixed(decimals)} ${unit}`
 }
+
+/**
+ * Formats a timestamp into a standard human readable string
+ */
+export function formatTimestamp(ts: number | string | Date): string {
+  return formatDateTime(ts, 'yyyy-MM-dd HH:mm:ss')
+}
+
+/**
+ * Formats generic number with decimal precision
+ */
+export function formatNumber(val: number | null | undefined, decimals = 2): string {
+  if (val === null || val === undefined || isNaN(val)) return '0'
+  return val.toLocaleString('en-US', { maximumFractionDigits: decimals })
+}
+

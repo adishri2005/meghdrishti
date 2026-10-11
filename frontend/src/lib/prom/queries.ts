@@ -73,17 +73,21 @@ export interface PromAlert {
   value: string
 }
 
+export interface PromRule {
+  name: string
+  query: string
+  duration?: number
+  labels?: Record<string, string>
+  annotations?: Record<string, string>
+  alerts?: PromAlert[]
+  health?: string
+  type: 'alerting' | 'recording'
+  state?: 'firing' | 'pending' | 'inactive'
+}
+
 export interface PromRuleGroup {
   name: string
   file: string
-  rules: Array<{
-    name: string
-    query: string
-    duration: number
-    labels: Record<string, string>
-    annotations: Record<string, string>
-    alerts?: PromAlert[]
-    health: string
-    type: 'alerting' | 'recording'
-  }>
+  rules: PromRule[]
 }
+
