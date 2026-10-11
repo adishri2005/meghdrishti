@@ -313,3 +313,73 @@ export const MOCK_HEATMAP = {
   hours: Array.from({ length: 24 }, (_, i) => i),
   values: heatmapValues,
 }
+
+export const MOCK_APP_LOGS = Array.from({ length: 80 }).map((_, i) => {
+  const levels = ['INFO', 'INFO', 'WARNING', 'INFO', 'ERROR', 'DEBUG']
+  const events = [
+    'anomaly_detected',
+    'records_ingested',
+    'detection_completed',
+    'rate_limit_evaluated',
+    'auth_token_verified',
+    'model_drift_evaluated',
+    'dlq_check_passed',
+  ]
+  const loggers = ['ccad.detector', 'ccad.worker', 'ccad.api', 'ccad.security', 'ccad.db']
+  const lvl = levels[i % levels.length]
+  const evt = events[i % events.length]
+  const ts = new Date(Date.now() - i * 45000).toISOString()
+  const reqId = `req-${Math.random().toString(36).substring(2, 10)}`
+  const resId = `ec2-ml-compute-${String((i % 10) + 1).padStart(2, '0')}`
+
+  return {
+    timestamp: ts,
+    level: lvl,
+    logger: loggers[i % loggers.length],
+    event: evt,
+    message:
+      lvl === 'ERROR'
+        ? `Failed to process record batch for ${resId}: timeout during stream ingestion`
+        : lvl === 'WARNING'
+        ? `Statistical deviation observed on ${resId}: z-score=3.8 exceeds threshold`
+        : `Successfully evaluated metric window for ${resId} in 14.2ms`,
+    request_id: reqId,
+    user: i % 3 === 0 ? 'admin' : 'analyst',
+    resource_id: resId,
+    duration_ms: Math.round(10 + (i * 3.5) % 40),
+  }
+})
+
+export const MOCK_AUDIT_LOGS = Array.from({ length: 50 }).map((_, i) => {
+  const actions = [
+    'threshold_update',
+    'simulate_spike',
+    'anomaly_acknowledged',
+    'anomaly_resolved',
+    'login_success',
+    'user_created',
+  ]
+  const results: Array<'success' | 'denied' | 'error'> = ['success', 'success', 'denied', 'success', 'success']
+  const actors = ['admin', 'analyst', 'system', 'admin']
+  const act = actions[i % actions.length]
+  const res = results[i % results.length]
+  const ts = new Date(Date.now() - i * 3600000).toISOString()
+
+  return {
+    id: i + 1,
+    actor: actors[i % actors.length],
+    action: act,
+    entity: 'anomaly_detector',
+    entity_id: `anom-${100 + (i % 20)}`,
+    ip: `192.168.1.${10 + (i % 50)}`,
+    result: res,
+    detail: {
+      old_value: act === 'threshold_update' ? { z_threshold: 3.0 } : undefined,
+      new_value: act === 'threshold_update' ? { z_threshold: 3.5 } : undefined,
+      multiplier: act === 'simulate_spike' ? 4.5 : undefined,
+      note: res === 'denied' ? 'User lacks required administrator permissions' : undefined,
+    },
+    ts,
+  }
+})
+

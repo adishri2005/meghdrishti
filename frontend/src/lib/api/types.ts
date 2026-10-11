@@ -141,3 +141,28 @@ export const SystemStatusSchema = z.object({
   }).optional(),
 })
 export type SystemStatus = z.infer<typeof SystemStatusSchema>
+
+export const LogRecordSchema = z.object({
+  timestamp: z.string().optional().default(''),
+  level: z.string().optional().default('INFO'),
+  logger: z.string().optional().default('ccad'),
+  event: z.string().optional().default(''),
+  message: z.string().optional().default(''),
+  request_id: z.string().optional(),
+  user: z.string().optional(),
+}).passthrough()
+export type LogRecord = z.infer<typeof LogRecordSchema>
+
+export const AuditLogRecordSchema = z.object({
+  id: z.number(),
+  actor: z.string(),
+  action: z.string(),
+  entity: z.string().nullable().optional(),
+  entity_id: z.string().nullable().optional(),
+  ip: z.string().nullable().optional(),
+  result: z.enum(['success', 'denied', 'error']),
+  detail: z.record(z.any()).nullable().optional(),
+  ts: z.string().nullable().optional(),
+})
+export type AuditLogRecord = z.infer<typeof AuditLogRecordSchema>
+
