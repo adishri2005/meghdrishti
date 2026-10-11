@@ -166,3 +166,40 @@ export const AuditLogRecordSchema = z.object({
 })
 export type AuditLogRecord = z.infer<typeof AuditLogRecordSchema>
 
+export const ThresholdsSchema = z.object({
+  detection: z.object({
+    z_threshold: z.number().default(3.0),
+    pct_jump_threshold: z.number().default(50.0),
+    ewma_alpha: z.number().default(0.2),
+    min_samples: z.number().default(10),
+    drift_ratio_threshold: z.number().optional().default(1.2),
+    aggregate_cost_threshold: z.number().optional().default(1000.0),
+    dedup_window_seconds: z.number().optional().default(3600),
+  }),
+  severity: z.object({
+    critical: z.object({ z: z.number(), pct: z.number() }),
+    high: z.object({ z: z.number(), pct: z.number() }),
+    medium: z.object({ z: z.number(), pct: z.number() }),
+  }),
+})
+export type Thresholds = z.infer<typeof ThresholdsSchema>
+
+export const UserRecordSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  role: z.string(),
+  is_active: z.boolean(),
+  created_at: z.string().nullable().optional(),
+})
+export type UserRecord = z.infer<typeof UserRecordSchema>
+
+export const ApiClientRecordSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  role: z.string(),
+  is_active: z.boolean(),
+  created_at: z.string().nullable().optional(),
+})
+export type ApiClientRecord = z.infer<typeof ApiClientRecordSchema>
+
+
