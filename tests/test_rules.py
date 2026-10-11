@@ -150,3 +150,19 @@ class TestClassifySeverity:
 
     def test_low_values(self, default_cfg):
         assert classify_severity(2.0, 30.0, default_cfg) == "low"
+
+    def test_min_severity_floor(self, default_cfg):
+        """When a minimum severity floor is given, it cannot be lower than that floor."""
+        assert classify_severity(None, 10.0, default_cfg, min_severity="medium") == "medium"
+        assert classify_severity(12.0, 10.0, default_cfg, min_severity="medium") == "critical"
+
+    def test_verdict_direction_metadata(self, normal_baseline, default_cfg):
+        v_normal = evaluate(cost=2.0, baseline=normal_baseline, ewma_prev=1.0, cfg=default_cfg)
+        assert v_normal.direction == "normal"
+
+        v_spike = evaluate(cost=10.0, baseline=normal_baseline, ewma_prev=1.0, cfg=default_cfg)
+        assert v_spike.direction == "spike"
+
+        v_drift = evaluate(cost=2.3, baseline=normal_baseline, ewma_prev=1.4, cfg=default_cfg)
+        assert v_drift.direction == "drift"
+        assert v_drift.severity in ("medium", "high", "critical")

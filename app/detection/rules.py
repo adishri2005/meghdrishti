@@ -84,14 +84,16 @@ class Verdict:
     severity: Optional[str] = None  # critical | high | medium | low
     expected: Optional[float] = None
     new_ewma: Optional[float] = None
+    direction: Optional[str] = None  # spike | drift | new_resource | normal
 
 
 def classify_severity(
     z: Optional[float],
     pct: Optional[float],
     cfg: DetectionConfig,
+    min_severity: str = "low",
 ) -> str:
-    """Assign severity based on the *larger* implication of z and pct.
+    """Assign severity based on the *larger* implication of z, pct, and min_severity.
 
     Why the max: a spike that is both 8 standard deviations out AND 200%
     above baseline should be classified as "high" (from the z) rather than
@@ -119,9 +121,13 @@ def classify_severity(
 
     # Rank ordering for max comparison
     rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
-    if rank.get(severity_from_z, 0) >= rank.get(severity_from_pct, 0):
-        return severity_from_z
-    return severity_from_pct
+    highest = max(
+        rank.get(severity_from_z, 1),
+        rank.get(severity_from_pct, 1),
+        rank.get(min_severity, 1),
+    )
+    inv_rank = {4: "critical", 3: "high", 2: "medium", 1: "low"}
+    return inv_rank.get(highest, "low")
 
 
 def compute_z_and_pct(
@@ -184,11 +190,12 @@ def evaluate(
             severity="medium",
             expected=0.0,
             new_ewma=1.0,
+            direction="new_resource",
         )
 
     # --- Cold start: not enough data to detect ---
     if baseline.is_cold_for(cfg.min_samples):
-        return Verdict(is_anomaly=False, new_ewma=ewma_prev)
+        return Verdict(is_anomaly=False, new_ewma=ewma_prev, direction="normal")
 
     z, pct, std_eff = compute_z_and_pct(cost, baseline, cfg)
 
@@ -218,10 +225,12 @@ def evaluate(
             severity=severity,
             expected=round(baseline.mean, 4),
             new_ewma=round(new_ewma, 6),
+            direction="spike",
         )
 
     if rule_c:
-        severity = classify_severity(None, pct if pct > 0 else None, cfg)
+        # Sustained drift receives at least medium severity to ensure alerting
+        severity = classify_severity(None, pct if pct > 0 else None, cfg, min_severity="medium")
         return Verdict(
             is_anomaly=True,
             method="ewma_drift",
@@ -230,6 +239,7 @@ def evaluate(
             severity=severity,
             expected=round(baseline.mean, 4),
             new_ewma=round(new_ewma, 6),
+            direction="drift",
         )
 
     # No anomaly
@@ -239,4 +249,5 @@ def evaluate(
         pct_increase=round(pct, 2),
         expected=round(baseline.mean, 4),
         new_ewma=round(new_ewma, 6),
+        direction="normal",
     )
