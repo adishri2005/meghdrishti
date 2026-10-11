@@ -16,7 +16,36 @@ import uuid
 from contextvars import ContextVar
 from pathlib import Path
 
-from pythonjsonlogger import jsonlogger
+try:
+    try:
+        from pythonjsonlogger.json import JsonFormatter as _BaseFormatter
+    except ImportError:
+        from pythonjsonlogger import jsonlogger
+        _BaseFormatter = jsonlogger.JsonFormatter
+except ImportError:
+    import json
+
+    class _BaseFormatter(logging.Formatter):  # type: ignore[no-redef]
+        def __init__(self, fmt: str | None = None, *args, **kwargs):
+            super().__init__(fmt)
+
+        def format(self, record: logging.LogRecord) -> str:
+            message_dict = {}
+            if isinstance(record.msg, dict):
+                message_dict = record.msg
+                record.msg = ""
+            log_record = {
+                "timestamp": self.formatTime(record),
+                "level": record.levelname,
+                "logger": record.name,
+                "message": record.getMessage(),
+            }
+            log_record.update(message_dict)
+            self.add_fields(log_record, record, message_dict)
+            return json.dumps(log_record, default=str)
+
+        def add_fields(self, log_record: dict, record: logging.LogRecord, message_dict: dict) -> None:
+            pass
 
 from app.config import get_settings
 
@@ -26,7 +55,7 @@ request_user_var: ContextVar[str] = ContextVar("request_user", default="")
 request_role_var: ContextVar[str] = ContextVar("request_role", default="")
 
 
-class CCadJsonFormatter(jsonlogger.JsonFormatter):
+class CCadJsonFormatter(_BaseFormatter):
     """Custom JSON formatter that injects request context into every log line."""
 
     def add_fields(self, log_record: dict, record: logging.LogRecord, message_dict: dict) -> None:
