@@ -66,6 +66,14 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
+      {/* Skip Link for Keyboard Accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg focus:font-semibold focus:text-xs focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
+
       {/* Left Sidebar */}
       <Sidebar />
 
@@ -81,7 +89,7 @@ export function AppShell() {
         <StatusStrip />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto outline-none">
           <Outlet />
         </main>
       </div>
