@@ -19,6 +19,8 @@ import {
   Flame,
 } from 'lucide-react'
 import { useUIStore } from '@/store/ui'
+import { useAuthStore } from '@/hooks/useAuth'
+import { canManageSettings, canSimulate } from '@/lib/rbac'
 import { useTimeRange } from '@/hooks/useTimeRange'
 import { MOCK_ANOMALIES, MOCK_RESOURCES } from '@/mocks/fixtures'
 import { toast } from 'sonner'
@@ -31,6 +33,7 @@ interface CommandPaletteProps {
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const navigate = useNavigate()
   const { theme, setTheme } = useUIStore()
+  const { user } = useAuthStore()
   const [, setTimeRange] = useTimeRange()
   const [search, setSearch] = useState('')
 
@@ -127,13 +130,15 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 <GitBranch className="w-4 h-4 text-info" />
                 <span>Blue/Green Deployments</span>
               </Command.Item>
-              <Command.Item
-                onSelect={() => handleSelect(() => navigate('/settings'))}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
-              >
-                <SettingsIcon className="w-4 h-4 text-muted-foreground" />
-                <span>Settings & Thresholds</span>
-              </Command.Item>
+              {canManageSettings(user?.role) && (
+                <Command.Item
+                  onSelect={() => handleSelect(() => navigate('/settings'))}
+                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
+                >
+                  <SettingsIcon className="w-4 h-4 text-muted-foreground" />
+                  <span>Settings & Thresholds</span>
+                </Command.Item>
+              )}
             </Command.Group>
 
             <Command.Group heading="Recent Incidents" className="text-[11px] font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">
@@ -182,18 +187,20 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 <ExternalLink className="w-4 h-4 text-danger" />
                 <span>Open Prometheus Console</span>
               </Command.Item>
-              <Command.Item
-                onSelect={() =>
-                  handleSelect(() => {
-                    navigate('/ingestion')
-                    toast.info('Simulator panel opened — inject spike ready')
-                  })
-                }
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
-              >
-                <Flame className="w-4 h-4 text-danger" />
-                <span>Inject Anomaly Spike (Demo)</span>
-              </Command.Item>
+              {canSimulate(user?.role) && (
+                <Command.Item
+                  onSelect={() =>
+                    handleSelect(() => {
+                      navigate('/ingestion')
+                      toast.info('Simulator panel opened — inject spike ready')
+                    })
+                  }
+                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
+                >
+                  <Flame className="w-4 h-4 text-danger" />
+                  <span>Inject Anomaly Spike (Demo)</span>
+                </Command.Item>
+              )}
               <Command.Item
                 onSelect={() =>
                   handleSelect(() => {

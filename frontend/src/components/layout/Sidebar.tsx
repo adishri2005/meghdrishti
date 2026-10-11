@@ -17,12 +17,15 @@ import {
   User,
 } from 'lucide-react'
 import { useUIStore } from '@/store/ui'
+import { useAuthStore } from '@/hooks/useAuth'
+import { canManageSettings, canViewLogs } from '@/lib/rbac'
 import { MOCK_ANOMALIES } from '@/mocks/fixtures'
 
 export function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
+  const { user, logout } = useAuthStore()
 
   const [monitoringOpen, setMonitoringOpen] = useState(
     location.pathname.startsWith('/monitoring')
@@ -41,9 +44,8 @@ export function Sidebar() {
         : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
     }`
 
-  const handleLogout = () => {
-    // Call logout endpoint and redirect
-    document.cookie = 'ccad_token=; Max-Age=0; path=/;'
+  const handleLogout = async () => {
+    await logout()
     navigate('/login')
   }
 
@@ -259,57 +261,59 @@ export function Sidebar() {
             )}
           </div>
 
-          {/* Logs Group */}
-          <div>
-            <button
-              onClick={() => {
-                if (sidebarCollapsed) toggleSidebar()
-                setLogsOpen(!logsOpen)
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
-                location.pathname.startsWith('/logs') ? 'text-foreground font-semibold' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
-                {!sidebarCollapsed && <span>Logs</span>}
-              </div>
-              {!sidebarCollapsed && (
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform ${logsOpen ? 'rotate-180' : ''}`}
-                />
-              )}
-            </button>
+          {/* Logs Group (Admin only) */}
+          {canViewLogs(user?.role) && (
+            <div>
+              <button
+                onClick={() => {
+                  if (sidebarCollapsed) toggleSidebar()
+                  setLogsOpen(!logsOpen)
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
+                  location.pathname.startsWith('/logs') ? 'text-foreground font-semibold' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
+                  {!sidebarCollapsed && <span>Logs</span>}
+                </div>
+                {!sidebarCollapsed && (
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform ${logsOpen ? 'rotate-180' : ''}`}
+                  />
+                )}
+              </button>
 
-            {logsOpen && !sidebarCollapsed && (
-              <div className="ml-7 mt-1 space-y-1 pl-2 border-l border-border/60">
-                <NavLink
-                  to="/logs/app"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
-                >
-                  Application Live Tail
-                </NavLink>
-                <NavLink
-                  to="/logs/audit"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
-                >
-                  Audit Trail
-                </NavLink>
-              </div>
-            )}
-          </div>
+              {logsOpen && !sidebarCollapsed && (
+                <div className="ml-7 mt-1 space-y-1 pl-2 border-l border-border/60">
+                  <NavLink
+                    to="/logs/app"
+                    className={({ isActive }) =>
+                      `block px-2.5 py-1.5 rounded-md text-[11px] ${
+                        isActive
+                          ? 'text-primary font-semibold bg-primary/10'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`
+                    }
+                  >
+                    Application Live Tail
+                  </NavLink>
+                  <NavLink
+                    to="/logs/audit"
+                    className={({ isActive }) =>
+                      `block px-2.5 py-1.5 rounded-md text-[11px] ${
+                        isActive
+                          ? 'text-primary font-semibold bg-primary/10'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`
+                    }
+                  >
+                    Audit Trail
+                  </NavLink>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Deployments */}
           <NavLink to="/deployments" className={({ isActive }) => navItemClass(isActive)}>
@@ -322,16 +326,18 @@ export function Sidebar() {
             )}
           </NavLink>
 
-          {/* Settings */}
-          <NavLink to="/settings" className={({ isActive }) => navItemClass(isActive)}>
-            <SettingsIcon className="w-4 h-4 shrink-0 text-muted-foreground" />
-            {!sidebarCollapsed && <span>Settings</span>}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
-                Settings
-              </span>
-            )}
-          </NavLink>
+          {/* Settings (Admin only) */}
+          {canManageSettings(user?.role) && (
+            <NavLink to="/settings" className={({ isActive }) => navItemClass(isActive)}>
+              <SettingsIcon className="w-4 h-4 shrink-0 text-muted-foreground" />
+              {!sidebarCollapsed && <span>Settings</span>}
+              {sidebarCollapsed && (
+                <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                  Settings
+                </span>
+              )}
+            </NavLink>
+          )}
         </nav>
       </div>
 
@@ -365,10 +371,10 @@ export function Sidebar() {
             {!sidebarCollapsed && (
               <div className="flex flex-col min-w-0">
                 <span className="text-xs font-semibold text-foreground truncate">
-                  Admin User
+                  {user?.username || 'User'}
                 </span>
                 <span className="text-[10px] text-primary font-mono capitalize">
-                  Administrator
+                  {user?.role || 'Operator'}
                 </span>
               </div>
             )}
