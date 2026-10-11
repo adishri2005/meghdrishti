@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g. 1.1.0)"
+        required: true
+      faulty:
+        description: "Deploy as faulty release (for rollback demo)"
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.EC2_HOST }} ecdsa-sha2-nistp256 PLACEHOLDER" > ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          FAULTY_FLAG=""
+          if [ "${{ inputs.faulty }}" = "true" ]; then
+            FAULTY_FLAG="--faulty"
+          fi
+
+          ssh -i ~/.ssh/deploy_key $EC2_USER@$EC2_HOST << EOF
+            cd ~/cloud-cost-anomaly-detection
+            git pull
+            bash scripts/deploy.sh ${{ inputs.version }} $FAULTY_FLAG
+          EOF

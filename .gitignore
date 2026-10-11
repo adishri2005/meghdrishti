@@ -1,0 +1,43 @@
+# Environment and secrets
+.env
+*.env.local
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Nginx certs (self-signed, generated locally)
+nginx/certs/*
+!nginx/certs/.gitkeep
+
+# Results (generated at runtime)
+results/*
+!results/.gitkeep
+
+# Logs
+*.log
+/var/log/
+
+# Docker volumes
+pgdata/
+redisdata/
+
+# Node (if any)
+node_modules/

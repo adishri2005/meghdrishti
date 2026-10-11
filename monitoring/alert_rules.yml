@@ -1,0 +1,60 @@
+groups:
+  - name: ccad_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(api_requests_total{status=~"5.."}[30s])) /
+          sum(rate(api_requests_total[30s])) > 0.05
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate (> 5%)"
+          description: "The API error rate has exceeded 5% for the last 30 seconds."
+
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(api_latency_seconds_bucket[1m])) by (le)) > 1.0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API p95 latency (> 1s)"
+          description: "The p95 API latency has exceeded 1 second for the last minute."
+
+      - alert: QueueLagHigh
+        expr: queue_lag > 500
+        for: 20s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue lag is high (> 500 messages)"
+          description: "The cost_records stream has more than 500 pending messages."
+
+      - alert: WorkerDown
+        expr: up{job="worker"} == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Worker is down"
+          description: "No worker instances are responding to health checks."
+
+      - alert: DLQNotEmpty
+        expr: dlq_length > 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Dead-letter queue has messages"
+          description: "{{ $value }} messages in the DLQ need investigation."
+
+      - alert: NoRecordsProcessed
+        expr: |
+          increase(records_ingested_total[1m]) > 0
+          and increase(records_processed_total[1m]) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Records being ingested but none processed"
+          description: "The worker may be stuck — records are being ingested but not processed."
