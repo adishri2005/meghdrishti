@@ -64,6 +64,7 @@ def update_thresholds(
         _upsert_setting(db, "detection", body.detection, old_cfg.get("detection", {}), principal.name)
 
     if body.severity:
+        _validate_severity(body.severity, old_cfg.get("severity", {}))
         _upsert_setting(db, "severity", body.severity, old_cfg.get("severity", {}), principal.name)
 
     db.commit()
@@ -108,6 +109,61 @@ def _validate_detection(det: dict) -> None:
         raise HTTPException(status_code=400, detail="min_samples must be between 1 and 1000")
 
 
+def _validate_severity(sev: dict, current_sev: dict | None = None) -> None:
+    """Validate severity thresholds and ensure monotonic ordering."""
+    valid_levels = {"critical", "high", "medium"}
+    for level, values in sev.items():
+        if level not in valid_levels:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid severity level '{level}', allowed: {sorted(valid_levels)}",
+            )
+        if not isinstance(values, dict):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Severity level '{level}' must be a dictionary of thresholds",
+            )
+        for metric, val in values.items():
+            if metric not in ("z", "pct"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid metric '{metric}' in severity level '{level}', allowed: ['pct', 'z']",
+                )
+            if not isinstance(val, (int, float)) or val <= 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Severity metric '{metric}' for '{level}' must be a positive number",
+                )
+
+    merged = _merge_dict(current_sev or {}, sev)
+    c_z = merged.get("critical", {}).get("z")
+    h_z = merged.get("high", {}).get("z")
+    m_z = merged.get("medium", {}).get("z")
+    if c_z is not None and h_z is not None and c_z <= h_z:
+        raise HTTPException(status_code=400, detail="critical.z must be greater than high.z")
+    if h_z is not None and m_z is not None and h_z <= m_z:
+        raise HTTPException(status_code=400, detail="high.z must be greater than medium.z")
+
+    c_pct = merged.get("critical", {}).get("pct")
+    h_pct = merged.get("high", {}).get("pct")
+    m_pct = merged.get("medium", {}).get("pct")
+    if c_pct is not None and h_pct is not None and c_pct <= h_pct:
+        raise HTTPException(status_code=400, detail="critical.pct must be greater than high.pct")
+    if h_pct is not None and m_pct is not None and h_pct <= m_pct:
+        raise HTTPException(status_code=400, detail="high.pct must be greater than medium.pct")
+
+
+def _merge_dict(base: dict, update: dict) -> dict:
+    """Perform a 2-level merge for configuration dictionaries."""
+    res = dict(base)
+    for k, v in update.items():
+        if isinstance(v, dict) and isinstance(res.get(k), dict):
+            res[k] = {**res[k], **v}
+        else:
+            res[k] = v
+    return res
+
+
 def _upsert_setting(
     db: Session,
     key: str,
@@ -118,9 +174,9 @@ def _upsert_setting(
     """Merge new values into the settings row for the given key."""
     row = db.query(SettingsRow).filter(SettingsRow.key == key).first()
     if row:
-        merged = {**row.value, **new_values} if isinstance(row.value, dict) else new_values
-        row.value = merged
+        base = row.value if isinstance(row.value, dict) else {}
+        row.value = _merge_dict(base, new_values)
         row.updated_by = updated_by
     else:
-        merged = {**old_values, **new_values}
+        merged = _merge_dict(old_values, new_values)
         db.add(SettingsRow(key=key, value=merged, updated_by=updated_by))
