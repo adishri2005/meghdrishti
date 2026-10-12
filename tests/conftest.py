@@ -11,7 +11,7 @@ from starlette.testclient import TestClient
 from app.db import Base, get_db
 from app.main import create_app
 from app.models import User
-from app.security import hash_password
+from app.security import create_access_token, hash_password
 
 # Teach SQLite compiler how to render PostgreSQL-specific column types
 @compiles(JSONB, "sqlite")
@@ -68,6 +68,19 @@ def db_session():
     finally:
         session.close()
         Base.metadata.drop_all(bind=engine)
+        engine.dispose()
+
+
+@pytest.fixture
+def admin_headers():
+    token, _ = create_access_token("admin", "admin")
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def analyst_headers():
+    token, _ = create_access_token("analyst", "analyst")
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
@@ -85,3 +98,4 @@ def client(db_session):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+

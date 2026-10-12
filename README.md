@@ -139,18 +139,54 @@ pytest tests/ -v
 pytest tests/ --cov=app --cov-report=term-missing
 ```
 
+## Environment Variables
+
+| Variable | Purpose | Required in Prod | Default / Example |
+| :--- | :--- | :--- | :--- |
+| `ENVIRONMENT` | Runtime environment (`development`, `staging`, `production`) | **Yes** | `development` |
+| `DATABASE_URL` | SQLAlchemy PostgreSQL connection URI | **Yes** | `postgresql+psycopg2://ccad:pass@postgres:5432/ccad` |
+| `REDIS_URL` | Redis instance connection URI | **Yes** | `redis://redis:6379/0` |
+| `JWT_SECRET` | Secret key for signing and validating JWT tokens (min 32 chars) | **Yes** (Fails fast if default) | Strong random hex string |
+| `ADMIN_PASSWORD` | Initial admin account bootstrap password | **Yes** (Fails fast if default) | Strong password |
+| `ANALYST_PASSWORD` | Initial analyst account bootstrap password | **Yes** (Fails fast if default) | Strong password |
+| `SERVICE_API_KEY` | Ingestion pipeline API token | **Yes** (Fails fast if default) | Strong key |
+| `ALERT_WEBHOOK_URL`| Slack / Teams / generic webhook endpoint for anomalies | No | `https://hooks.slack.com/services/...` |
+| `LOG_LEVEL` | Logging verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | No | `INFO` |
+| `APP_VERSION` | SemVer application release identifier | No | `1.0.0` |
+| `APP_COLOR` | Blue/Green deployment color indicator (`blue`, `green`) | No | `blue` |
+
+## Code Quality, Linting, & Testing
+
+```bash
+# Run strict linter (Ruff)
+ruff check app/ tests/
+
+# Run complete test suite with coverage reporting
+pytest tests/ -v --cov=app --cov-report=term-missing
+
+# Run security audit on dependencies
+python -m pip_audit -r requirements.txt
+```
+
 | Test Suite | Scope |
-|------------|-------|
+| :--- | :--- |
 | `tests/test_baseline.py` | Welford variance tracking and numerical underflow safeguards |
 | `tests/test_schemas.py` | Ingestion payload validation (finite numbers, ISO timestamps) |
-| `tests/test_auth.py` | Password hashing, API key tokens, forwarded IP extraction |
-| `tests/test_api_auth_health.py` | Authentication, RBAC, health, and Prometheus metrics endpoints |
+| `tests/test_auth.py` | Password hashing, API key tokens, forwarded IP extraction, rate-limit resilience |
+| `tests/test_api_auth_health.py` | Authentication, RBAC, liveness (`/health/live`), readiness (`/health/ready`), and Prometheus metrics |
 | `tests/test_api_anomalies.py` | Eager-loaded anomaly listing, pagination headers, and status transitions |
-| `tests/test_api_config.py` | Runtime threshold configuration and monotonic severity validation |
+| `tests/test_api_config.py` | Runtime threshold configuration, monotonic severity validation, production secret enforcement |
 | `tests/test_rules.py` | Z-score, percentage jump, EWMA drift, severity floors, and direction tags |
 | `tests/test_queue.py` | Redis stream payload deserialization and structured dead-letter queuing |
 | `tests/test_root_cause.py` | Aggregate anomaly attribution and dimension grouping |
 | `tests/test_engine.py` | Detection orchestration, baseline persistence, deduplication, and escalation |
+| `tests/test_resources.py` | Resource listing, DB-level pagination & sorting, detail lookups, and 404 handling |
+| `tests/test_worker_alerts.py` | Alert dispatcher webhooks, timeouts, delivery status recording, and idempotency |
+| `tests/test_worker_pipeline.py` | Redis Streams worker consumer, idempotent cost insertion, and batch execution |
+
+## Security & Operations Runbooks
+
+See [SECURITY.md](SECURITY.md) for vulnerability disclosure, secret rotation runbooks (`JWT_SECRET`, database credentials, API client tokens), and migration rollback procedures.
 
 ## Tech Stack
 
@@ -158,8 +194,9 @@ pytest tests/ --cov=app --cov-report=term-missing
 - **Database**: PostgreSQL 16 + SQLAlchemy + Alembic
 - **Queue**: Redis 7 Streams (consumer groups, XAUTOCLAIM)
 - **Cache**: Redis (TTL-based, summary + baseline)
-- **Proxy**: Nginx (TLS, blue/green upstream switching)
+- **Proxy**: Nginx (TLS, blue/green upstream switching, OWASP security headers)
 - **Monitoring**: Prometheus + Grafana (14-panel dashboard, 6 alert rules)
 - **Deploy**: Blue/green with health gate + auto-rollback
 - **Testing**: pytest (unit & integration), Locust (load), controlled failure experiments
+
 

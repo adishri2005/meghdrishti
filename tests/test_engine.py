@@ -11,7 +11,7 @@ from app.detection.engine import (
     process_record,
     save_baseline,
 )
-from app.detection.rules import DetectionConfig, make_detection_config
+from app.detection.rules import DetectionConfig
 from app.models import Alert, Anomaly, Baseline, Resource
 
 

@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -25,7 +25,6 @@ import { useUIStore } from '@/store/ui'
 
 export default function ResourceDetail() {
   const { id = '' } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const { liveEnabled, refreshInterval } = useUIStore()
 
   // Resource metadata
@@ -71,31 +70,31 @@ export default function ResourceDetail() {
   const diurnalUpper = (baselineData?.hourly || []).map((h) => Math.round((h.mean + 3 * h.std) * 10) / 10)
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-200">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Back button & Header */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <Link
           to="/resources"
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Resources Inventory</span>
+          <span>Back to Resources</span>
         </Link>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-semibold font-mono tracking-tight text-foreground">
                 {id}
               </h1>
               <CopyButton value={id} label="Resource ID" />
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-medium uppercase border ${
+                className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium uppercase border ${
                   resource?.status === 'anomalous'
-                    ? 'bg-danger/10 text-danger border-danger/30'
+                    ? 'bg-danger/10 text-danger border-danger/25'
                     : resource?.status === 'warning'
-                    ? 'bg-warning/10 text-warning border-warning/30'
-                    : 'bg-success/10 text-success border-success/30'
+                    ? 'bg-warning/10 text-warning border-warning/25'
+                    : 'bg-success/10 text-success border-success/25'
                 }`}
               >
                 {resource?.status || 'Active'}
@@ -103,18 +102,18 @@ export default function ResourceDetail() {
             </div>
 
             {/* Tags bar */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono flex-wrap">
-              <span className="px-2 py-0.5 rounded bg-surface-elevated border border-border capitalize">
-                Team: <b>{resource?.team || 'ml'}</b>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono flex-wrap">
+              <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border capitalize">
+                Team: <b className="text-foreground">{resource?.team || 'ml'}</b>
               </span>
-              <span className="px-2 py-0.5 rounded bg-surface-elevated border border-border uppercase">
-                Type: <b>{resource?.type || 'ec2'}</b>
+              <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border uppercase">
+                Type: <b className="text-foreground">{resource?.type || 'ec2'}</b>
               </span>
-              <span className="px-2 py-0.5 rounded bg-surface-elevated border border-border capitalize">
-                Service: <b>{resource?.service || 'compute'}</b>
+              <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border capitalize">
+                Service: <b className="text-foreground">{resource?.service || 'compute'}</b>
               </span>
-              <span className="px-2 py-0.5 rounded bg-surface-elevated border border-border">
-                Region: <b>{resource?.region || 'us-east-1'}</b>
+              <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border">
+                Region: <b className="text-foreground">{resource?.region || 'us-east-1'}</b>
               </span>
             </div>
           </div>
@@ -122,23 +121,23 @@ export default function ResourceDetail() {
           <div className="flex items-center gap-2">
             <Link
               to={`/logs/app?q=${encodeURIComponent(id)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface hover:bg-surface-elevated text-foreground border border-border transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted/50 text-foreground border border-border transition-colors shadow-xs"
             >
-              <FileText className="w-3.5 h-3.5 text-primary" />
-              <span>Inspect Application Logs</span>
+              <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>Inspect Logs</span>
             </Link>
           </div>
         </div>
       </div>
 
       {/* KPI Cards Row (4 cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
           label="Current Spend Rate"
           value={formatCurrency(resource?.last_cost ?? 24.5)}
           trendDelta={8.4}
           reverseTrendColor
-          icon={<DollarSign className="w-4 h-4 text-primary" />}
+          icon={<DollarSign className="w-3.5 h-3.5 text-muted-foreground" />}
           isLoading={resourceLoading}
         />
         <KpiCard
@@ -146,13 +145,13 @@ export default function ResourceDetail() {
           value={formatCurrency(resource?.cost_24h ?? 482.1)}
           trendDelta={12.0}
           reverseTrendColor
-          icon={<Layers className="w-4 h-4 text-sky-400" />}
+          icon={<Layers className="w-3.5 h-3.5 text-muted-foreground" />}
           isLoading={resourceLoading}
         />
         <KpiCard
           label="Baseline Mean (Now)"
           value={formatCurrency(resource?.baseline_mean_now ?? 18.2)}
-          icon={<TrendingUp className="w-4 h-4 text-emerald-400" />}
+          icon={<TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />}
           isLoading={resourceLoading}
         />
         <KpiCard
@@ -160,114 +159,99 @@ export default function ResourceDetail() {
           value={anomaliesData?.total ?? resource?.open_anomalies ?? 0}
           badge={
             (anomaliesData?.total ?? 0) > 0 ? (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-danger/15 text-danger border border-danger/30">
-                Action Required
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-danger/10 text-danger border border-danger/25">
+                Incident Active
               </span>
             ) : undefined
           }
-          icon={<AlertTriangle className="w-4 h-4 text-warning" />}
-          isLoading={anomaliesLoading}
+          icon={<AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />}
+          isLoading={resourceLoading || anomaliesLoading}
         />
       </div>
 
-      {/* Main Historical Cost Band */}
+      {/* Main Confidence Band Chart */}
       <ChartCard
-        title="Cost Dynamics vs Expected Envelope"
-        subtitle="Observed hourly expenditure against 3-sigma baseline envelope"
+        title="Cost Dynamics & Baseline Envelope (±3σ)"
+        subtitle="Observed spending vs online calculated Welford confidence interval"
         isLoading={costLoading}
       >
         <BandChart data={bandPoints} height={320} />
       </ChartCard>
 
-      {/* Lower Row: Diurnal Baseline Profile & Resource Anomalies */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Baseline Profile by Hour of Day (6 cols) */}
+      {/* Middle Row: Diurnal Hourly Profile & Recent Incidents */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Hourly Diurnal Baseline Profile (6 cols) */}
         <div className="lg:col-span-6">
           <ChartCard
-            title="Diurnal Baseline Envelope by Hour of Day"
-            subtitle="Learned historical mean spend and upper 3-sigma variance bound"
+            title="Diurnal Hourly Envelope Profile"
+            subtitle="Calculated normal diurnal profile across the 24h clock"
             isLoading={baselineLoading}
           >
             <BarChart
               categories={diurnalCategories}
               series={[
-                {
-                  name: 'Expected Mean',
-                  data: diurnalMeans,
-                  color: '#2DD4BF',
-                },
-                {
-                  name: 'Upper 3σ Threshold',
-                  data: diurnalUpper,
-                  color: '#FB923C',
-                },
+                { name: 'Baseline Mean', data: diurnalMeans },
+                { name: 'Upper Bound (+3σ)', data: diurnalUpper },
               ]}
               height={260}
-              showLegend
-              valueFormatter={(v) => formatCurrency(v)}
+              valueFormatter={(v) => formatCurrency(v, { compact: true })}
             />
           </ChartCard>
         </div>
 
-        {/* Resource Anomalies List (6 cols) */}
+        {/* Recent Anomalies for Resource (6 cols) */}
         <div className="lg:col-span-6">
-          <div className="rounded-xl border border-border bg-surface p-5 flex flex-col h-full min-h-[340px]">
+          <div className="rounded-xl border border-border bg-surface p-4 flex flex-col h-full min-h-[320px] shadow-xs">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-warning" />
-                <h3 className="text-sm font-semibold text-foreground">
-                  Incident History for {id}
-                </h3>
-              </div>
-              <span className="text-xs text-muted-foreground font-mono">
-                {anomaliesData?.total || 0} Incidents Recorded
+              <h3 className="text-xs font-semibold text-foreground">
+                Incident History on this Resource
+              </h3>
+              <span className="text-[11px] text-muted-foreground font-mono">
+                {anomaliesData?.total ?? 0} total incidents
               </span>
             </div>
 
-            <div className="flex-1 divide-y divide-border/60 overflow-y-auto max-h-[280px]">
+            <div className="flex-1 divide-y divide-border/60 overflow-y-auto max-h-[260px]">
               {anomaliesLoading ? (
-                <div className="space-y-3 py-2">
+                <div className="space-y-2 py-2">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-14 bg-muted/40 rounded-lg animate-pulse" />
+                    <div key={i} className="h-12 bg-muted/40 rounded-md animate-pulse" />
                   ))}
                 </div>
               ) : !anomaliesData?.items || anomaliesData.items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 text-center text-muted-foreground">
-                  <span className="text-xs font-medium text-foreground">
-                    No Incidents On Record
-                  </span>
-                  <span className="text-[11px] mt-0.5">
-                    This asset operates strictly within normal baseline variance.
-                  </span>
+                  <span className="text-xs font-medium text-foreground">No Historical Anomalies</span>
+                  <span className="text-[11px] mt-0.5">This resource has operated within normal bounds.</span>
                 </div>
               ) : (
-                anomaliesData.items.map((item) => (
+                anomaliesData.items.map((a) => (
                   <div
-                    key={item.id}
-                    onClick={() => navigate(`/anomalies/${item.id}`)}
-                    className="py-2.5 first:pt-1 last:pb-1 flex flex-col gap-1.5 hover:bg-surface-elevated/60 px-2 rounded-lg cursor-pointer transition-colors group"
+                    key={a.id}
+                    className="py-2.5 first:pt-1 last:pb-1 flex flex-col gap-1 hover:bg-muted/30 px-2 rounded-md transition-colors"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <SeverityBadge severity={item.severity} />
-                        <span className="font-mono text-xs font-semibold text-foreground truncate">
-                          {item.anomaly_type.replace(/_/g, ' ')}
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <SeverityBadge severity={a.severity} />
+                        <span className="font-mono text-[11px] uppercase text-muted-foreground">
+                          {(a.anomaly_type || 'anomaly').replace(/_/g, ' ')}
                         </span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground font-mono shrink-0">
-                        {formatRelativeTime(item.detected_at)}
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        {formatRelativeTime(a.detected_at)}
                       </span>
                     </div>
 
                     <p className="text-[11px] text-muted-foreground line-clamp-1">
-                      {item.root_cause_summary || 'Spike exceeding 3-standard-deviation threshold.'}
+                      {a.root_cause_summary}
                     </p>
 
-                    <div className="flex items-center justify-between text-[11px] font-mono pt-0.5">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
                       <span className="text-foreground">
-                        Observed: <b className="text-danger">{formatCurrency(item.actual_cost)}</b> (exp. {formatCurrency(item.expected_cost)})
+                        Observed: <b className="text-danger font-medium">{formatCurrency(a.actual_cost)}</b> (exp. {formatCurrency(a.expected_cost)})
                       </span>
-                      <span className="text-warning font-semibold">{item.z_score.toFixed(1)}σ</span>
+                      <span className="text-muted-foreground font-mono">
+                        z={a.z_score.toFixed(1)}σ
+                      </span>
                     </div>
                   </div>
                 ))

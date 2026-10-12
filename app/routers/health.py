@@ -19,11 +19,33 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.cache import redis_healthy
 from app.config import get_settings
-from app.schemas import HealthResponse
+from app.schemas import HealthResponse, LivenessResponse
 
 logger = logging.getLogger("ccad.health")
 
 router = APIRouter(tags=["Health"])
+
+
+@router.get(
+    "/health/live",
+    response_model=LivenessResponse,
+    summary="Liveness probe (process responsiveness)",
+)
+def liveness_check():
+    """Return 200 if application process is running and event loop is responsive."""
+    settings = get_settings()
+    return LivenessResponse(status="alive", version=settings.app_version)
+
+
+@router.get(
+    "/health/ready",
+    response_model=HealthResponse,
+    summary="Readiness probe (database and cache dependency readiness)",
+    responses={503: {"description": "Service unavailable"}},
+)
+def readiness_check():
+    """Return 200 if backing dependencies (PostgreSQL and Redis) are reachable, else 503."""
+    return health_check()
 
 
 @router.get(

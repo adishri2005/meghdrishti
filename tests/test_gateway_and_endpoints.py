@@ -200,6 +200,30 @@ class TestNewReadEndpoints:
         assert resp_detail.status_code == 200
         assert resp_detail.json()["status"] == "done"
 
+    def test_job_status_idor_defense(self, client, admin_headers, analyst_headers, db_session):
+        import uuid
+        job = IngestionJob(
+            id=uuid.uuid4(),
+            submitted_by="admin",
+            record_count=10,
+            status="queued",
+        )
+        db_session.add(job)
+        db_session.commit()
+
+        # Analyst attempting to read admin's job must receive 403 Forbidden
+        resp = client.get(f"/api/v1/records/jobs/{job.id}", headers=analyst_headers)
+        assert resp.status_code == 403
+        assert "Forbidden" in resp.json()["detail"]
+
+        # Admin can view the job
+        resp_admin = client.get(f"/api/v1/records/jobs/{job.id}", headers=admin_headers)
+        assert resp_admin.status_code == 200
+
+        # Invalid UUID returns 404 instead of 500 error
+        resp_invalid = client.get("/api/v1/records/jobs/invalid-not-a-uuid", headers=admin_headers)
+        assert resp_invalid.status_code == 404
+
     def test_anomaly_timeline(self, client, admin_headers, db_session):
         res = Resource(
             resource_id="rds-postgres-main",

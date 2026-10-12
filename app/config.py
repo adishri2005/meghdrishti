@@ -11,14 +11,13 @@ redeploying.
 from __future__ import annotations
 
 import json
-import os
 import time
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 _CONFIG_YAML_PATH = Path(__file__).resolve().parent.parent / "config" / "config.yaml"
@@ -33,6 +32,9 @@ _DETECTION_CACHE_TTL = 30.0  # seconds
 
 class Settings(BaseSettings):
     """Main application settings, populated from environment variables."""
+
+    # --- Environment ---
+    environment: str = "development"
 
     # --- Postgres ---
     database_url: str = "postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad"
@@ -80,6 +82,39 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return v.lower() in ("true", "1", "yes")
         return bool(v)
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> Settings:
+        env = (self.environment or "").lower()
+        is_prod = env in ("production", "prod")
+
+        secrets_to_check = [
+            ("jwt_secret", self.jwt_secret, "change_me_to_a_long_random_string", 32),
+            ("admin_password", self.admin_password, "Admin@12345", 8),
+            ("analyst_password", self.analyst_password, "Analyst@12345", 8),
+            ("service_api_key", self.service_api_key, "svc-ingest-key-change-me", 16),
+            ("postgres_password", self.postgres_password, "change_me_pg", 8),
+        ]
+
+        for name, val, default_val, min_len in secrets_to_check:
+            if is_prod:
+                if val == default_val or "change_me" in str(val).lower():
+                    raise ValueError(
+                        f"CRITICAL SECURITY CONFIGURATION ERROR: Default insecure value for '{name}' "
+                        f"is forbidden in production. You must set a strong, unique secret."
+                    )
+                if len(str(val)) < min_len:
+                    raise ValueError(
+                        f"CRITICAL SECURITY CONFIGURATION ERROR: Secret '{name}' must be at least "
+                        f"{min_len} characters long in production."
+                    )
+            else:
+                if val == default_val or "change_me" in str(val).lower():
+                    import logging
+                    logging.getLogger("ccad.config").warning(
+                        f"INSECURE DEFAULT: '{name}' is using default development credentials."
+                    )
+        return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

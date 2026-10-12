@@ -10,9 +10,8 @@ same factory but manages its own lifecycle (one session per batch).
 from __future__ import annotations
 
 from collections.abc import Generator
-from typing import Any
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from app.config import get_settings

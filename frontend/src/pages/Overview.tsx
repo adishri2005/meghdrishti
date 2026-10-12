@@ -24,6 +24,7 @@ import {
 import { usePromInstant, usePromRange } from '@/hooks/useProm'
 import { PROM_QUERIES } from '@/lib/prom/queries'
 import { acknowledgeAnomaly } from '@/lib/api/endpoints/anomalies'
+import { simulateScenario } from '@/lib/api/endpoints/jobs'
 import { KpiCard } from '@/components/data/KpiCard'
 import { ChartCard } from '@/components/charts/ChartCard'
 import { StackedAreaChart, type StackedSeriesItem, type AnomalyMarker } from '@/components/charts/StackedAreaChart'
@@ -36,7 +37,8 @@ import { formatCurrency, formatDuration, formatRelativeTime } from '@/lib/format
 export default function Overview() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [costGroupBy, setCostGroupBy] = useState<'team' | 'service' | 'region'>('team')
+  const [costGroupBy, setCostGroupBy] = useState<'team' | 'service' | 'region' | 'resource_type'>('team')
+  const [quickSimulating, setQuickSimulating] = useState(false)
 
   // API overview queries
   const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useOverviewStats()
@@ -77,7 +79,7 @@ export default function Overview() {
     if (!anomaliesData?.items) return []
     return anomaliesData.items.map((a) => ({
       id: a.id,
-      timestampMs: new Date(a.detected_at).getTime(),
+      timestampMs: new Date(a.record_ts || a.detected_at).getTime(),
       cost: a.actual_cost,
       severity: a.severity,
       resourceId: a.resource_id,
@@ -96,6 +98,32 @@ export default function Overview() {
     return res
   }, [ingestSeries, processedSeries])
 
+  // Quick simulate handler
+  const handleQuickSimulate = async () => {
+    setQuickSimulating(true)
+    try {
+      const res = await simulateScenario({
+        scenario: 'spike',
+        resource_id: 'i-0a8b9c-gpu-cluster',
+        multiplier: 14.5,
+        hours: 2,
+      })
+      toast.success('Injected synthetic spike on GPU Cluster (14.5x cost)!', {
+        description: `Job ${res.job_id} scheduled. Ingestion stream surging.`,
+        duration: 3500,
+      })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+    } catch {
+      toast.error('Simulation failed. Check backend connection.')
+    } finally {
+      setQuickSimulating(false)
+    }
+  }
+
   // Handle quick acknowledge
   const handleAcknowledge = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -103,7 +131,9 @@ export default function Overview() {
       await acknowledgeAnomaly(id)
       toast.success('Anomaly acknowledged', { duration: 1500 })
       queryClient.invalidateQueries({ queryKey: ['anomalies'] })
-      queryClient.invalidateQueries({ queryKey: ['stats', 'overview'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
     } catch {
       toast.error('Failed to acknowledge anomaly')
     }
@@ -124,13 +154,13 @@ export default function Overview() {
     return totals
   }, [costData])
 
-  const totalOpenAnomalies = stats?.anomalies_open?.total ?? 0
+  const totalOpenAnomalies = stats?.anomalies_open?.total ?? anomaliesData?.total ?? 0
   const criticalCount = stats?.anomalies_open?.critical ?? 0
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div id="tour-overview-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
@@ -147,12 +177,27 @@ export default function Overview() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            id="tour-quick-spike"
+            onClick={handleQuickSimulate}
+            disabled={quickSimulating}
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-danger/15 text-danger border border-danger/30 hover:bg-danger/25 transition-all shadow-xs disabled:opacity-50"
+            title="Inject an instant 14.5x cloud cost spike to test ingestion and anomaly detection"
+          >
+            {quickSimulating ? (
+              <span className="w-3.5 h-3.5 border-2 border-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span>{quickSimulating ? 'Injecting Spike...' : '⚡ Quick Spike'}</span>
+          </button>
           <Link
             to="/ingestion"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Simulate Anomaly</span>
+            <Activity className="w-3.5 h-3.5" />
+            <span>Simulator Studio</span>
           </Link>
           <Link
             to="/monitoring/grafana"
@@ -165,7 +210,7 @@ export default function Overview() {
       </div>
 
       {/* 1. KPI Row (6 cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+      <div id="tour-kpi-row" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3.5">
         {/* KPI 1: Cost 24h */}
         <KpiCard
           label="Cost (24h)"
@@ -279,14 +324,14 @@ export default function Overview() {
       {/* 2. Middle Row: Cost Over Time (Wide) & Latest Anomalies Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Cost Over Time with Anomaly Markers (8 cols) */}
-        <div className="lg:col-span-8">
+        <div id="tour-cost-chart" className="lg:col-span-8">
           <ChartCard
             title="Cloud Spend Over Time"
             subtitle="Hourly aggregate expenditure with overlaid anomaly detections (click diamond markers to inspect)"
             isLoading={costLoading}
             action={
               <div className="flex items-center gap-1 bg-surface-elevated p-0.5 rounded-lg border border-border">
-                {(['team', 'service', 'region'] as const).map((mode) => (
+                {(['team', 'service', 'region', 'resource_type'] as const).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setCostGroupBy(mode)}
@@ -297,7 +342,7 @@ export default function Overview() {
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {mode}
+                    {mode.replace('_', ' ')}
                   </button>
                 ))}
               </div>
@@ -313,7 +358,7 @@ export default function Overview() {
         </div>
 
         {/* Latest Anomalies Feed (4 cols) */}
-        <div className="lg:col-span-4">
+        <div id="tour-anomaly-feed" className="lg:col-span-4">
           <div className="rounded-xl border border-border bg-surface p-5 flex flex-col h-full min-h-[380px]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -391,7 +436,7 @@ export default function Overview() {
       {/* 3. Lower Row: Top Spenders, Cost Heatmap & Cluster Card */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Top Spenders (4 cols) */}
-        <div className="lg:col-span-4">
+        <div id="tour-top-spenders" className="lg:col-span-4">
           <div className="rounded-xl border border-border bg-surface p-5 flex flex-col h-full min-h-[360px]">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -441,7 +486,7 @@ export default function Overview() {
         </div>
 
         {/* Cost Heatmap (5 cols) */}
-        <div className="lg:col-span-5">
+        <div id="tour-heatmap" className="lg:col-span-5">
           <ChartCard
             title="Spend Density Heatmap"
             subtitle="Hourly cost intensity across resources"
@@ -508,7 +553,7 @@ export default function Overview() {
       </div>
 
       {/* 4. Pipeline Health (Prometheus Small Multiples) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="tour-pipeline-health" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <ChartCard
           title="Throughput (Ingest vs Process)"
           subtitle="Records per second streaming"

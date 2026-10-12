@@ -125,21 +125,21 @@ export default function Costs() {
   const grandTotal = summaryRows.reduce((a, b) => a + b.total, 0)
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-200">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div id="tour-costs-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Cloud Cost Explorer
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Cost Explorer
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-primary/10 text-primary border border-primary/20">
-              <DollarSign className="w-3.5 h-3.5" />
-              <span>Multi-Dimensional FinOps</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+              <DollarSign className="w-3 h-3 text-muted-foreground" />
+              <span>Multi-Dimensional Breakdown</span>
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Analyze historical and real-time cloud expenditure grouped by team, infrastructure service, region, or resource type.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Cloud expenditure grouped by team, infrastructure service, region, or resource type.
           </p>
         </div>
 
@@ -147,7 +147,7 @@ export default function Costs() {
           <button
             onClick={handleExportCsv}
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface hover:bg-surface-elevated text-foreground border border-border transition-colors shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted/50 text-foreground border border-border transition-colors shadow-xs"
           >
             <Download className="w-3.5 h-3.5 text-muted-foreground" />
             <span>Export CSV</span>
@@ -156,21 +156,21 @@ export default function Costs() {
       </div>
 
       {/* Control Bar */}
-      <div className="p-4 rounded-xl border border-border bg-surface flex flex-wrap items-center justify-between gap-4 shadow-xs">
+      <div id="tour-costs-summary-cards" className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-3 shadow-xs">
         {/* Left: Group by & Interval */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <Layers className="w-4 h-4 text-primary" />
+            <Layers className="w-3.5 h-3.5 text-muted-foreground" />
             <span>Group By:</span>
-            <div className="flex items-center gap-1 bg-surface-elevated p-0.5 rounded-lg border border-border">
+            <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-md border border-border">
               {(['team', 'service', 'region', 'resource_type'] as const).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setGroupBy(mode)}
                   type="button"
-                  className={`px-2.5 py-1 text-xs rounded-md font-medium capitalize transition-all ${
+                  className={`px-2 py-0.5 text-xs rounded font-medium capitalize transition-all ${
                     groupBy === mode
-                      ? 'bg-primary/20 text-primary font-semibold shadow-xs'
+                      ? 'bg-surface text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -180,20 +180,20 @@ export default function Costs() {
             </div>
           </div>
 
-          <div className="h-4 w-px bg-border/80 hidden sm:block" />
+          <div className="h-4 w-px bg-border hidden sm:block" />
 
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <Calendar className="w-4 h-4 text-sky-400" />
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
             <span>Interval:</span>
-            <div className="flex items-center gap-1 bg-surface-elevated p-0.5 rounded-lg border border-border">
+            <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-md border border-border">
               {(['hour', 'day'] as const).map((int) => (
                 <button
                   key={int}
                   onClick={() => setInterval(int)}
                   type="button"
-                  className={`px-2.5 py-1 text-xs rounded-md font-medium capitalize transition-all ${
+                  className={`px-2 py-0.5 text-xs rounded font-medium capitalize transition-all ${
                     interval === int
-                      ? 'bg-primary/20 text-primary font-semibold shadow-xs'
+                      ? 'bg-surface text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -206,13 +206,13 @@ export default function Costs() {
 
         {/* Right: Chart Type & Compare toggle */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-surface-elevated p-0.5 rounded-lg border border-border">
+          <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-md border border-border">
             <button
               onClick={() => setChartType('stacked')}
               type="button"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
+              className={`p-1.5 rounded text-xs transition-colors ${
                 chartType === 'stacked'
-                  ? 'bg-primary/20 text-primary'
+                  ? 'bg-surface text-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Stacked Area"
@@ -222,9 +222,9 @@ export default function Costs() {
             <button
               onClick={() => setChartType('lines')}
               type="button"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
+              className={`p-1.5 rounded text-xs transition-colors ${
                 chartType === 'lines'
-                  ? 'bg-primary/20 text-primary'
+                  ? 'bg-surface text-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Lines"
@@ -234,9 +234,9 @@ export default function Costs() {
             <button
               onClick={() => setChartType('bars')}
               type="button"
-              className={`p-1.5 rounded-md text-xs transition-colors ${
+              className={`p-1.5 rounded text-xs transition-colors ${
                 chartType === 'bars'
-                  ? 'bg-primary/20 text-primary'
+                  ? 'bg-surface text-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Bars"
@@ -245,12 +245,12 @@ export default function Costs() {
             </button>
           </div>
 
-          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+          <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
             <input
               type="checkbox"
               checked={comparePeriod}
               onChange={(e) => setComparePeriod(e.target.checked)}
-              className="rounded border-border text-primary focus:ring-primary w-3.5 h-3.5"
+              className="rounded border-border text-primary focus:ring-ring w-3.5 h-3.5"
             />
             <span>Compare Prior Period</span>
           </label>
@@ -258,6 +258,7 @@ export default function Costs() {
       </div>
 
       {/* Main Cost Visualization Card */}
+      <div id="tour-costs-main-chart">
       <ChartCard
         title={`Spend Dynamics by ${groupBy.replace('_', ' ').toUpperCase()}`}
         subtitle={`Aggregated cost over the active window (Total: ${formatCurrency(grandTotal)})`}
@@ -265,7 +266,7 @@ export default function Costs() {
         onRetry={refetchTimeseries}
       >
         {chartType === 'stacked' ? (
-          <StackedAreaChart series={stackedSeries} height={340} />
+          <StackedAreaChart series={stackedSeries} height={320} />
         ) : chartType === 'lines' ? (
           <TimeSeriesChart
             series={stackedSeries.map((s) => ({
@@ -273,7 +274,7 @@ export default function Costs() {
               data: s.data.map(([ts, val]) => [ts, val]),
               metric: {},
             }))}
-            height={340}
+            height={320}
             yAxisUnit="$"
             yAxisFormatter={(v) => formatCurrency(v, { compact: true })}
           />
@@ -287,78 +288,79 @@ export default function Costs() {
               data: r.spark,
               stack: 'total',
             }))}
-            height={340}
+            height={320}
             valueFormatter={(v) => formatCurrency(v, { compact: true })}
           />
         )}
       </ChartCard>
+      </div>
 
       {/* Middle Row: Treemap & Summary Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div id="tour-costs-breakdown" className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Treemap (5 cols) */}
         <div className="lg:col-span-5">
           <ChartCard
             title="Spend Proportion Treemap"
             subtitle="Relative cost distribution by group"
           >
-            <Treemap data={treemapData} height={300} />
+            <Treemap data={treemapData} height={280} />
           </ChartCard>
         </div>
 
         {/* Breakdown Summary Table (7 cols) */}
         <div className="lg:col-span-7">
-          <div className="rounded-xl border border-border bg-surface p-5 flex flex-col h-full min-h-[360px]">
-            <div className="flex items-center justify-between mb-4">
+          <div className="rounded-xl border border-border bg-surface p-4 flex flex-col h-full min-h-[340px] shadow-xs">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">
+                <h3 className="text-xs font-semibold text-foreground">
                   Spend Share Breakdown
                 </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-[11px] text-muted-foreground mt-0.5">
                   Totals, proportion, and micro-trends
                 </p>
               </div>
-              <span className="font-mono text-xs font-bold text-foreground">
+              <span className="font-mono text-xs font-medium text-foreground">
                 Total: {formatCurrency(grandTotal)}
               </span>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-border">
+            <div className="overflow-x-auto rounded-md border border-border">
               <table className="w-full text-xs text-left border-collapse">
                 <thead className="bg-surface-elevated text-muted-foreground font-mono border-b border-border">
                   <tr>
-                    <th className="px-3.5 py-2.5 font-medium">Group</th>
-                    <th className="px-3.5 py-2.5 font-medium">Expenditure</th>
-                    <th className="px-3.5 py-2.5 font-medium">Share</th>
-                    <th className="px-3.5 py-2.5 font-medium">Trend (24h)</th>
-                    <th className="px-3.5 py-2.5 font-medium text-right">Delta</th>
+                    <th className="px-3 py-2 font-medium">Group</th>
+                    <th className="px-3 py-2 font-medium">Expenditure</th>
+                    <th className="px-3 py-2 font-medium">Share</th>
+                    <th className="px-3 py-2 font-medium">Trend (24h)</th>
+                    <th className="px-3 py-2 font-medium text-right">Delta</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/50 font-mono">
+                <tbody className="divide-y divide-border/60 font-mono">
                   {summaryRows.map((row) => (
                     <tr key={row.name} className="hover:bg-muted/20">
-                      <td className="px-3.5 py-2.5 font-sans font-semibold text-foreground capitalize">
+                      <td className="px-3 py-2 font-sans font-medium text-foreground capitalize">
                         {row.name}
                       </td>
-                      <td className="px-3.5 py-2.5 font-bold text-foreground">
+                      <td className="px-3 py-2 font-medium text-foreground">
                         {formatCurrency(row.total)}
                       </td>
-                      <td className="px-3.5 py-2.5">
+                      <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground w-10">
+                          <span className="text-muted-foreground w-9">
                             {formatPercent(row.share)}
                           </span>
-                          <div className="w-16 h-1 bg-surface-elevated rounded-full overflow-hidden">
+                          <div className="w-16 h-1 bg-muted/60 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-primary rounded-full"
+                              className="h-full bg-primary/80 rounded-full"
                               style={{ width: `${row.share}%` }}
                             />
                           </div>
                         </div>
                       </td>
-                      <td className="px-3.5 py-2.5">
-                        <Sparkline data={row.spark} width={70} height={20} />
+                      <td className="px-3 py-2">
+                        <Sparkline data={row.spark} width={64} height={18} />
                       </td>
-                      <td className="px-3.5 py-2.5 text-right">
+                      <td className="px-3 py-2 text-right">
                         <TrendDelta value={row.deltaPct} reverseColor suffix="" />
                       </td>
                     </tr>
@@ -381,7 +383,7 @@ export default function Costs() {
             xLabels={heatmapData.hours.map((h) => `${h}:00`)}
             yLabels={heatmapData.resources}
             data={heatmapData.values}
-            height={280}
+            height={260}
           />
         )}
       </ChartCard>

@@ -124,7 +124,7 @@ export function AnomalyDrawer({ anomaly, isOpen, onClose }: AnomalyDrawerProps) 
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <span>Detection Method:</span>
               <span className="px-1.5 py-0.5 rounded bg-muted text-foreground uppercase font-semibold text-[10px]">
-                {anomaly.anomaly_type.replace(/_/g, ' ')}
+                {(anomaly.anomaly_type || 'Anomaly').replace(/_/g, ' ')}
               </span>
             </div>
           </div>

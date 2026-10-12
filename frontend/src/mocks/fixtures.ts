@@ -75,141 +75,376 @@ export const MOCK_RESOURCES: MockResource[] = Array.from({ length: 40 }).map((_,
   }
 })
 
-export const MOCK_ANOMALIES: MockAnomaly[] = [
-  {
-    id: 101,
+let _activeMockAnomalies: MockAnomaly[] | null = null
+
+function initializeMockAnomalies(baseTime?: number): MockAnomaly[] {
+  const now = baseTime ?? Math.floor(Date.now() / 60000) * 60000
+  return [
+    {
+      id: 101,
+      scope: 'resource',
+      resource_id: 4,
+      resource_name: 'eks-ml-storage-04',
+      detected_at: new Date(now - 2 * 3600000 + 180000).toISOString(),
+      record_ts: new Date(now - 2 * 3600000).toISOString(),
+      observed_cost: 324.5,
+      expected_cost: 42.1,
+      z_score: 6.8,
+      pct_increase: 670.8,
+      severity: 'critical',
+      method: 'z_score',
+      root_cause_summary: 'Sudden 671% cost spike detected on GPU training node cluster eks-ml-storage-04',
+      root_cause: {
+        breakdown_by_team: { ml: 82, core: 11, data: 7 },
+        breakdown_by_service: { compute: 75, storage: 20, database: 5 },
+        breakdown_by_region: { 'us-east-1': 90, 'eu-west-1': 10 },
+        top_contributors: [
+          { resource_id: 'eks-ml-storage-04', share_pct: 68, delta_cost: 282.4, observed_cost: 324.5 },
+          { resource_id: 'ec2-ml-compute-07', share_pct: 18, delta_cost: 65.2, observed_cost: 88.0 },
+          { resource_id: 's3-data-storage-03', share_pct: 8, delta_cost: 22.0, observed_cost: 34.1 },
+        ],
+      },
+      status: 'open',
+      occurrences: 2,
+      peak_cost: 345.0,
+      last_seen_ts: new Date(now - 2 * 3600000 + 300000).toISOString(),
+    },
+    {
+      id: 102,
+      scope: 'resource',
+      resource_id: 8,
+      resource_name: 'rds-core-database-08',
+      detected_at: new Date(now - 3 * 3600000 + 120000).toISOString(),
+      record_ts: new Date(now - 3 * 3600000).toISOString(),
+      observed_cost: 189.2,
+      expected_cost: 64.0,
+      z_score: 4.2,
+      pct_increase: 195.6,
+      severity: 'high',
+      method: 'pct_jump',
+      root_cause_summary: 'Sustained throughput jump and IOPS autoscaling on rds-core-database-08',
+      root_cause: {
+        breakdown_by_team: { core: 70, platform: 25, data: 5 },
+        breakdown_by_service: { database: 85, storage: 15 },
+        breakdown_by_region: { 'eu-west-1': 100 },
+        top_contributors: [
+          { resource_id: 'rds-core-database-08', share_pct: 74, delta_cost: 125.2, observed_cost: 189.2 },
+          { resource_id: 'ec2-core-compute-02', share_pct: 19, delta_cost: 32.0, observed_cost: 58.4 },
+        ],
+      },
+      status: 'open',
+      occurrences: 3,
+      peak_cost: 195.0,
+      last_seen_ts: new Date(now - 10 * 60000).toISOString(),
+    },
+    {
+      id: 103,
+      scope: 'resource',
+      resource_id: 7,
+      resource_name: 'ec2-ml-compute-07',
+      detected_at: new Date(now - 75 * 60000).toISOString(),
+      record_ts: new Date(now - 80 * 60000).toISOString(),
+      observed_cost: 295.4,
+      expected_cost: 38.0,
+      z_score: 5.9,
+      pct_increase: 677.4,
+      severity: 'critical',
+      method: 'z_score',
+      root_cause_summary: 'Unscheduled multi-GPU compute distributed training job run on ec2-ml-compute-07',
+      root_cause: {
+        breakdown_by_team: { ml: 92, core: 5, data: 3 },
+        breakdown_by_service: { compute: 95, storage: 5 },
+        breakdown_by_region: { 'us-east-1': 100 },
+        top_contributors: [
+          { resource_id: 'ec2-ml-compute-07', share_pct: 88, delta_cost: 257.4, observed_cost: 295.4 },
+        ],
+      },
+      status: 'open',
+      occurrences: 2,
+      peak_cost: 310.0,
+      last_seen_ts: new Date(now - 15 * 60000).toISOString(),
+    },
+    {
+      id: 104,
+      scope: 'resource',
+      resource_id: 16,
+      resource_name: 'lambda-platform-networking-16',
+      detected_at: new Date(now - 90 * 60000).toISOString(),
+      record_ts: new Date(now - 95 * 60000).toISOString(),
+      observed_cost: 142.8,
+      expected_cost: 45.0,
+      z_score: 3.8,
+      pct_increase: 217.3,
+      severity: 'medium',
+      method: 'ewma_drift',
+      root_cause_summary: 'Heavy serverless cross-region egress networking burst on lambda-platform-networking-16',
+      root_cause: {
+        breakdown_by_team: { platform: 75, core: 15, data: 10 },
+        breakdown_by_service: { networking: 80, compute: 20 },
+        breakdown_by_region: { 'ap-southeast-1': 85, 'us-east-1': 15 },
+        top_contributors: [
+          { resource_id: 'lambda-platform-networking-16', share_pct: 78, delta_cost: 97.8, observed_cost: 142.8 },
+        ],
+      },
+      status: 'open',
+      occurrences: 1,
+      peak_cost: 142.8,
+      last_seen_ts: new Date(now - 30 * 60000).toISOString(),
+    },
+    {
+      id: 105,
+      scope: 'resource',
+      resource_id: 3,
+      resource_name: 's3-data-storage-03',
+      detected_at: new Date(now - 110 * 60000).toISOString(),
+      record_ts: new Date(now - 120 * 60000).toISOString(),
+      observed_cost: 168.0,
+      expected_cost: 52.0,
+      z_score: 4.4,
+      pct_increase: 223.1,
+      severity: 'high',
+      method: 'pct_jump',
+      root_cause_summary: 'Uncompressed parquet analytic dataset duplication on s3-data-storage-03',
+      root_cause: {
+        breakdown_by_team: { data: 85, ml: 10, core: 5 },
+        breakdown_by_service: { storage: 95, analytics: 5 },
+        breakdown_by_region: { 'us-west-2': 100 },
+        top_contributors: [
+          { resource_id: 's3-data-storage-03', share_pct: 85, delta_cost: 116.0, observed_cost: 168.0 },
+        ],
+      },
+      status: 'open',
+      occurrences: 1,
+      peak_cost: 168.0,
+      last_seen_ts: new Date(now - 45 * 60000).toISOString(),
+    },
+    {
+      id: 106,
+      scope: 'aggregate',
+      resource_id: null,
+      resource_name: 'aggregate (platform)',
+      detected_at: new Date(now - 140 * 60000).toISOString(),
+      record_ts: new Date(now - 150 * 60000).toISOString(),
+      observed_cost: 612.0,
+      expected_cost: 410.0,
+      z_score: 3.1,
+      pct_increase: 49.3,
+      severity: 'medium',
+      method: 'ewma_drift',
+      root_cause_summary: 'Multi-resource EWMA cost baseline drift across platform networking resources',
+      root_cause: {
+        breakdown_by_team: { platform: 60, data: 25, core: 15 },
+        breakdown_by_service: { networking: 70, compute: 30 },
+        breakdown_by_region: { 'ap-southeast-1': 80, 'us-east-1': 20 },
+        top_contributors: [
+          { resource_id: 'lambda-platform-networking-16', share_pct: 42, delta_cost: 84.8, observed_cost: 122.0 },
+          { resource_id: 'elasticache-platform-database-11', share_pct: 31, delta_cost: 62.6, observed_cost: 95.0 },
+        ],
+      },
+      status: 'acknowledged',
+      occurrences: 1,
+      peak_cost: 612.0,
+      last_seen_ts: new Date(now - 60 * 60000).toISOString(),
+    },
+    {
+      id: 107,
+      scope: 'resource',
+      resource_id: 11,
+      resource_name: 'elasticache-platform-database-11',
+      detected_at: new Date(now - 210 * 60000).toISOString(),
+      record_ts: new Date(now - 220 * 60000).toISOString(),
+      observed_cost: 95.0,
+      expected_cost: 62.0,
+      z_score: 2.1,
+      pct_increase: 53.2,
+      severity: 'low',
+      method: 'ewma_drift',
+      root_cause_summary: 'Redis cache cluster memory scaling threshold reached on elasticache-platform-database-11',
+      status: 'acknowledged',
+      occurrences: 1,
+      peak_cost: 95.0,
+      last_seen_ts: new Date(now - 90 * 60000).toISOString(),
+    },
+    {
+      id: 108,
+      scope: 'resource',
+      resource_id: 16,
+      resource_name: 's3-security-storage-16',
+      detected_at: new Date(now - 360 * 60000).toISOString(),
+      record_ts: new Date(now - 370 * 60000).toISOString(),
+      observed_cost: 45.0,
+      expected_cost: 18.2,
+      z_score: 2.2,
+      pct_increase: 147.3,
+      severity: 'low',
+      method: 'new_resource',
+      root_cause_summary: 'New S3 audit bucket first seen with heavy initial export ingestion',
+      status: 'resolved',
+      occurrences: 1,
+      peak_cost: 45.0,
+      last_seen_ts: new Date(now - 240 * 60000).toISOString(),
+    },
+  ]
+}
+
+export function getMockAnomalies(baseTime?: number): MockAnomaly[] {
+  if (!_activeMockAnomalies) {
+    _activeMockAnomalies = initializeMockAnomalies(baseTime)
+  }
+  return _activeMockAnomalies
+}
+
+export function injectMockAnomaly(anomaly: Partial<MockAnomaly>): MockAnomaly {
+  const list = getMockAnomalies()
+  const maxId = list.reduce((max, a) => Math.max(max, Number(a.id) || 100), 100)
+  const newId = maxId + 1
+  const targetName = anomaly.resource_name || 'ec2-ml-gpu-07'
+  const created: MockAnomaly = {
+    id: newId,
     scope: 'resource',
     resource_id: 4,
-    resource_name: 'eks-ml-storage-04',
-    detected_at: new Date(Date.now() - 15 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 25 * 60000).toISOString(),
-    observed_cost: 324.5,
-    expected_cost: 42.1,
-    z_score: 6.8,
-    pct_increase: 670.8,
-    severity: 'critical',
+    resource_name: targetName,
+    detected_at: new Date().toISOString(),
+    record_ts: new Date().toISOString(),
+    observed_cost: anomaly.observed_cost ?? 345.0,
+    expected_cost: anomaly.expected_cost ?? 32.5,
+    z_score: anomaly.z_score ?? 6.2,
+    pct_increase: anomaly.pct_increase ?? 961.5,
+    severity: (anomaly.severity as any) || 'critical',
     method: 'z_score',
-    root_cause_summary: 'Sudden 671% cost spike detected on GPU training node cluster eks-ml-storage-04',
+    root_cause_summary: anomaly.root_cause_summary || `Sudden spend surge injected on ${targetName}`,
     root_cause: {
-      breakdown_by_team: { ml: 82, core: 11, data: 7 },
-      breakdown_by_service: { compute: 75, storage: 20, database: 5 },
-      breakdown_by_region: { 'us-east-1': 90, 'eu-west-1': 10 },
+      breakdown_by_team: { ml: 85, core: 10, data: 5 },
+      breakdown_by_service: { compute: 90, storage: 10 },
+      breakdown_by_region: { 'us-east-1': 100 },
       top_contributors: [
-        { resource_id: 'eks-ml-storage-04', share_pct: 68, delta_cost: 282.4, observed_cost: 324.5 },
-        { resource_id: 'ec2-ml-compute-07', share_pct: 18, delta_cost: 65.2, observed_cost: 88.0 },
-        { resource_id: 's3-data-storage-03', share_pct: 8, delta_cost: 22.0, observed_cost: 34.1 },
-      ],
+        { resource_id: targetName, share_pct: 88, delta_cost: 312.5, observed_cost: 345.0 }
+      ]
     },
     status: 'open',
-    occurrences: 2,
-    peak_cost: 345.0,
-    last_seen_ts: new Date(Date.now() - 5 * 60000).toISOString(),
-  },
-  {
-    id: 102,
-    scope: 'resource',
-    resource_id: 8,
-    resource_name: 'rds-core-database-08',
-    detected_at: new Date(Date.now() - 45 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 55 * 60000).toISOString(),
-    observed_cost: 189.2,
-    expected_cost: 64.0,
-    z_score: 4.2,
-    pct_increase: 195.6,
-    severity: 'high',
-    method: 'pct_jump',
-    root_cause_summary: 'Sustained throughput jump and IOPS autoscaling on rds-core-database-08',
-    root_cause: {
-      breakdown_by_team: { core: 70, platform: 25, data: 5 },
-      breakdown_by_service: { database: 85, storage: 15 },
-      breakdown_by_region: { 'eu-west-1': 100 },
-      top_contributors: [
-        { resource_id: 'rds-core-database-08', share_pct: 74, delta_cost: 125.2, observed_cost: 189.2 },
-        { resource_id: 'ec2-core-compute-02', share_pct: 19, delta_cost: 32.0, observed_cost: 58.4 },
-      ],
-    },
-    status: 'open',
-    occurrences: 3,
-    peak_cost: 195.0,
-    last_seen_ts: new Date(Date.now() - 10 * 60000).toISOString(),
-  },
-  {
-    id: 103,
-    scope: 'aggregate',
-    resource_id: null,
-    resource_name: 'aggregate (platform)',
-    detected_at: new Date(Date.now() - 120 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 130 * 60000).toISOString(),
-    observed_cost: 612.0,
-    expected_cost: 410.0,
-    z_score: 3.1,
-    pct_increase: 49.3,
-    severity: 'medium',
-    method: 'ewma_drift',
-    root_cause_summary: 'Multi-resource EWMA cost baseline drift across platform networking resources',
-    root_cause: {
-      breakdown_by_team: { platform: 60, data: 25, core: 15 },
-      breakdown_by_service: { networking: 70, compute: 30 },
-      breakdown_by_region: { 'ap-southeast-1': 80, 'us-east-1': 20 },
-      top_contributors: [
-        { resource_id: 'lambda-platform-networking-16', share_pct: 42, delta_cost: 84.8, observed_cost: 122.0 },
-        { resource_id: 'elasticache-platform-database-11', share_pct: 31, delta_cost: 62.6, observed_cost: 95.0 },
-      ],
-    },
-    status: 'acknowledged',
     occurrences: 1,
-    peak_cost: 612.0,
-    last_seen_ts: new Date(Date.now() - 60 * 60000).toISOString(),
-  },
-  {
-    id: 104,
-    scope: 'resource',
-    resource_id: 16,
-    resource_name: 's3-security-storage-16',
-    detected_at: new Date(Date.now() - 360 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 370 * 60000).toISOString(),
-    observed_cost: 45.0,
-    expected_cost: 18.2,
-    z_score: 2.2,
-    pct_increase: 147.3,
-    severity: 'low',
-    method: 'new_resource',
-    root_cause_summary: 'New S3 audit bucket first seen with heavy initial export ingestion',
-    status: 'resolved',
-    occurrences: 1,
-    peak_cost: 45.0,
-    last_seen_ts: new Date(Date.now() - 240 * 60000).toISOString(),
-  },
-]
+    peak_cost: anomaly.observed_cost ?? 345.0,
+    last_seen_ts: new Date().toISOString(),
+    ...anomaly,
+  }
+  list.unshift(created)
 
-export const MOCK_STATS_OVERVIEW = {
-  generated_at: new Date().toISOString(),
-  cost_24h: 3845.2,
-  cost_prev_24h: 3410.8,
-  cost_change_pct: 12.7,
-  records_24h: 960,
-  active_resources: 40,
-  anomalies_open: {
-    critical: 1,
-    high: 1,
-    medium: 1,
-    low: 0,
-    total: 3,
-  },
-  anomalies_24h: 5,
-  mttd_seconds_p95: 3.8,
-  top_spenders: [
-    { resource_id: 'eks-ml-storage-04', team: 'ml', cost: 324.5, share_pct: 14.8 },
-    { resource_id: 'rds-core-database-08', team: 'core', cost: 189.2, share_pct: 8.6 },
-    { resource_id: 'ec2-ml-compute-07', team: 'ml', cost: 145.0, share_pct: 6.6 },
-    { resource_id: 'lambda-platform-networking-16', team: 'platform', cost: 122.0, share_pct: 5.5 },
-    { resource_id: 'elasticache-platform-database-11', team: 'platform', cost: 95.0, share_pct: 4.3 },
-    { resource_id: 'ec2-core-compute-02', team: 'core', cost: 88.4, share_pct: 4.0 },
-    { resource_id: 's3-data-storage-03', team: 'data', cost: 72.1, share_pct: 3.3 },
-    { resource_id: 'eks-data-analytics-05', team: 'data', cost: 68.0, share_pct: 3.1 },
-  ],
-  latest_anomaly: MOCK_ANOMALIES[0],
+  // Also reflect anomaly on matching resource in MOCK_RESOURCES
+  const matchedRes = MOCK_RESOURCES.find(
+    (r) => r.resource_id.toLowerCase() === targetName.toLowerCase() || targetName.toLowerCase().includes(r.resource_id.toLowerCase())
+  )
+  if (matchedRes) {
+    matchedRes.open_anomalies += 1
+    matchedRes.status = 'anomalous'
+    matchedRes.last_cost = created.observed_cost
+    matchedRes.cost_24h = Math.round((matchedRes.cost_24h + (created.observed_cost - created.expected_cost)) * 100) / 100
+  }
+
+  return created
 }
+
+export function updateMockAnomalyStatus(id: number | string, status: 'open' | 'acknowledged' | 'resolved'): MockAnomaly | undefined {
+  const list = getMockAnomalies()
+  const match = list.find((a) => String(a.id) === String(id))
+  if (match) {
+    match.status = status
+  }
+  return match
+}
+
+export function bulkUpdateMockAnomaliesStatus(
+  status: 'acknowledged' | 'resolved',
+  filterStatus?: 'open' | 'acknowledged'
+): number {
+  const list = getMockAnomalies()
+  let count = 0
+  list.forEach((a) => {
+    if (!filterStatus || a.status === filterStatus || (status === 'resolved' && (a.status === 'open' || a.status === 'acknowledged'))) {
+      if (a.status !== status) {
+        a.status = status
+        count++
+      }
+    }
+  })
+
+  // Synchronize resource open anomaly flags
+  if (status === 'resolved') {
+    MOCK_RESOURCES.forEach((r) => {
+      r.open_anomalies = 0
+      if (r.status === 'anomalous') {
+        r.status = 'normal'
+      }
+    })
+  } else if (status === 'acknowledged') {
+    MOCK_RESOURCES.forEach((r) => {
+      r.open_anomalies = 0
+      if (r.status === 'anomalous') {
+        r.status = 'warning'
+      }
+    })
+  }
+
+  return count
+}
+
+export const MOCK_ANOMALIES = getMockAnomalies()
+
+export function getMockStatsOverview() {
+  const anomalies = getMockAnomalies()
+  const openAnomalies = anomalies.filter((a) => a.status === 'open')
+  const criticalCount = openAnomalies.filter((a) => a.severity === 'critical').length
+  const highCount = openAnomalies.filter((a) => a.severity === 'high').length
+  const mediumCount = openAnomalies.filter((a) => a.severity === 'medium').length
+  const lowCount = openAnomalies.filter((a) => a.severity === 'low').length
+
+  const costData = getMockCostTimeseries()
+  const cost24h = Math.round(
+    costData.series.reduce((sum, s) => sum + s.points.reduce((pSum, p) => pSum + p[1], 0), 0) * 10
+  ) / 10
+  const costPrev24h = Math.round((cost24h / 1.127) * 10) / 10
+  const costChangePct = Math.round(((cost24h - costPrev24h) / costPrev24h) * 1000) / 10
+
+  const sortedResources = [...MOCK_RESOURCES].sort((a, b) => b.cost_24h - a.cost_24h)
+  const totalResourceCost = sortedResources.reduce((acc, r) => acc + r.cost_24h, 0) || 1
+  const topSpenders = sortedResources.slice(0, 8).map((r) => ({
+    resource_id: r.resource_id,
+    team: r.team,
+    cost: r.cost_24h,
+    share_pct: Math.round((r.cost_24h / totalResourceCost) * 1000) / 10,
+  }))
+
+  return {
+    generated_at: new Date().toISOString(),
+    cost_24h: cost24h,
+    cost_prev_24h: costPrev24h,
+    cost_change_pct: costChangePct,
+    records_24h: 960,
+    active_resources: MOCK_RESOURCES.length,
+    anomalies_open: {
+      critical: criticalCount,
+      high: highCount,
+      medium: mediumCount,
+      low: lowCount,
+      total: openAnomalies.length,
+    },
+    anomalies_24h: anomalies.filter(
+      (a) => Date.now() - new Date(a.detected_at).getTime() <= 86400000
+    ).length,
+    mttd_seconds_p95: 3.8,
+    top_spenders: topSpenders,
+    latest_anomaly: openAnomalies[0] || anomalies[0] || null,
+  }
+}
+
+export const MOCK_STATS_OVERVIEW = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const dynamicStats = getMockStatsOverview() as any
+      return dynamicStats[prop]
+    },
+  }
+) as unknown as ReturnType<typeof getMockStatsOverview>
 
 export const MOCK_SYSTEM_STATUS = {
   api: {
@@ -272,19 +507,128 @@ export const MOCK_DEPLOYMENTS = [
   },
 ]
 
-export const MOCK_COST_TIMESERIES = {
-  interval: 'hour',
-  series: ['ml', 'core', 'data', 'platform', 'frontend'].map((team, tIdx) => {
-    const points: Array<[string, number]> = []
-    const now = Date.now()
-    for (let i = 23; i >= 0; i--) {
-      const ts = new Date(now - i * 3600000).toISOString()
-      const base = 25 + tIdx * 15 + Math.sin(i / 3) * 8
-      const spike = tIdx === 0 && i === 2 ? 140 : 0
-      points.push([ts, Math.round((base + spike) * 10) / 10])
-    }
-    return { name: team, points }
-  }),
+export function getMockCostTimeseries(baseTime?: number, groupBy: string = 'team') {
+  const now = baseTime ?? Math.floor(Date.now() / 60000) * 60000
+
+  let names: string[] = []
+  let baseWeights: number[] = []
+
+  switch (groupBy) {
+    case 'service':
+      names = ['compute', 'database', 'storage', 'networking', 'analytics']
+      baseWeights = [115, 68, 42, 26, 16]
+      break
+    case 'region':
+      names = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1']
+      baseWeights = [145, 65, 45, 20]
+      break
+    case 'resource_type':
+      names = ['ec2', 'rds', 'eks', 's3', 'lambda']
+      baseWeights = [110, 72, 48, 28, 14]
+      break
+    case 'team':
+    default:
+      names = ['ml', 'core', 'data', 'platform', 'frontend']
+      baseWeights = [85, 55, 42, 30, 18]
+      break
+  }
+
+  return {
+    interval: 'hour',
+    series: names.map((name, idx) => {
+      const points: Array<[string, number]> = []
+      const baseWeight = baseWeights[idx] || 25
+      for (let i = 23; i >= 0; i--) {
+        const ts = new Date(now - i * 3600000).toISOString()
+        const wave = baseWeight + Math.sin((i + idx * 2) / 3.5) * (baseWeight * 0.12)
+        // Distinct spike on primary dimension at 2h ago and secondary at 3h ago
+        const spike = (idx === 0 && i === 2 ? 140 : 0) + (idx === 1 && i === 3 ? 55 : 0)
+        points.push([ts, Math.round((wave + spike) * 10) / 10])
+      }
+      return { name, points }
+    }),
+  }
+}
+
+export const MOCK_COST_TIMESERIES = getMockCostTimeseries()
+
+export interface MockIngestionJob {
+  id: string
+  status: 'queued' | 'processing' | 'done' | 'failed'
+  job_type: string
+  total_records: number
+  processed_records: number
+  error_count: number
+  started_at: string
+  completed_at?: string
+  submitted_by: string
+  duration_ms: number
+  message?: string
+}
+
+const _activeMockJobs: MockIngestionJob[] = [
+  {
+    id: 'job-9842',
+    status: 'done',
+    job_type: 'simulate_spike',
+    total_records: 48,
+    processed_records: 48,
+    error_count: 0,
+    started_at: new Date(Date.now() - 300000).toISOString(),
+    completed_at: new Date(Date.now() - 296000).toISOString(),
+    submitted_by: 'admin',
+    duration_ms: 4120,
+    message: 'Simulated 12x cost spike on ec2-ml-gpu-07 (detected anomaly #101 in 2.8s)',
+  },
+  {
+    id: 'job-9841',
+    status: 'done',
+    job_type: 'normal_hour',
+    total_records: 40,
+    processed_records: 40,
+    error_count: 0,
+    started_at: new Date(Date.now() - 3600000).toISOString(),
+    completed_at: new Date(Date.now() - 3597000).toISOString(),
+    submitted_by: 'scheduler',
+    duration_ms: 2850,
+    message: 'Hourly synthetic billing records ingestion across all 40 cloud resources',
+  },
+  {
+    id: 'job-9840',
+    status: 'done',
+    job_type: 'seed_history',
+    total_records: 13440,
+    processed_records: 13440,
+    error_count: 0,
+    started_at: new Date(Date.now() - 86400000).toISOString(),
+    completed_at: new Date(Date.now() - 86372000).toISOString(),
+    submitted_by: 'admin',
+    duration_ms: 27800,
+    message: 'Seeded 14 days of hourly multi-cloud baseline billing history',
+  },
+]
+
+export function getActiveMockJobs(): MockIngestionJob[] {
+  return _activeMockJobs
+}
+
+export function addMockJob(job: Partial<MockIngestionJob>): MockIngestionJob {
+  const newJob: MockIngestionJob = {
+    id: `job-${Math.floor(1000 + Math.random() * 9000)}`,
+    status: 'done',
+    job_type: 'simulate_spike',
+    total_records: 40,
+    processed_records: 40,
+    error_count: 0,
+    started_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+    submitted_by: 'admin',
+    duration_ms: 2400,
+    message: 'Scenario execution completed successfully',
+    ...job,
+  }
+  _activeMockJobs.unshift(newJob)
+  return newJob
 }
 
 const heatmapResources = [

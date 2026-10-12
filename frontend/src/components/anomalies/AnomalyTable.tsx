@@ -71,7 +71,7 @@ export function AnomalyTable({
         header: 'Method / Scope',
         cell: ({ row }) => (
           <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground uppercase font-medium">
-            {row.original.anomaly_type.replace(/_/g, ' ')}
+            {(row.original.anomaly_type || 'Anomaly').replace(/_/g, ' ')}
           </span>
         ),
       },

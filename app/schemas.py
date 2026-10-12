@@ -9,7 +9,6 @@ at the boundary, not in the database layer.
 from __future__ import annotations
 
 import math
-import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -223,6 +222,11 @@ class SimulateResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Health
 # ---------------------------------------------------------------------------
+
+class LivenessResponse(BaseModel):
+    status: str
+    version: str
+
 
 class HealthResponse(BaseModel):
     status: str

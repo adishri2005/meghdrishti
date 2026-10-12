@@ -90,32 +90,37 @@ export default function Deployments() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div id="tour-deployments-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Layers className="h-6 w-6 text-primary" />
-            Deployments & Zero-Downtime Rollback
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Nginx upstream routing, deployment lifecycle audit, and automated failure recovery verification.
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Deployments
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+              <Layers className="w-3 h-3 text-muted-foreground" />
+              <span>Blue/Green Routing</span>
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Upstream traffic control, release audit trail, and automated rollback forensics.
           </p>
         </div>
 
         <button
           type="button"
           onClick={handleRefresh}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/50 transition-colors shadow-xs self-start sm:self-auto"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-          <span>Refresh State</span>
+          <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
       {/* Cluster State Diagram */}
       {loadingCurrent ? (
-        <SkeletonCard className="h-48 w-full" />
+        <SkeletonCard className="h-44 w-full" />
       ) : (
         <BlueGreenDiagram
           activeColor={current?.active_color || 'blue'}
@@ -125,14 +130,14 @@ export default function Deployments() {
       )}
 
       {/* Main Content Layout: Timeline on Left, Impact on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div id="tour-deployments-timeline" className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column: Timeline (Cols 1-5) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="lg:col-span-5 space-y-4">
+          <div className="rounded-xl border border-border bg-surface p-4 shadow-xs">
             {loadingDeployments ? (
-              <div className="space-y-4">
-                <SkeletonCard className="h-24" />
-                <SkeletonCard className="h-24" />
+              <div className="space-y-3">
+                <SkeletonCard className="h-20" />
+                <SkeletonCard className="h-20" />
               </div>
             ) : deployments.length > 0 ? (
               <DeploymentTimeline
@@ -148,32 +153,33 @@ export default function Deployments() {
           </div>
 
           {/* How to Deploy Commands Card */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="rounded-xl border border-border bg-surface p-4 shadow-xs space-y-3">
             <div className="flex items-center gap-2">
-              <Terminal className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">
-                Release Execution Cheatsheet
+              <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
+              <h3 className="text-xs font-semibold text-foreground">
+                Release Execution Reference
               </h3>
             </div>
             <p className="text-xs text-muted-foreground">
-              Production deployments and rollbacks are executed via CI/CD and make targets to guarantee auditability:
+              Production deployments and rollbacks are executed via scripted CLI commands:
             </p>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {DEPLOY_COMMANDS.map((item, idx) => (
                 <div
                   key={idx}
-                  className="rounded-lg border border-border bg-surface p-2.5 space-y-1.5"
+                  className="rounded-md border border-border bg-muted/20 p-2.5 space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-foreground">
+                    <span className="text-xs font-medium text-foreground">
                       {item.title}
                     </span>
                     <button
                       type="button"
                       onClick={() => copyToClipboard(item.cmd)}
-                      className="inline-flex items-center gap-1 rounded bg-background px-2 py-0.5 text-[10px] font-mono text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors border border-border"
+                      className="inline-flex items-center gap-1 rounded bg-surface px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors border border-border shadow-xs"
                       title="Copy command"
+                      aria-label={`Copy ${item.title} command`}
                     >
                       {copiedCmd === item.cmd ? (
                         <Check className="h-3 w-3 text-success" />
@@ -183,7 +189,7 @@ export default function Deployments() {
                       <span>Copy</span>
                     </button>
                   </div>
-                  <pre className="rounded bg-background px-2 py-1 font-mono text-[11px] text-primary select-all">
+                  <pre className="rounded bg-surface border border-border px-2 py-1 font-mono text-[11px] text-foreground select-all">
                     <code>{item.cmd}</code>
                   </pre>
                   <p className="text-[11px] text-muted-foreground leading-normal">
@@ -196,29 +202,29 @@ export default function Deployments() {
         </div>
 
         {/* Right Column: Impact Analysis Panel (Cols 6-12) */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-4">
           {activeDeployment ? (
             <ImpactPanel deployment={activeDeployment} />
           ) : (
-            <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
-              <AlertCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
-              <p className="text-sm font-medium">Select a release from the timeline</p>
-              <p className="text-xs text-muted-foreground mt-1">
+            <div className="rounded-xl border border-border bg-surface p-12 text-center text-muted-foreground">
+              <AlertCircle className="h-7 w-7 mx-auto mb-2 text-muted-foreground/60" />
+              <p className="text-xs font-medium text-foreground">Select a release from the timeline</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Inspect before, during, and after cutover telemetry.
               </p>
             </div>
           )}
 
           {/* Report Viva Tips Card */}
-          <div className="rounded-xl border border-border bg-surface p-4 flex items-start gap-3">
-            <HelpCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+          <div className="rounded-xl border border-border bg-surface p-4 flex items-start gap-3 shadow-xs">
+            <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
             <div className="space-y-1 text-xs">
-              <span className="font-semibold text-foreground">
+              <span className="font-medium text-foreground">
                 Evaluation & Report Evidence Note
               </span>
               <p className="text-muted-foreground leading-relaxed">
                 The before/during/after chart and comparative impact table above provide the verification evidence
-                required for Project P75. When <code className="font-mono text-primary">make deploy-faulty</code> is run,
+                required for Project P75. When <code className="font-mono text-foreground bg-muted px-1 py-0.5 rounded">make deploy-faulty</code> is run,
                 the auto-rollback timeline item and recovery impact metrics can be captured directly for the project report.
               </p>
             </div>

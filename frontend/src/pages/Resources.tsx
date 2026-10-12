@@ -59,54 +59,54 @@ export default function Resources() {
   const totalPages = Math.ceil(totalCount / pageSize) || 1
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-200">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div id="tour-resources-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Cloud Resources Inventory
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Resources
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-primary/10 text-primary border border-primary/20">
-              <Server className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+              <Server className="w-3 h-3 text-muted-foreground" />
               <span>{totalCount} Monitored Assets</span>
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Active cloud compute, storage, databases, and containers tracked by the anomaly baseline engine.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Cloud compute, database, and storage assets tracked by baseline engine.
           </p>
         </div>
 
         <button
           onClick={() => refetch()}
           type="button"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface hover:bg-surface-elevated text-foreground border border-border shadow-xs transition-colors self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted/50 text-foreground border border-border shadow-xs transition-colors self-start sm:self-auto"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-          <span>Refresh Inventory</span>
+          <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-xl border border-border bg-surface flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+      <div className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-2.5 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
           {/* Search Box */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => updateParam('q', e.target.value)}
               placeholder="Search resource ID or prefix..."
-              className="w-full bg-surface-elevated border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary font-mono"
+              className="w-full bg-surface border border-border rounded-md pl-8 pr-7 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring font-mono shadow-xs"
             />
             {searchQuery && (
               <button
                 onClick={() => updateParam('q', null)}
                 type="button"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -115,7 +115,7 @@ export default function Resources() {
           <select
             value={teamFilter}
             onChange={(e) => updateParam('team', e.target.value)}
-            className="bg-surface-elevated border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus:outline-hidden capitalize"
+            className="bg-surface border border-border rounded-md px-2.5 py-1 text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-ring capitalize shadow-xs"
           >
             <option value="all">All Teams</option>
             <option value="ml">ML Team</option>
@@ -130,7 +130,7 @@ export default function Resources() {
           <select
             value={serviceFilter}
             onChange={(e) => updateParam('service', e.target.value)}
-            className="bg-surface-elevated border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus:outline-hidden capitalize"
+            className="bg-surface border border-border rounded-md px-2.5 py-1 text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-ring capitalize shadow-xs"
           >
             <option value="all">All Services</option>
             <option value="compute">Compute</option>
@@ -144,7 +144,7 @@ export default function Resources() {
           <select
             value={typeFilter}
             onChange={(e) => updateParam('type', e.target.value)}
-            className="bg-surface-elevated border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus:outline-hidden uppercase"
+            className="bg-surface border border-border rounded-md px-2.5 py-1 text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-ring uppercase shadow-xs"
           >
             <option value="all">All Types</option>
             <option value="ec2">EC2</option>
@@ -160,7 +160,7 @@ export default function Resources() {
             <button
               onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}
               type="button"
-              className="px-2.5 py-1 text-xs text-muted-foreground hover:text-danger rounded-md border border-border hover:border-danger/30 transition-colors"
+              className="px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground rounded-md border border-border hover:bg-muted/50 transition-colors"
             >
               Reset
             </button>
@@ -169,21 +169,21 @@ export default function Resources() {
       </div>
 
       {/* Resources Table */}
-      <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-xs">
+      <div id="tour-resources-table" className="rounded-xl border border-border bg-surface overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead className="bg-surface-elevated text-muted-foreground font-mono border-b border-border sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-3 font-medium">Resource</th>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Team</th>
-                <th className="px-4 py-3 font-medium">Region</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Current Cost</th>
-                <th className="px-4 py-3 font-medium">Baseline Mean</th>
-                <th className="px-4 py-3 font-medium">24h Total</th>
-                <th className="px-4 py-3 font-medium">Spend Trend</th>
-                <th className="px-4 py-3 font-medium text-right">Inspect</th>
+                <th className="px-4 py-2.5 font-medium">Resource</th>
+                <th className="px-4 py-2.5 font-medium">Type</th>
+                <th className="px-4 py-2.5 font-medium">Team</th>
+                <th className="px-4 py-2.5 font-medium">Region</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+                <th className="px-4 py-2.5 font-medium">Current Cost</th>
+                <th className="px-4 py-2.5 font-medium">Baseline Mean</th>
+                <th className="px-4 py-2.5 font-medium">24h Total</th>
+                <th className="px-4 py-2.5 font-medium">Spend Trend</th>
+                <th className="px-4 py-2.5 font-medium text-right">Inspect</th>
               </tr>
             </thead>
 
@@ -191,7 +191,7 @@ export default function Resources() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={10} className="px-4 py-3 h-12 bg-muted/20" />
+                    <td colSpan={10} className="px-4 py-3 h-11 bg-muted/20" />
                   </tr>
                 ))
               ) : items.length === 0 ? (
@@ -214,64 +214,64 @@ export default function Resources() {
                     <tr
                       key={row.resource_id}
                       onClick={() => navigate(`/resources/${encodeURIComponent(row.resource_id)}`)}
-                      className="hover:bg-surface-elevated/80 cursor-pointer transition-colors"
+                      className="hover:bg-muted/30 cursor-pointer transition-colors"
                     >
-                      <td className="px-4 py-3 font-mono font-semibold text-foreground">
+                      <td className="px-4 py-2.5 font-mono font-medium text-foreground">
                         <div className="flex items-center gap-1.5">
                           <span className="truncate max-w-[190px]">{row.resource_id}</span>
                           <CopyButton value={row.resource_id} label="Resource ID" iconSize="w-3 h-3" />
                         </div>
                       </td>
 
-                      <td className="px-4 py-3 font-mono uppercase text-muted-foreground">
+                      <td className="px-4 py-2.5 font-mono uppercase text-muted-foreground">
                         {row.type}
                       </td>
 
-                      <td className="px-4 py-3 font-sans capitalize text-muted-foreground">
+                      <td className="px-4 py-2.5 font-sans capitalize text-muted-foreground">
                         {row.team}
                       </td>
 
-                      <td className="px-4 py-3 font-mono text-muted-foreground">
+                      <td className="px-4 py-2.5 font-mono text-muted-foreground">
                         {row.region}
                       </td>
 
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-medium uppercase border ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium uppercase border ${
                             row.status === 'anomalous'
-                              ? 'bg-danger/10 text-danger border-danger/30'
+                              ? 'bg-danger/10 text-danger border-danger/25'
                               : row.status === 'warning'
-                              ? 'bg-warning/10 text-warning border-warning/30'
-                              : 'bg-success/10 text-success border-success/30'
+                              ? 'bg-warning/10 text-warning border-warning/25'
+                              : 'bg-success/10 text-success border-success/25'
                           }`}
                         >
                           {row.status}
                         </span>
                       </td>
 
-                      <td className="px-4 py-3 font-mono font-bold text-foreground">
+                      <td className="px-4 py-2.5 font-mono font-medium text-foreground">
                         {formatCurrency(row.last_cost)}
                       </td>
 
-                      <td className="px-4 py-3 font-mono text-muted-foreground">
+                      <td className="px-4 py-2.5 font-mono text-muted-foreground">
                         {formatCurrency(row.baseline_mean_now)}
                       </td>
 
-                      <td className="px-4 py-3 font-mono font-semibold text-foreground">
+                      <td className="px-4 py-2.5 font-mono font-medium text-foreground">
                         {formatCurrency(row.cost_24h)}
                       </td>
 
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <Sparkline
                           data={sparkData}
-                          color={row.status === 'anomalous' ? '#F43F5E' : '#2DD4BF'}
-                          width={65}
+                          color={row.status === 'anomalous' ? 'hsl(var(--danger))' : 'hsl(var(--primary))'}
+                          width={60}
                           height={18}
                         />
                       </td>
 
-                      <td className="px-4 py-3 text-right">
-                        <span className="p-1.5 rounded-md hover:bg-muted/40 text-muted-foreground inline-flex items-center">
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="p-1 rounded hover:bg-muted/50 text-muted-foreground inline-flex items-center">
                           <ExternalLink className="w-3.5 h-3.5" />
                         </span>
                       </td>
@@ -284,9 +284,9 @@ export default function Resources() {
         </div>
 
         {/* Pagination controls */}
-        <div className="p-3 border-t border-border bg-surface-elevated/40 flex items-center justify-between text-xs">
+        <div className="p-2.5 border-t border-border bg-surface flex items-center justify-between text-xs">
           <span className="text-muted-foreground font-mono text-[11px]">
-            Page {page} of {totalPages} ({totalCount} total assets)
+            Page {page} of {totalPages} ({totalCount} assets)
           </span>
 
           <div className="flex items-center gap-1.5">
@@ -294,7 +294,7 @@ export default function Resources() {
               onClick={() => updateParam('page', String(Math.max(1, page - 1)))}
               disabled={page <= 1}
               type="button"
-              className="px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-surface-elevated disabled:opacity-40 text-xs font-medium transition-colors"
+              className="px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-muted/50 disabled:opacity-40 text-xs font-medium transition-colors shadow-xs"
             >
               Previous
             </button>
@@ -302,7 +302,7 @@ export default function Resources() {
               onClick={() => updateParam('page', String(Math.min(totalPages, page + 1)))}
               disabled={page >= totalPages}
               type="button"
-              className="px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-surface-elevated disabled:opacity-40 text-xs font-medium transition-colors"
+              className="px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-muted/50 disabled:opacity-40 text-xs font-medium transition-colors shadow-xs"
             >
               Next
             </button>

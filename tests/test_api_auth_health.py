@@ -1,6 +1,5 @@
 """Integration tests for Health and Auth API endpoints."""
 
-import pytest
 from app.security import create_access_token
 
 
@@ -14,6 +13,21 @@ class TestHealthAndMetricsEndpoints:
         assert "version" in data
         assert "color" in data
 
+    def test_liveness_endpoint(self, client):
+        resp = client.get("/health/live")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "alive"
+        assert "version" in data
+
+    def test_readiness_endpoint(self, client):
+        resp = client.get("/health/ready")
+        assert resp.status_code in (200, 503)
+        data = resp.json()
+        assert "status" in data
+        assert "db" in data
+        assert "redis" in data
+
     def test_metrics_endpoint_returns_prometheus_format(self, client):
         resp = client.get("/metrics")
         assert resp.status_code == 200
@@ -24,6 +38,14 @@ class TestHealthAndMetricsEndpoints:
         custom_rid = "custom-test-uuid-1234"
         resp = client.get("/health", headers={"X-Request-ID": custom_rid})
         assert resp.headers.get("X-Request-ID") == custom_rid
+
+    def test_security_headers_middleware(self, client):
+        resp = client.get("/health")
+        assert resp.headers.get("X-Content-Type-Options") == "nosniff"
+        assert resp.headers.get("X-Frame-Options") == "SAMEORIGIN"
+        assert resp.headers.get("X-XSS-Protection") == "0"
+        assert resp.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+        assert "camera=()" in resp.headers.get("Permissions-Policy", "")
 
 
 class TestAuthEndpoints:

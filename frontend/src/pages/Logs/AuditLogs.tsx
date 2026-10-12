@@ -4,8 +4,6 @@ import {
   ShieldAlert,
   Search,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   X,
   FileCheck2,
   AlertOctagon,
@@ -33,7 +31,7 @@ export default function AuditLogs() {
   const [actionFilter, setActionFilter] = useState<string>('ALL')
   const [resultFilter, setResultFilter] = useState<string>('ALL')
   const [page, setPage] = useState<number>(0)
-  const [pageSize, setPageSize] = useState<number>(25)
+  const [pageSize] = useState<number>(25)
   const [selectedAudit, setSelectedAudit] = useState<AuditLogRecord | null>(null)
 
   const {
@@ -58,32 +56,69 @@ export default function AuditLogs() {
   const total = data?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
+  const getResultBadge = (result: string) => {
+    switch (result) {
+      case 'success':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium uppercase bg-success/10 text-success border border-success/25">
+            <FileCheck2 className="w-3 h-3" />
+            <span>Success</span>
+          </span>
+        )
+      case 'denied':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium uppercase bg-danger/10 text-danger border border-danger/25">
+            <AlertOctagon className="w-3 h-3" />
+            <span>Denied</span>
+          </span>
+        )
+      case 'error':
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium uppercase bg-warning/10 text-warning border border-warning/25">
+            <Info className="w-3 h-3" />
+            <span>Error</span>
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium uppercase bg-muted text-muted-foreground border border-border">
+            <span>{result}</span>
+          </span>
+        )
+    }
+  }
+
   return (
-    <div className="p-6 space-y-4 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <ShieldAlert className="h-6 w-6 text-primary" />
-            Security & Audit Trail
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Immutable log of state-changing operations, administrative actions, and authorization decisions.
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Audit Logs
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+              <ShieldAlert className="w-3 h-3 text-muted-foreground" />
+              <span>Immutable Ledger</span>
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Security audit trail of state-changing operations and authorization decisions.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => refetch()}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/50 transition-colors shadow-xs self-start sm:self-auto"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
           <span>Refresh</span>
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-border bg-surface p-2.5 shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
           {/* Actor search */}
           <div className="relative">
@@ -96,7 +131,7 @@ export default function AuditLogs() {
                 setActorFilter(e.target.value)
                 setPage(0)
               }}
-              className="h-8 w-44 rounded-lg border border-border bg-surface pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+              className="h-7 w-40 sm:w-52 rounded-md border border-border bg-surface pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring focus:border-ring font-mono shadow-xs"
             />
           </div>
 
@@ -107,17 +142,17 @@ export default function AuditLogs() {
               setActionFilter(e.target.value)
               setPage(0)
             }}
-            className="h-8 rounded-lg border border-border bg-surface px-2.5 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+            className="h-7 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-ring shadow-xs"
           >
             {AUDIT_ACTIONS.map((act) => (
               <option key={act} value={act}>
-                {act === 'ALL' ? 'All Actions' : act}
+                {act === 'ALL' ? 'All Actions' : act.replace(/_/g, ' ')}
               </option>
             ))}
           </select>
 
           {/* Result Filter */}
-          <div className="flex rounded-lg border border-border bg-surface p-0.5 text-xs">
+          <div className="flex rounded-md border border-border bg-muted/60 p-0.5 text-xs">
             {RESULTS.map((res) => (
               <button
                 key={res}
@@ -126,9 +161,9 @@ export default function AuditLogs() {
                   setResultFilter(res)
                   setPage(0)
                 }}
-                className={`rounded px-2.5 py-1 font-medium capitalize transition-colors ${
+                className={`rounded px-2.5 py-0.5 font-medium capitalize transition-colors ${
                   resultFilter === res
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-surface text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -138,248 +173,160 @@ export default function AuditLogs() {
           </div>
         </div>
 
-        <div className="text-xs text-muted-foreground font-mono">
-          Total: <strong className="text-foreground">{total}</strong> audit entries
-        </div>
+        <span className="text-muted-foreground font-mono text-xs">
+          Showing <strong className="text-foreground">{items.length}</strong> / {total} entries
+        </span>
       </div>
 
-      {/* Audit Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+      {/* Main Audit Table */}
+      <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-border bg-surface text-muted-foreground font-semibold select-none">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead className="bg-surface-elevated text-muted-foreground font-mono border-b border-border">
               <tr>
-                <th className="px-4 py-3">Timestamp</th>
-                <th className="px-4 py-3">Actor</th>
-                <th className="px-4 py-3">Action</th>
-                <th className="px-4 py-3">Target Entity</th>
-                <th className="px-4 py-3">Result</th>
-                <th className="px-4 py-3">Client IP</th>
-                <th className="px-4 py-3 text-right">Details</th>
+                <th className="px-3.5 py-2.5 font-medium">Timestamp</th>
+                <th className="px-3.5 py-2.5 font-medium">Actor</th>
+                <th className="px-3.5 py-2.5 font-medium">Action</th>
+                <th className="px-3.5 py-2.5 font-medium">Target Resource</th>
+                <th className="px-3.5 py-2.5 font-medium">Result</th>
+                <th className="px-3.5 py-2.5 font-medium text-right">Payload</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60 font-mono">
               {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={6} className="px-3.5 py-2.5 h-10 bg-muted/20" />
+                  </tr>
+                ))
+              ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
-                    <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
-                    Loading audit trail...
+                  <td colSpan={6} className="px-3.5 py-12 text-center text-muted-foreground font-sans">
+                    No audit records match the current filter parameters.
                   </td>
                 </tr>
-              ) : items.length > 0 ? (
-                items.map((row) => {
-                  const isDenied = row.result === 'denied'
-                  const isSuccess = row.result === 'success'
-
-                  return (
-                    <tr
-                      key={row.id}
-                      onClick={() => setSelectedAudit(row)}
-                      className={`hover:bg-surface/60 cursor-pointer transition-colors ${
-                        isDenied ? 'bg-danger/5' : ''
-                      }`}
-                    >
-                      {/* Timestamp */}
-                      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                        <div className="text-foreground font-medium">
-                          {formatRelativeTime(row.ts)}
-                        </div>
-                        <div className="text-[10px] font-mono text-muted-foreground/70">
-                          {formatDateTime(row.ts)}
-                        </div>
-                      </td>
-
-                      {/* Actor */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 rounded bg-surface px-2 py-0.5 font-mono text-xs text-foreground border border-border">
-                          {row.actor}
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-4 py-3 whitespace-nowrap font-medium text-foreground">
-                        <div className="flex items-center gap-1.5 font-mono text-xs">
-                          {row.action}
-                        </div>
-                      </td>
-
-                      {/* Entity */}
-                      <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-muted-foreground">
-                        {row.entity || '-'}{' '}
-                        {row.entity_id && (
-                          <span className="text-foreground">({row.entity_id})</span>
-                        )}
-                      </td>
-
-                      {/* Result */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                            isSuccess
-                              ? 'bg-success/10 text-success border-success/30'
-                              : isDenied
-                              ? 'bg-danger/20 text-danger border-danger/40 animate-pulse'
-                              : 'bg-warning/10 text-warning border-warning/30'
-                          }`}
-                        >
-                          {isSuccess ? (
-                            <FileCheck2 className="h-3 w-3" />
-                          ) : (
-                            <AlertOctagon className="h-3 w-3" />
-                          )}
-                          {row.result}
-                        </span>
-                      </td>
-
-                      {/* Client IP */}
-                      <td className="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-muted-foreground">
-                        {row.ip || '-'}
-                      </td>
-
-                      {/* Inspect Action */}
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setSelectedAudit(row)
-                          }}
-                          className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors inline-flex items-center gap-1"
-                        >
-                          <Info className="h-3 w-3" />
-                          Inspect
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })
               ) : (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
-                    No audit records match the current filters.
-                  </td>
-                </tr>
+                items.map((log) => (
+                  <tr
+                    key={log.id}
+                    onClick={() => setSelectedAudit(log)}
+                    className="hover:bg-muted/20 cursor-pointer transition-colors"
+                  >
+                    <td
+                      className="px-3.5 py-2 text-muted-foreground whitespace-nowrap"
+                      title={formatDateTime(log.ts || '')}
+                    >
+                      {formatRelativeTime(log.ts || '')}
+                    </td>
+                    <td className="px-3.5 py-2 font-medium text-foreground">
+                      {log.actor}
+                    </td>
+                    <td className="px-3.5 py-2 text-foreground font-sans capitalize">
+                      {log.action.replace(/_/g, ' ')}
+                    </td>
+                    <td className="px-3.5 py-2 text-muted-foreground">
+                      {log.entity_id || log.entity || '--'}
+                    </td>
+                    <td className="px-3.5 py-2">
+                      {getResultBadge(log.result)}
+                    </td>
+                    <td className="px-3.5 py-2 text-right">
+                      <span className="text-[11px] text-muted-foreground underline underline-offset-2">
+                        Inspect
+                      </span>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination Controls */}
-        <div className="flex flex-wrap items-center justify-between border-t border-border bg-surface px-4 py-3 text-xs">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span>Rows per page:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value))
-                setPage(0)
-              }}
-              className="rounded border border-border bg-background px-2 py-0.5 text-foreground outline-none"
-            >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
+        {/* Pagination */}
+        <div className="p-2.5 border-t border-border bg-surface flex items-center justify-between text-xs">
+          <span className="text-muted-foreground font-mono text-[11px]">
+            Page {page + 1} of {Math.max(1, totalPages)}
+          </span>
 
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">
-              Page <strong>{page + 1}</strong> of <strong>{totalPages || 1}</strong>
-            </span>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                disabled={page === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="rounded border border-border bg-background p-1 text-foreground hover:bg-surface disabled:opacity-40"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded border border-border bg-background p-1 text-foreground hover:bg-surface disabled:opacity-40"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage(Math.max(0, page - 1))}
+              disabled={page === 0}
+              type="button"
+              className="px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-muted/50 disabled:opacity-40 text-xs font-medium transition-colors shadow-xs"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+              disabled={page >= totalPages - 1}
+              type="button"
+              className="px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-muted/50 disabled:opacity-40 text-xs font-medium transition-colors shadow-xs"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Detail Right Drawer */}
+      {/* Audit Log Detail Drawer / Modal */}
       {selectedAudit && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-background/80 backdrop-blur-xs">
-          <div className="w-full max-w-lg border-l border-border bg-card p-6 shadow-2xl flex flex-col space-y-4 overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">Audit Record #{selectedAudit.id}</h3>
-                <span className="text-xs text-muted-foreground font-mono">
-                  {selectedAudit.action} by {selectedAudit.actor}
-                </span>
+        <div className="fixed inset-0 z-50 bg-overlay/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl shadow-xl max-w-lg w-full p-5 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-muted-foreground" />
+                <h3 className="text-xs font-semibold text-foreground">
+                  Audit Entry: {selectedAudit.id}
+                </h3>
               </div>
               <button
-                type="button"
                 onClick={() => setSelectedAudit(null)}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface hover:text-foreground"
+                type="button"
+                className="p-1 rounded text-muted-foreground hover:text-foreground"
               >
-                <X className="h-5 w-5" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-muted-foreground">Action:</span>
-                <div className="font-mono text-foreground font-semibold mt-0.5">
-                  {selectedAudit.action}
-                </div>
+            <div className="space-y-1.5 text-xs font-mono">
+              <div className="flex items-center justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Actor</span>
+                <span className="font-medium text-foreground">{selectedAudit.actor}</span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Actor:</span>
-                <div className="font-mono text-foreground font-semibold mt-0.5">
-                  {selectedAudit.actor}
-                </div>
+              <div className="flex items-center justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Action</span>
+                <span className="font-medium text-foreground">{selectedAudit.action}</span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Result:</span>
-                <div className="mt-0.5">
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                      selectedAudit.result === 'success'
-                        ? 'bg-success/10 text-success'
-                        : 'bg-danger/20 text-danger'
-                    }`}
-                  >
-                    {selectedAudit.result}
-                  </span>
-                </div>
+              <div className="flex items-center justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Result</span>
+                <div>{getResultBadge(selectedAudit.result)}</div>
               </div>
-              <div>
-                <span className="text-muted-foreground">Timestamp:</span>
-                <div className="font-mono text-foreground mt-0.5">
-                  {formatDateTime(selectedAudit.ts)}
-                </div>
+              <div className="flex items-center justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Target Resource</span>
+                <span className="text-foreground">{selectedAudit.entity_id || selectedAudit.entity || '--'}</span>
               </div>
-              <div>
-                <span className="text-muted-foreground">Entity:</span>
-                <div className="font-mono text-foreground mt-0.5">
-                  {selectedAudit.entity} ({selectedAudit.entity_id})
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">IP Address:</span>
-                <div className="font-mono text-foreground mt-0.5">
-                  {selectedAudit.ip || '-'}
-                </div>
+              <div className="flex items-center justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Timestamp</span>
+                <span className="text-foreground">{formatDateTime(selectedAudit.ts || '')}</span>
               </div>
             </div>
 
-            <div className="pt-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
-                Event Detail Payload
-              </span>
-              <JsonViewer data={selectedAudit.detail || {}} title="Audit Payload Details" maxHeight="450px" />
+            {selectedAudit.detail && (
+              <div className="space-y-1">
+                <span className="text-[11px] font-mono text-muted-foreground uppercase">Payload Details</span>
+                <JsonViewer data={selectedAudit.detail} />
+              </div>
+            )}
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={() => setSelectedAudit(null)}
+                type="button"
+                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted text-foreground border border-border transition-colors shadow-xs"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

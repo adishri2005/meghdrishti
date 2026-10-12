@@ -115,3 +115,24 @@ class TestConfigApi:
         assert audit is not None
         assert audit.actor == "admin"
         assert audit.result == "success"
+
+    def test_production_startup_fails_with_default_secrets(self):
+        from app.config import Settings
+        with pytest.raises(ValueError, match="CRITICAL SECURITY CONFIGURATION ERROR"):
+            Settings(
+                environment="production",
+                jwt_secret="change_me_to_a_long_random_string",
+                admin_password="Admin@12345",
+            )
+
+    def test_production_startup_succeeds_with_strong_secrets(self):
+        from app.config import Settings
+        settings = Settings(
+            environment="production",
+            jwt_secret="super-secure-production-jwt-token-entropy-32-chars-long!",
+            admin_password="StrongProdAdminPassword99#",
+            analyst_password="StrongProdAnalystPassword99#",
+            service_api_key="strong-random-service-key-12345678",
+            postgres_password="strong_pg_password_99#",
+        )
+        assert settings.environment == "production"

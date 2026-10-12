@@ -11,24 +11,21 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Optional
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.cache import cache_get, cache_set, get_redis
-from app.config import get_detection_config
+from app.cache import cache_get, cache_set
 from app.detection.baseline import BaselineStats, welford_update
 from app.detection.root_cause import (
-    AggregateResult,
     build_resource_root_cause,
     check_aggregate,
 )
-from app.detection.rules import DetectionConfig, Verdict, evaluate, make_detection_config
+from app.detection.rules import DetectionConfig, evaluate
 from app.metrics import ANOMALIES_DETECTED, DETECTION_DELAY
-from app.models import Anomaly, Baseline, Resource, ResourceState
+from app.models import Anomaly, Baseline, ResourceState
 
 logger = logging.getLogger("ccad.detection")
 

@@ -37,6 +37,7 @@ export function NativePanelCard({
   query,
   description,
   unit = '',
+  color = '#38BDF8',
   deployments = [],
   onOpenPrometheus,
   onOpenGrafana,
@@ -65,6 +66,29 @@ export function NativePanelCard({
     }))
   }, [deployments])
 
+
+  const latestMetricValue = useMemo(() => {
+    if (!rawData || rawData.length === 0) return null
+    const first = rawData[0]
+    if (!first?.values?.length) return null
+    const last = first.values[first.values.length - 1]
+    const val = parseFloat(last[1])
+    return isNaN(val) ? null : val
+  }, [rawData])
+
+  const formattedLatest = useMemo(() => {
+    if (latestMetricValue === null) return '--'
+    if (unit === '%') return `${latestMetricValue.toFixed(1)}%`
+    if (unit === 's') {
+      return latestMetricValue < 1
+        ? `${Math.round(latestMetricValue * 1000)}ms`
+        : `${latestMetricValue.toFixed(2)}s`
+    }
+    if (unit === 'ratio') return `${(latestMetricValue * 100).toFixed(1)}%`
+    if (latestMetricValue >= 1000) return `${(latestMetricValue / 1000).toFixed(1)}k`
+    if (Number.isInteger(latestMetricValue)) return `${latestMetricValue}`
+    return latestMetricValue.toFixed(1)
+  }, [latestMetricValue, unit])
 
   const downloadCsv = () => {
     if (!rawData || rawData.length === 0) {
@@ -95,17 +119,19 @@ export function NativePanelCard({
 
   return (
     <div
-      className={`flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-all ${
+      className={`flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm hover:border-border-strong/70 transition-all ${
         isFullscreen ? 'fixed inset-4 z-50 bg-background shadow-2xl overflow-y-auto' : className
       }`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight flex items-center gap-2">
-            {title}
-            {unit && <span className="text-[11px] font-normal text-muted-foreground">({unit})</span>}
-          </h3>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground tracking-tight truncate">
+              {title}
+            </h3>
+            {unit && <span className="text-[11px] font-mono text-muted-foreground/80">({unit})</span>}
+          </div>
           {description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{description}</p>}
         </div>
 
@@ -200,6 +226,23 @@ export function NativePanelCard({
         </div>
       </div>
 
+      {/* Primary KPI Value Readout */}
+      <div className="flex items-baseline gap-2 mb-2 pb-1 border-b border-border/40">
+        <span className="text-xl font-bold font-mono tracking-tight text-foreground">
+          {formattedLatest}
+        </span>
+        <span className="text-[11px] text-muted-foreground font-sans font-medium">
+          {unit === 'ratio' ? 'hit rate' : unit}
+        </span>
+        <div className="ml-auto flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: color || '#38BDF8' }}
+          />
+          <span>live</span>
+        </div>
+      </div>
+
       {/* Query Banner if toggled */}
       {showQuery && (
         <div className="mb-3 rounded-lg border border-border bg-surface p-2 font-mono text-[11px] text-muted-foreground flex items-center justify-between gap-2">
@@ -218,9 +261,9 @@ export function NativePanelCard({
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full min-h-[220px]">
+      <div className="flex-1 w-full min-h-[190px]">
         {isError ? (
-          <div className="flex h-full min-h-[220px] flex-col items-center justify-center text-center p-4">
+          <div className="flex h-full min-h-[190px] flex-col items-center justify-center text-center p-4">
             <AlertCircle className="h-6 w-6 text-danger mb-2" />
             <p className="text-xs font-medium text-foreground">Prometheus unreachable</p>
             <p className="text-[11px] text-muted-foreground mt-0.5 max-w-xs truncate">
@@ -236,7 +279,7 @@ export function NativePanelCard({
             </button>
           </div>
         ) : viewTable ? (
-          <div className="h-full min-h-[220px] max-h-80 overflow-y-auto rounded-lg border border-border">
+          <div className="h-full min-h-[190px] max-h-80 overflow-y-auto rounded-lg border border-border">
             <table className="w-full text-left text-xs">
               <thead className="sticky top-0 bg-surface border-b border-border text-muted-foreground font-semibold">
                 <tr>
@@ -273,11 +316,13 @@ export function NativePanelCard({
             </table>
           </div>
         ) : isLoading ? (
-          <SkeletonCard className="h-full min-h-[220px] w-full" />
+          <SkeletonCard className="h-full min-h-[190px] w-full" />
         ) : (
           <TimeSeriesChart
             series={series}
-            height={isFullscreen ? 'calc(100vh - 160px)' : '220px'}
+            height={isFullscreen ? 'calc(100vh - 160px)' : '190px'}
+            color={color}
+            showArea={true}
             yAxisUnit={unit}
             events={deploymentEvents}
             groupId="monitoring-hub"

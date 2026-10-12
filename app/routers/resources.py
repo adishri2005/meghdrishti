@@ -61,9 +61,38 @@ def list_resources(
     current_hour = now.hour
     t_24h_ago = now - timedelta(hours=24)
 
-    resources = query.all()
+    # Parse sort parameter
+    reverse = True
+    if sort:
+        if sort.endswith("_asc"):
+            reverse = False
+            key_name = sort[:-4]
+        elif sort.endswith("_desc"):
+            reverse = True
+            key_name = sort[:-5]
+        else:
+            key_name = sort
+    else:
+        key_name = "cost_24h"
 
-    # Pre-fetch recent data for all resources to avoid N+1 queries
+    db_sort_columns = {
+        "resource_id": Resource.resource_id,
+        "first_seen": Resource.first_seen,
+        "service": Resource.service,
+        "region": Resource.region,
+        "type": Resource.type,
+    }
+
+    if key_name in db_sort_columns:
+        col = db_sort_columns[key_name]
+        order_expr = desc(col) if reverse else col
+        resources = query.order_by(order_expr).offset(offset).limit(limit).all()
+        is_db_sorted = True
+    else:
+        resources = query.all()
+        is_db_sorted = False
+
+    # Pre-fetch recent data for selected resources to avoid N+1 queries
     res_ids = [r.id for r in resources]
 
     # Open anomalies per resource
@@ -162,28 +191,19 @@ def list_resources(
             "status": status,
         })
 
-    # Sort in memory
-    reverse = True
-    if sort.endswith("_asc"):
-        reverse = False
-        key_name = sort[:-4]
-    elif sort.endswith("_desc"):
-        key_name = sort[:-5]
-    else:
-        key_name = sort
+    if is_db_sorted:
+        return rows
 
+    # Sort computed metrics in memory
     if key_name in ("cost_24h", "last_cost", "baseline_mean_now", "open_anomalies"):
         rows.sort(key=lambda x: x.get(key_name, 0), reverse=reverse)
-    elif key_name == "resource_id":
-        rows.sort(key=lambda x: x.get("resource_id", ""), reverse=reverse)
     elif key_name == "status":
         order = {"anomalous": 0, "warning": 1, "normal": 2}
         rows.sort(key=lambda x: order.get(x.get("status"), 3), reverse=reverse)
     else:
         rows.sort(key=lambda x: x.get("cost_24h", 0), reverse=True)
 
-    paginated = rows[offset : offset + limit]
-    return paginated
+    return rows[offset : offset + limit]
 
 
 @router.get(

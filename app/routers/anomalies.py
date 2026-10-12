@@ -9,7 +9,7 @@ audit-logged so there's a clear trail of who handled each incident.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -17,7 +17,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.db import get_db
-from app.models import Alert, Anomaly, Baseline, CostRecord, Resource
+from app.models import Alert, Anomaly, Baseline, CostRecord
 from app.schemas import (
     AlertOut,
     AnomalyDetail,
@@ -99,6 +99,42 @@ def list_anomalies(
         ))
 
     return results
+
+
+@router.post(
+    "/bulk-acknowledge",
+    summary="Acknowledge all open anomalies in bulk",
+)
+def bulk_acknowledge_anomalies(
+    principal: Principal = Depends(require_roles("admin", "analyst")),
+    db: Session = Depends(get_db),
+):
+    """Change all open anomalies to acknowledged."""
+    open_anomalies = db.query(Anomaly).filter(Anomaly.status == "open").all()
+    count = len(open_anomalies)
+    for a in open_anomalies:
+        a.status = "acknowledged"
+        a.acknowledged_by = principal.name
+    db.commit()
+    return {"status": "ok", "count": count, "message": f"Acknowledged {count} anomalies"}
+
+
+@router.post(
+    "/bulk-resolve",
+    summary="Resolve all open or acknowledged anomalies in bulk",
+)
+def bulk_resolve_anomalies(
+    principal: Principal = Depends(require_roles("admin", "analyst")),
+    db: Session = Depends(get_db),
+):
+    """Change all open and acknowledged anomalies to resolved."""
+    unresolved = db.query(Anomaly).filter(Anomaly.status.in_(["open", "acknowledged"])).all()
+    count = len(unresolved)
+    for a in unresolved:
+        a.status = "resolved"
+        a.acknowledged_by = principal.name
+    db.commit()
+    return {"status": "ok", "count": count, "message": f"Resolved {count} anomalies"}
 
 
 @router.get(

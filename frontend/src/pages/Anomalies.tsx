@@ -6,18 +6,28 @@ import {
   Search,
   X,
   RefreshCw,
+  Check,
+  CheckCheck,
 } from 'lucide-react'
-import { getAnomalies } from '@/lib/api/endpoints/anomalies'
+import { getAnomalies, acknowledgeAllAnomalies, resolveAllAnomalies } from '@/lib/api/endpoints/anomalies'
 import { AnomalyTable } from '@/components/anomalies/AnomalyTable'
 import { AnomalyDrawer } from '@/components/anomalies/AnomalyDrawer'
+import { useOverviewStats } from '@/hooks/useOverview'
 import { useUIStore } from '@/store/ui'
+import { useAuthStore } from '@/hooks/useAuth'
+import { canAcknowledgeAnomalies, canResolveAnomalies } from '@/lib/rbac'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import type { Anomaly, Severity } from '@/lib/api/types'
 
 export default function Anomalies() {
   const { id: urlAnomalyId } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
   const [searchParams, setSearchParams] = useSearchParams()
   const { liveEnabled, refreshInterval } = useUIStore()
+  const [isBulkUpdating, setIsBulkUpdating] = useState<'ack' | 'resolve' | null>(null)
 
   // URL state
   const statusFilter = searchParams.get('status') || 'open'
@@ -75,8 +85,50 @@ export default function Anomalies() {
     }
   }, [urlAnomalyId, data])
 
-  // Count open anomalies by severity for quick filter chips
+  const { data: stats } = useOverviewStats()
+  const openCount = stats?.anomalies_open?.total ?? data?.total ?? 0
+  const canAck = canAcknowledgeAnomalies(user?.role)
+  const canResolve = canResolveAnomalies(user?.role)
+
+  const handleAcknowledgeAll = async () => {
+    if (!canAck || openCount === 0 || isBulkUpdating !== null) return
+    setIsBulkUpdating('ack')
+    try {
+      const count = await acknowledgeAllAnomalies()
+      toast.success(`Acknowledged ${count || openCount} anomalies`, { duration: 2500 })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+    } catch {
+      toast.error('Failed to acknowledge all anomalies')
+    } finally {
+      setIsBulkUpdating(null)
+    }
+  }
+
+  const handleResolveAll = async () => {
+    if (!canResolve || isBulkUpdating !== null) return
+    setIsBulkUpdating('resolve')
+    try {
+      const count = await resolveAllAnomalies()
+      toast.success(`Resolved ${count || openCount} anomalies`, { duration: 2500 })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+    } catch {
+      toast.error('Failed to resolve all anomalies')
+    } finally {
+      setIsBulkUpdating(null)
+    }
+  }
+
+  // Count open anomalies by severity for quick filter chips (global sync)
   const severityCounts = useMemo(() => {
+    if (stats?.anomalies_open) {
+      return stats.anomalies_open
+    }
     const counts = { critical: 0, high: 0, medium: 0, low: 0, total: 0 }
     if (!data?.items) return counts
     data.items.forEach((a) => {
@@ -86,7 +138,7 @@ export default function Anomalies() {
       }
     })
     return counts
-  }, [data])
+  }, [stats, data])
 
   const updateParam = (key: string, val: string | null) => {
     const next = new URLSearchParams(searchParams)
@@ -110,37 +162,95 @@ export default function Anomalies() {
     navigate('/anomalies', { replace: true })
   }
 
+  const getSeverityDot = (sev: string) => {
+    switch (sev) {
+      case 'critical':
+        return <span className="w-1.5 h-1.5 rounded-full bg-severity-critical shrink-0" />
+      case 'high':
+        return <span className="w-1.5 h-1.5 rounded-full bg-severity-high shrink-0" />
+      case 'medium':
+        return <span className="w-1.5 h-1.5 rounded-full bg-severity-medium shrink-0" />
+      case 'low':
+        return <span className="w-1.5 h-1.5 rounded-full bg-severity-low shrink-0" />
+      default:
+        return null
+    }
+  }
+
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-200">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Title & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div id="tour-anomalies-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Cost Anomaly Explorer
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Anomalies
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-warning/10 text-warning border border-warning/20">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Statistical & Multi-Dimensional Outliers</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+              <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+              <span>Statistical Outliers</span>
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Real-time automated incident detection powered by Z-score baselines, EWMA drift analysis, and isolation forest.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Automated anomaly detection across resource spend baselines.
           </p>
         </div>
 
-        <button
-          onClick={() => refetch()}
-          type="button"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface hover:bg-surface-elevated text-foreground border border-border shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-          <span>Refresh Incidents</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {canAck && (
+            <button
+              id="tour-bulk-acknowledge"
+              onClick={handleAcknowledgeAll}
+              disabled={openCount === 0 || isBulkUpdating !== null}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              title={openCount === 0 ? 'No open anomalies to acknowledge' : 'Acknowledge all open anomalies'}
+            >
+              {isBulkUpdating === 'ack' ? (
+                <span className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )}
+              <span>Acknowledge All</span>
+              {openCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/25 font-bold">
+                  {openCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {canResolve && (
+            <button
+              id="tour-bulk-resolve"
+              onClick={handleResolveAll}
+              disabled={isBulkUpdating !== null || (data?.items?.length === 0 && openCount === 0)}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Resolve all anomalies"
+            >
+              {isBulkUpdating === 'resolve' ? (
+                <span className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <CheckCheck className="w-3.5 h-3.5" />
+              )}
+              <span>Resolve All</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => refetch()}
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted/50 text-foreground border border-border shadow-xs transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Severity Chips (Quick Filters) */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div id="tour-severity-chips" className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         {(['all', 'critical', 'high', 'medium', 'low'] as const).map((sev) => {
           const isSelected = severityFilter === sev
           const count = sev === 'all' ? severityCounts.total : severityCounts[sev as Severity]
@@ -150,31 +260,19 @@ export default function Anomalies() {
               key={sev}
               type="button"
               onClick={() => updateParam('severity', isSelected && sev !== 'all' ? null : sev)}
-              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden ${
+              className={`p-3 rounded-lg border text-left transition-all relative overflow-hidden shadow-xs ${
                 isSelected
-                  ? 'border-primary bg-primary/10 shadow-xs'
-                  : 'border-border bg-surface hover:border-border-strong hover:bg-surface-elevated/60'
+                  ? 'border-border-strong bg-muted/70'
+                  : 'border-border bg-surface hover:border-border-strong hover:bg-muted/30'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-mono uppercase font-semibold text-muted-foreground capitalize">
-                  {sev === 'all' ? 'All Severities' : sev}
+                <span className="text-[10px] font-mono uppercase font-medium text-muted-foreground">
+                  {sev === 'all' ? 'All' : sev}
                 </span>
-                {sev !== 'all' && (
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      sev === 'critical'
-                        ? 'bg-danger animate-pulse'
-                        : sev === 'high'
-                        ? 'bg-orange-400'
-                        : sev === 'medium'
-                        ? 'bg-warning'
-                        : 'bg-info'
-                    }`}
-                  />
-                )}
+                {sev !== 'all' && getSeverityDot(sev)}
               </div>
-              <div className="text-xl font-bold font-mono text-foreground tabular-nums">
+              <div className="text-lg font-semibold font-mono text-foreground tabular-nums">
                 {count}
                 <span className="text-xs text-muted-foreground font-normal ml-1 font-sans">
                   open
@@ -186,39 +284,39 @@ export default function Anomalies() {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-3.5 rounded-xl border border-border bg-surface flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+      <div id="tour-anomalies-filter-bar" className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-2.5 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
           {/* Search Box */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => updateParam('q', e.target.value)}
-              placeholder="Search resource ID or prefix..."
-              className="w-full bg-surface-elevated border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary font-mono"
+              placeholder="Filter by resource ID..."
+              className="w-full bg-surface border border-border rounded-md pl-8 pr-7 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring font-mono shadow-xs"
             />
             {searchQuery && (
               <button
                 onClick={() => updateParam('q', null)}
                 type="button"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-1 bg-surface-elevated p-0.5 rounded-lg border border-border">
+          <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-md border border-border">
             {(['all', 'open', 'acknowledged', 'resolved'] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => updateParam('status', s)}
                 type="button"
-                className={`px-2.5 py-1 text-xs rounded-md font-medium capitalize transition-all ${
+                className={`px-2 py-0.5 text-xs rounded font-medium capitalize transition-all ${
                   statusFilter === s
-                    ? 'bg-primary/20 text-primary font-semibold shadow-xs'
+                    ? 'bg-surface text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -234,7 +332,7 @@ export default function Anomalies() {
                 setSearchParams(new URLSearchParams(), { replace: true })
               }}
               type="button"
-              className="px-2.5 py-1 text-xs text-muted-foreground hover:text-danger rounded-md border border-border hover:border-danger/30 transition-colors"
+              className="px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground rounded-md border border-border hover:bg-muted/50 transition-colors"
             >
               Reset Filters
             </button>
@@ -243,6 +341,7 @@ export default function Anomalies() {
       </div>
 
       {/* Main Anomalies Table */}
+      <div id="tour-anomalies-table">
       <AnomalyTable
         data={data?.items || []}
         totalCount={data?.total || 0}
@@ -253,6 +352,7 @@ export default function Anomalies() {
         onSelectAnomaly={handleSelectAnomaly}
         isLoading={isLoading}
       />
+      </div>
 
       {/* Right Drawer Inspector */}
       <AnomalyDrawer

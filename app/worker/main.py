@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import signal
 import socket
 import sys
@@ -29,12 +28,11 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.cache import get_redis
-from app.config import get_detection_config, get_settings, load_yaml_config
-from app.db import get_engine, get_session_factory
+from app.config import get_detection_config, get_settings
+from app.db import get_session_factory
 from app.detection.engine import (
     process_aggregate,
     process_record,
@@ -50,7 +48,6 @@ from app.metrics import (
     WORKER_BATCH_SECONDS,
 )
 from app.models import (
-    Base,
     CostRecord,
     IngestionJob,
     Resource,
@@ -119,16 +116,29 @@ def insert_cost_record(db, resource_db_id: int, payload: dict, job_id: str) -> b
     # Truncate to hour
     ts = ts.replace(minute=0, second=0, microsecond=0)
 
-    stmt = pg_insert(CostRecord).values(
-        resource_id=resource_db_id,
-        ts=ts,
-        usage_quantity=payload.get("usage_quantity", 0),
-        unit_cost=payload.get("unit_cost", 0),
-        cost=payload.get("cost", 0),
-        job_id=job_id if job_id else None,
-    ).on_conflict_do_nothing(
-        constraint="uq_cost_record_resource_ts"
-    )
+    bind = db.get_bind() if hasattr(db, "get_bind") else getattr(db, "bind", None)
+    is_sqlite = bind and bind.dialect.name == "sqlite"
+    if is_sqlite:
+        from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+        stmt = sqlite_insert(CostRecord).values(
+            resource_id=resource_db_id,
+            ts=ts,
+            usage_quantity=payload.get("usage_quantity", 0),
+            unit_cost=payload.get("unit_cost", 0),
+            cost=payload.get("cost", 0),
+            job_id=job_id if job_id else None,
+        ).on_conflict_do_nothing()
+    else:
+        stmt = pg_insert(CostRecord).values(
+            resource_id=resource_db_id,
+            ts=ts,
+            usage_quantity=payload.get("usage_quantity", 0),
+            unit_cost=payload.get("unit_cost", 0),
+            cost=payload.get("cost", 0),
+            job_id=job_id if job_id else None,
+        ).on_conflict_do_nothing(
+            constraint="uq_cost_record_resource_ts"
+        )
     result = db.execute(stmt)
     return result.rowcount > 0
 
@@ -195,7 +205,7 @@ def process_batch(
 
             try:
                 resource_db_id, meta, is_new = upsert_resource(db, payload)
-                inserted = insert_cost_record(db, resource_db_id, payload, job_id)
+                insert_cost_record(db, resource_db_id, payload, job_id)
 
                 ts_str = payload.get("timestamp", "")
                 if isinstance(ts_str, str):
@@ -426,7 +436,7 @@ def run():
             )
 
             if messages:
-                for stream_name, stream_messages in messages:
+                for _stream_name, stream_messages in messages:
                     if stream_messages:
                         process_batch(stream_messages, consumer_name, cfg_cache)
 

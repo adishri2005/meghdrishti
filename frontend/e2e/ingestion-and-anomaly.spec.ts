@@ -35,7 +35,7 @@ test.describe('Flow 2: Ingestion Simulator, Spike Injection, and Anomaly Drill-D
 
     // Navigate to Anomalies page
     await page.goto('/anomalies')
-    await expect(page.locator('h1')).toContainText('Anomaly')
+    await expect(page.locator('h1')).toContainText('Anomalies')
     await expect(page.getByText('CRITICAL').first()).toBeVisible()
   })
 })

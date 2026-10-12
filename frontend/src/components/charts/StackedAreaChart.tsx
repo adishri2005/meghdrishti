@@ -101,32 +101,55 @@ export function StackedAreaChart({
       data: s.data,
     }))
 
-    // Add anomaly markers as a scatter overlay
+    // Add anomaly markers as a scatter overlay pinned to the top of the stacked curve
     if (anomalies.length > 0) {
-      const anomalyScatterData = anomalies.map((a) => ({
-        name: a.resourceId,
-        value: [a.timestampMs, a.cost],
-        anomalyId: a.id,
-        severity: a.severity,
-        itemStyle: {
-          color: SEVERITY_COLORS[a.severity] || '#F43F5E',
-          borderColor: '#FFFFFF',
-          borderWidth: 1.5,
-          shadowBlur: 8,
-          shadowColor: SEVERITY_COLORS[a.severity] || '#F43F5E',
-        },
-      }))
+      const anomalyScatterData = anomalies.map((a) => {
+        let stackTotal = 0
+        let closestTs = a.timestampMs
+        if (series.length > 0 && series[0].data && series[0].data.length > 0) {
+          let minDiff = Infinity
+          series[0].data.forEach(([ts]) => {
+            const diff = Math.abs(ts - a.timestampMs)
+            if (diff < minDiff) {
+              minDiff = diff
+              closestTs = ts
+            }
+          })
+          series.forEach((s) => {
+            const pt = s.data.find(([t]) => t === closestTs)
+            if (pt) stackTotal += pt[1]
+          })
+        }
+
+        const yCoord = stackTotal > 0 ? Math.round(stackTotal * 10) / 10 : a.cost
+
+        return {
+          name: a.resourceId,
+          value: [closestTs, yCoord],
+          actualCost: a.cost,
+          anomalyId: a.id,
+          severity: a.severity,
+          itemStyle: {
+            color: SEVERITY_COLORS[a.severity] || '#F43F5E',
+            borderColor: '#FFFFFF',
+            borderWidth: 1.5,
+            shadowBlur: 8,
+            shadowColor: SEVERITY_COLORS[a.severity] || '#F43F5E',
+          },
+        }
+      })
 
       eSeries.push({
         name: 'Anomalies',
         type: 'scatter',
         symbol: 'diamond',
-        symbolSize: 12,
+        symbolSize: 13,
         z: 10,
         data: anomalyScatterData,
         tooltip: {
-          formatter: (p: { data: { name: string; severity: string; value: [number, number] } }) => {
+          formatter: (p: { data: { name: string; severity: string; value: [number, number]; actualCost: number } }) => {
             const dateStr = new Date(p.data.value[0]).toLocaleString()
+            const costVal = p.data.actualCost !== undefined ? p.data.actualCost : p.data.value[1]
             return `
               <div class="font-mono text-[11px] text-muted-foreground mb-1">${dateStr}</div>
               <div class="flex items-center gap-1.5 font-bold text-xs text-danger mb-1">
@@ -136,7 +159,7 @@ export function StackedAreaChart({
                 ${p.data.severity.toUpperCase()} ANOMALY
               </div>
               <div class="text-xs text-foreground font-mono">Resource: <b>${p.data.name}</b></div>
-              <div class="text-xs text-foreground font-mono">Cost: <b>${formatCurrency(p.data.value[1])}</b></div>
+              <div class="text-xs text-foreground font-mono">Observed Cost: <b>${formatCurrency(costVal)}</b></div>
               <div class="text-[10px] text-muted-foreground mt-1.5 italic">Click marker to inspect root cause</div>
             `
           },
@@ -147,9 +170,10 @@ export function StackedAreaChart({
     return {
       grid: {
         top: showLegend ? 40 : 20,
-        right: 20,
-        bottom: 25,
-        left: 54,
+        right: 18,
+        bottom: 24,
+        left: 8,
+        containLabel: true,
       },
       legend: showLegend
         ? {
@@ -161,8 +185,23 @@ export function StackedAreaChart({
       tooltip: {
         trigger: 'axis',
         axisPointer: {
-          type: 'cross',
+          type: 'line',
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.25)',
+            type: 'dashed',
+          },
         },
+        backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+        borderColor: isDark ? '#1E293B' : '#E2E8F0',
+        borderWidth: 1,
+        padding: [8, 12],
+        textStyle: {
+          color: isDark ? '#F8FAFC' : '#0F172A',
+          fontSize: 11,
+          fontFamily: '"Geist Variable", Inter, sans-serif',
+        },
+        extraCssText:
+          'box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4); border-radius: 8px; backdrop-filter: blur(10px);',
         formatter: (params: Array<{ seriesName: string; color: string; value: [number, number] }>) => {
           if (!params || params.length === 0) return ''
           const validParams = params.filter((p) => p.seriesName !== 'Anomalies')
@@ -203,21 +242,44 @@ export function StackedAreaChart({
       },
       xAxis: {
         type: 'time',
+        min: series[0]?.data?.[0]?.[0],
+        max: series[0]?.data?.[series[0].data.length - 1]?.[0],
+        splitNumber: 6,
+        axisLine: {
+          show: true,
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+          },
+        },
+        axisTick: { show: false },
+        splitLine: { show: false },
         axisLabel: {
           formatter: '{HH}:{mm}',
           fontSize: 10,
+          color: isDark ? '#7E91A6' : '#64748B',
+          hideOverlap: true,
         },
       },
       yAxis: {
         type: 'value',
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            type: 'dashed',
+          },
+        },
         axisLabel: {
+          color: isDark ? '#7E91A6' : '#64748B',
           formatter: (v: number) => `$${v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v}`,
           fontSize: 10,
         },
       },
       series: eSeries,
     }
-  }, [series, anomalies, showLegend])
+  }, [series, anomalies, showLegend, isDark])
 
   return (
     <div className={`w-full ${className}`}>

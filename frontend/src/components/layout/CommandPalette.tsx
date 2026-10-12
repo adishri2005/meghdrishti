@@ -114,7 +114,35 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
               >
                 <Activity className="w-4 h-4 text-primary" />
-                <span>Monitoring Hub (Native)</span>
+                <span>Monitoring Hub: Native Charts</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => handleSelect(() => navigate('/monitoring/grafana'))}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
+              >
+                <Activity className="w-4 h-4 text-warning" />
+                <span>Monitoring: Grafana (Embedded)</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => handleSelect(() => navigate('/monitoring/prometheus'))}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
+              >
+                <Activity className="w-4 h-4 text-info" />
+                <span>Monitoring: Prometheus Console</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => handleSelect(() => navigate('/monitoring/alerts'))}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
+              >
+                <Activity className="w-4 h-4 text-danger" />
+                <span>Monitoring: Alert Rules</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => handleSelect(() => navigate('/monitoring/targets'))}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-foreground cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors aria-selected:bg-primary/15"
+              >
+                <Activity className="w-4 h-4 text-success" />
+                <span>Monitoring: Scrape Targets</span>
               </Command.Item>
               <Command.Item
                 onSelect={() => handleSelect(() => navigate('/logs/app'))}

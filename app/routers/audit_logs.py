@@ -64,15 +64,15 @@ def get_audit_logs(
 
     return [
         {
-            "id": l.id,
-            "actor": l.actor,
-            "action": l.action,
-            "entity": l.entity,
-            "entity_id": l.entity_id,
-            "ip": l.ip,
-            "result": l.result,
-            "detail": l.detail,
-            "ts": l.ts.isoformat() if l.ts else None,
+            "id": log_entry.id,
+            "actor": log_entry.actor,
+            "action": log_entry.action,
+            "entity": log_entry.entity,
+            "entity_id": log_entry.entity_id,
+            "ip": log_entry.ip,
+            "result": log_entry.result,
+            "detail": log_entry.detail,
+            "ts": log_entry.ts.isoformat() if log_entry.ts else None,
         }
-        for l in logs
+        for log_entry in logs
     ]
