@@ -119,16 +119,29 @@ def insert_cost_record(db, resource_db_id: int, payload: dict, job_id: str) -> b
     # Truncate to hour
     ts = ts.replace(minute=0, second=0, microsecond=0)
 
-    stmt = pg_insert(CostRecord).values(
-        resource_id=resource_db_id,
-        ts=ts,
-        usage_quantity=payload.get("usage_quantity", 0),
-        unit_cost=payload.get("unit_cost", 0),
-        cost=payload.get("cost", 0),
-        job_id=job_id if job_id else None,
-    ).on_conflict_do_nothing(
-        constraint="uq_cost_record_resource_ts"
-    )
+    bind = db.get_bind() if hasattr(db, "get_bind") else getattr(db, "bind", None)
+    is_sqlite = bind and bind.dialect.name == "sqlite"
+    if is_sqlite:
+        from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+        stmt = sqlite_insert(CostRecord).values(
+            resource_id=resource_db_id,
+            ts=ts,
+            usage_quantity=payload.get("usage_quantity", 0),
+            unit_cost=payload.get("unit_cost", 0),
+            cost=payload.get("cost", 0),
+            job_id=job_id if job_id else None,
+        ).on_conflict_do_nothing()
+    else:
+        stmt = pg_insert(CostRecord).values(
+            resource_id=resource_db_id,
+            ts=ts,
+            usage_quantity=payload.get("usage_quantity", 0),
+            unit_cost=payload.get("unit_cost", 0),
+            cost=payload.get("cost", 0),
+            job_id=job_id if job_id else None,
+        ).on_conflict_do_nothing(
+            constraint="uq_cost_record_resource_ts"
+        )
     result = db.execute(stmt)
     return result.rowcount > 0
 
