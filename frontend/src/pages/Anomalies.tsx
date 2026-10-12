@@ -10,6 +10,7 @@ import {
 import { getAnomalies } from '@/lib/api/endpoints/anomalies'
 import { AnomalyTable } from '@/components/anomalies/AnomalyTable'
 import { AnomalyDrawer } from '@/components/anomalies/AnomalyDrawer'
+import { useOverviewStats } from '@/hooks/useOverview'
 import { useUIStore } from '@/store/ui'
 import type { Anomaly, Severity } from '@/lib/api/types'
 
@@ -75,8 +76,13 @@ export default function Anomalies() {
     }
   }, [urlAnomalyId, data])
 
-  // Count open anomalies by severity for quick filter chips
+  const { data: stats } = useOverviewStats()
+
+  // Count open anomalies by severity for quick filter chips (global sync)
   const severityCounts = useMemo(() => {
+    if (stats?.anomalies_open) {
+      return stats.anomalies_open
+    }
     const counts = { critical: 0, high: 0, medium: 0, low: 0, total: 0 }
     if (!data?.items) return counts
     data.items.forEach((a) => {
@@ -86,7 +92,7 @@ export default function Anomalies() {
       }
     })
     return counts
-  }, [data])
+  }, [stats, data])
 
   const updateParam = (key: string, val: string | null) => {
     const next = new URLSearchParams(searchParams)

@@ -5,11 +5,11 @@ import {
   SystemStatusSchema,
   type SystemStatus,
 } from '../types'
-import { MOCK_STATS_OVERVIEW, MOCK_SYSTEM_STATUS } from '@/mocks/fixtures'
+import { getMockStatsOverview, MOCK_SYSTEM_STATUS } from '@/mocks/fixtures'
 
 export async function getStatsOverview(): Promise<StatsOverview> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    return StatsOverviewSchema.parse(MOCK_STATS_OVERVIEW)
+    return StatsOverviewSchema.parse(getMockStatsOverview())
   }
   try {
     const res = await apiClient.get('/stats/overview')
@@ -17,7 +17,7 @@ export async function getStatsOverview(): Promise<StatsOverview> {
   } catch (error) {
     if (import.meta.env.DEV) {
       console.warn('Falling back to mock overview stats:', error)
-      return StatsOverviewSchema.parse(MOCK_STATS_OVERVIEW)
+      return StatsOverviewSchema.parse(getMockStatsOverview())
     }
     throw error
   }

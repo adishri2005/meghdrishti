@@ -2,13 +2,13 @@ import { http, HttpResponse } from 'msw'
 import {
   getMockAnomalies,
   getMockCostTimeseries,
+  getMockStatsOverview,
   updateMockAnomalyStatus,
   injectMockAnomaly,
   getActiveMockJobs,
   addMockJob,
   MOCK_DEPLOYMENTS,
   MOCK_RESOURCES,
-  MOCK_STATS_OVERVIEW,
   MOCK_SYSTEM_STATUS,
 } from './fixtures'
 
@@ -172,7 +172,7 @@ export const handlers = [
 
   // --- Stats and System ---
   http.get('/api/v1/stats/overview', () => {
-    return HttpResponse.json(MOCK_STATS_OVERVIEW)
+    return HttpResponse.json(getMockStatsOverview())
   }),
 
   http.get('/api/v1/system/status', () => {
@@ -272,17 +272,26 @@ export const handlers = [
     const severity = url.searchParams.get('severity')
     const status = url.searchParams.get('status')
     const resourceId = url.searchParams.get('resource_id')
+    const limitParam = url.searchParams.get('limit')
+    const offsetParam = url.searchParams.get('offset')
 
     let filtered = [...getMockAnomalies()]
     if (severity && severity !== 'all') filtered = filtered.filter((a) => a.severity === severity)
     if (status && status !== 'all') filtered = filtered.filter((a) => a.status === status)
     if (resourceId) filtered = filtered.filter((a) => a.resource_name.toLowerCase().includes(resourceId.toLowerCase()))
 
+    const total = filtered.length
+    if (limitParam) {
+      const limit = parseInt(limitParam, 10)
+      const offset = parseInt(offsetParam || '0', 10)
+      filtered = filtered.slice(offset, offset + limit)
+    }
+
     return HttpResponse.json({
       items: filtered,
-      total: filtered.length,
+      total,
     }, {
-      headers: { 'X-Total-Count': String(filtered.length) },
+      headers: { 'X-Total-Count': String(total) },
     })
   }),
 

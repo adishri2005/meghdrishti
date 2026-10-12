@@ -20,7 +20,7 @@ import {
 import { useUIStore } from '@/store/ui'
 import { useAuthStore } from '@/hooks/useAuth'
 import { canManageSettings, canViewLogs } from '@/lib/rbac'
-import { MOCK_ANOMALIES } from '@/mocks/fixtures'
+import { useOverviewStats } from '@/hooks/useOverview'
 
 export function Sidebar() {
   const navigate = useNavigate()
@@ -50,8 +50,9 @@ export function Sidebar() {
     setMobileMenuOpen(false)
   }, [location.pathname, setMobileMenuOpen])
 
-  const openAnomalies = MOCK_ANOMALIES.filter((a) => a.status === 'open')
-  const hasCritical = openAnomalies.some((a) => a.severity === 'critical')
+  const { data: stats } = useOverviewStats()
+  const openCount = stats?.anomalies_open?.total ?? 0
+  const hasCritical = (stats?.anomalies_open?.critical ?? 0) > 0
 
   const navItemClass = (isActive: boolean, isCollapsed: boolean) =>
     `flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group relative ${
@@ -174,7 +175,7 @@ export function Sidebar() {
             {!isCollapsed && (
               <div className="flex items-center justify-between flex-1 min-w-0">
                 <span className="truncate">Anomalies</span>
-                {openAnomalies.length > 0 && (
+                {openCount > 0 && (
                   <span
                     className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium shrink-0 ${
                       hasCritical
@@ -182,14 +183,14 @@ export function Sidebar() {
                         : 'bg-warning/15 text-warning border border-warning/30'
                     }`}
                   >
-                    {openAnomalies.length}
+                    {openCount}
                   </span>
                 )}
               </div>
             )}
             {isCollapsed && (
               <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
-                Anomalies ({openAnomalies.length})
+                Anomalies ({openCount})
               </span>
             )}
           </NavLink>

@@ -139,11 +139,92 @@ function initializeMockAnomalies(baseTime?: number): MockAnomaly[] {
     },
     {
       id: 103,
+      scope: 'resource',
+      resource_id: 7,
+      resource_name: 'ec2-ml-compute-07',
+      detected_at: new Date(now - 75 * 60000).toISOString(),
+      record_ts: new Date(now - 80 * 60000).toISOString(),
+      observed_cost: 295.4,
+      expected_cost: 38.0,
+      z_score: 5.9,
+      pct_increase: 677.4,
+      severity: 'critical',
+      method: 'z_score',
+      root_cause_summary: 'Unscheduled multi-GPU compute distributed training job run on ec2-ml-compute-07',
+      root_cause: {
+        breakdown_by_team: { ml: 92, core: 5, data: 3 },
+        breakdown_by_service: { compute: 95, storage: 5 },
+        breakdown_by_region: { 'us-east-1': 100 },
+        top_contributors: [
+          { resource_id: 'ec2-ml-compute-07', share_pct: 88, delta_cost: 257.4, observed_cost: 295.4 },
+        ],
+      },
+      status: 'open',
+      occurrences: 2,
+      peak_cost: 310.0,
+      last_seen_ts: new Date(now - 15 * 60000).toISOString(),
+    },
+    {
+      id: 104,
+      scope: 'resource',
+      resource_id: 16,
+      resource_name: 'lambda-platform-networking-16',
+      detected_at: new Date(now - 90 * 60000).toISOString(),
+      record_ts: new Date(now - 95 * 60000).toISOString(),
+      observed_cost: 142.8,
+      expected_cost: 45.0,
+      z_score: 3.8,
+      pct_increase: 217.3,
+      severity: 'medium',
+      method: 'ewma_drift',
+      root_cause_summary: 'Heavy serverless cross-region egress networking burst on lambda-platform-networking-16',
+      root_cause: {
+        breakdown_by_team: { platform: 75, core: 15, data: 10 },
+        breakdown_by_service: { networking: 80, compute: 20 },
+        breakdown_by_region: { 'ap-southeast-1': 85, 'us-east-1': 15 },
+        top_contributors: [
+          { resource_id: 'lambda-platform-networking-16', share_pct: 78, delta_cost: 97.8, observed_cost: 142.8 },
+        ],
+      },
+      status: 'open',
+      occurrences: 1,
+      peak_cost: 142.8,
+      last_seen_ts: new Date(now - 30 * 60000).toISOString(),
+    },
+    {
+      id: 105,
+      scope: 'resource',
+      resource_id: 3,
+      resource_name: 's3-data-storage-03',
+      detected_at: new Date(now - 110 * 60000).toISOString(),
+      record_ts: new Date(now - 120 * 60000).toISOString(),
+      observed_cost: 168.0,
+      expected_cost: 52.0,
+      z_score: 4.4,
+      pct_increase: 223.1,
+      severity: 'high',
+      method: 'pct_jump',
+      root_cause_summary: 'Uncompressed parquet analytic dataset duplication on s3-data-storage-03',
+      root_cause: {
+        breakdown_by_team: { data: 85, ml: 10, core: 5 },
+        breakdown_by_service: { storage: 95, analytics: 5 },
+        breakdown_by_region: { 'us-west-2': 100 },
+        top_contributors: [
+          { resource_id: 's3-data-storage-03', share_pct: 85, delta_cost: 116.0, observed_cost: 168.0 },
+        ],
+      },
+      status: 'open',
+      occurrences: 1,
+      peak_cost: 168.0,
+      last_seen_ts: new Date(now - 45 * 60000).toISOString(),
+    },
+    {
+      id: 106,
       scope: 'aggregate',
       resource_id: null,
       resource_name: 'aggregate (platform)',
-      detected_at: new Date(now - 120 * 60000).toISOString(),
-      record_ts: new Date(now - 130 * 60000).toISOString(),
+      detected_at: new Date(now - 140 * 60000).toISOString(),
+      record_ts: new Date(now - 150 * 60000).toISOString(),
       observed_cost: 612.0,
       expected_cost: 410.0,
       z_score: 3.1,
@@ -166,7 +247,26 @@ function initializeMockAnomalies(baseTime?: number): MockAnomaly[] {
       last_seen_ts: new Date(now - 60 * 60000).toISOString(),
     },
     {
-      id: 104,
+      id: 107,
+      scope: 'resource',
+      resource_id: 11,
+      resource_name: 'elasticache-platform-database-11',
+      detected_at: new Date(now - 210 * 60000).toISOString(),
+      record_ts: new Date(now - 220 * 60000).toISOString(),
+      observed_cost: 95.0,
+      expected_cost: 62.0,
+      z_score: 2.1,
+      pct_increase: 53.2,
+      severity: 'low',
+      method: 'ewma_drift',
+      root_cause_summary: 'Redis cache cluster memory scaling threshold reached on elasticache-platform-database-11',
+      status: 'acknowledged',
+      occurrences: 1,
+      peak_cost: 95.0,
+      last_seen_ts: new Date(now - 90 * 60000).toISOString(),
+    },
+    {
+      id: 108,
       scope: 'resource',
       resource_id: 16,
       resource_name: 's3-security-storage-16',
@@ -228,6 +328,18 @@ export function injectMockAnomaly(anomaly: Partial<MockAnomaly>): MockAnomaly {
     ...anomaly,
   }
   list.unshift(created)
+
+  // Also reflect anomaly on matching resource in MOCK_RESOURCES
+  const matchedRes = MOCK_RESOURCES.find(
+    (r) => r.resource_id.toLowerCase() === targetName.toLowerCase() || targetName.toLowerCase().includes(r.resource_id.toLowerCase())
+  )
+  if (matchedRes) {
+    matchedRes.open_anomalies += 1
+    matchedRes.status = 'anomalous'
+    matchedRes.last_cost = created.observed_cost
+    matchedRes.cost_24h = Math.round((matchedRes.cost_24h + (created.observed_cost - created.expected_cost)) * 100) / 100
+  }
+
   return created
 }
 
@@ -242,34 +354,62 @@ export function updateMockAnomalyStatus(id: number | string, status: 'open' | 'a
 
 export const MOCK_ANOMALIES = getMockAnomalies()
 
-export const MOCK_STATS_OVERVIEW = {
-  generated_at: new Date().toISOString(),
-  cost_24h: 3845.2,
-  cost_prev_24h: 3410.8,
-  cost_change_pct: 12.7,
-  records_24h: 960,
-  active_resources: 40,
-  anomalies_open: {
-    critical: 1,
-    high: 1,
-    medium: 1,
-    low: 0,
-    total: 3,
-  },
-  anomalies_24h: 5,
-  mttd_seconds_p95: 3.8,
-  top_spenders: [
-    { resource_id: 'eks-ml-storage-04', team: 'ml', cost: 324.5, share_pct: 14.8 },
-    { resource_id: 'rds-core-database-08', team: 'core', cost: 189.2, share_pct: 8.6 },
-    { resource_id: 'ec2-ml-compute-07', team: 'ml', cost: 145.0, share_pct: 6.6 },
-    { resource_id: 'lambda-platform-networking-16', team: 'platform', cost: 122.0, share_pct: 5.5 },
-    { resource_id: 'elasticache-platform-database-11', team: 'platform', cost: 95.0, share_pct: 4.3 },
-    { resource_id: 'ec2-core-compute-02', team: 'core', cost: 88.4, share_pct: 4.0 },
-    { resource_id: 's3-data-storage-03', team: 'data', cost: 72.1, share_pct: 3.3 },
-    { resource_id: 'eks-data-analytics-05', team: 'data', cost: 68.0, share_pct: 3.1 },
-  ],
-  latest_anomaly: MOCK_ANOMALIES[0],
+export function getMockStatsOverview() {
+  const anomalies = getMockAnomalies()
+  const openAnomalies = anomalies.filter((a) => a.status === 'open')
+  const criticalCount = openAnomalies.filter((a) => a.severity === 'critical').length
+  const highCount = openAnomalies.filter((a) => a.severity === 'high').length
+  const mediumCount = openAnomalies.filter((a) => a.severity === 'medium').length
+  const lowCount = openAnomalies.filter((a) => a.severity === 'low').length
+
+  const costData = getMockCostTimeseries()
+  const cost24h = Math.round(
+    costData.series.reduce((sum, s) => sum + s.points.reduce((pSum, p) => pSum + p[1], 0), 0) * 10
+  ) / 10
+  const costPrev24h = Math.round((cost24h / 1.127) * 10) / 10
+  const costChangePct = Math.round(((cost24h - costPrev24h) / costPrev24h) * 1000) / 10
+
+  const sortedResources = [...MOCK_RESOURCES].sort((a, b) => b.cost_24h - a.cost_24h)
+  const totalResourceCost = sortedResources.reduce((acc, r) => acc + r.cost_24h, 0) || 1
+  const topSpenders = sortedResources.slice(0, 8).map((r) => ({
+    resource_id: r.resource_id,
+    team: r.team,
+    cost: r.cost_24h,
+    share_pct: Math.round((r.cost_24h / totalResourceCost) * 1000) / 10,
+  }))
+
+  return {
+    generated_at: new Date().toISOString(),
+    cost_24h: cost24h,
+    cost_prev_24h: costPrev24h,
+    cost_change_pct: costChangePct,
+    records_24h: 960,
+    active_resources: MOCK_RESOURCES.length,
+    anomalies_open: {
+      critical: criticalCount,
+      high: highCount,
+      medium: mediumCount,
+      low: lowCount,
+      total: openAnomalies.length,
+    },
+    anomalies_24h: anomalies.filter(
+      (a) => Date.now() - new Date(a.detected_at).getTime() <= 86400000
+    ).length,
+    mttd_seconds_p95: 3.8,
+    top_spenders: topSpenders,
+    latest_anomaly: openAnomalies[0] || anomalies[0] || null,
+  }
 }
+
+export const MOCK_STATS_OVERVIEW = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const dynamicStats = getMockStatsOverview() as any
+      return dynamicStats[prop]
+    },
+  }
+) as unknown as ReturnType<typeof getMockStatsOverview>
 
 export const MOCK_SYSTEM_STATUS = {
   api: {

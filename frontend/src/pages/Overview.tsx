@@ -116,6 +116,7 @@ export default function Overview() {
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       queryClient.invalidateQueries({ queryKey: ['costs'] })
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
     } catch {
       toast.error('Simulation failed. Check backend connection.')
     } finally {
@@ -130,7 +131,9 @@ export default function Overview() {
       await acknowledgeAnomaly(id)
       toast.success('Anomaly acknowledged', { duration: 1500 })
       queryClient.invalidateQueries({ queryKey: ['anomalies'] })
-      queryClient.invalidateQueries({ queryKey: ['stats', 'overview'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
     } catch {
       toast.error('Failed to acknowledge anomaly')
     }
@@ -151,7 +154,7 @@ export default function Overview() {
     return totals
   }, [costData])
 
-  const totalOpenAnomalies = stats?.anomalies_open?.total ?? 0
+  const totalOpenAnomalies = stats?.anomalies_open?.total ?? anomaliesData?.total ?? 0
   const criticalCount = stats?.anomalies_open?.critical ?? 0
 
   return (

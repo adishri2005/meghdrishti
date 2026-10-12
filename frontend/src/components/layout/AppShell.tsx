@@ -8,11 +8,13 @@ import { ShortcutsDialog } from './ShortcutsDialog'
 import { IdleWarningDialog } from './IdleWarningDialog'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { useAuthStore } from '@/hooks/useAuth'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 export function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const { user, isInitialized, checkSession } = useAuthStore()
 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
@@ -30,6 +32,7 @@ export function AppShell() {
   }, [isInitialized, user, navigate, location])
 
   const handleRefresh = () => {
+    queryClient.invalidateQueries()
     toast.success('Live dashboard data refreshed', { duration: 1500 })
   }
 
