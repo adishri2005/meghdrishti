@@ -106,15 +106,17 @@ class Principal:
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP, taking into account reverse proxy headers."""
+    """Extract client IP, prioritizing trusted reverse proxy header (X-Real-IP) over spoofable X-Forwarded-For."""
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip and real_ip.strip():
+        return real_ip.strip()
+
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         parts = [p.strip() for p in forwarded.split(",") if p.strip()]
         if parts:
             return parts[0]
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip and real_ip.strip():
-        return real_ip.strip()
+
     if request.client and request.client.host:
         return request.client.host
     return "unknown"
@@ -140,6 +142,11 @@ async def check_login_rate_limit(request: Request) -> None:
         current = redis.incr(key)
         if current == 1:
             redis.expire(key, 60)
+        else:
+            # Prevent permanently locked key if redis crashed before expire
+            ttl = redis.ttl(key)
+            if ttl is None or ttl < 0:
+                redis.expire(key, 60)
         if current > 10:
             logger.warning(
                 "Rate limited login attempt",

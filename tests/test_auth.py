@@ -108,6 +108,19 @@ class TestGetClientIP:
         req = Request(scope)
         assert get_client_ip(req) == "192.0.2.1"
 
+    def test_x_real_ip_precedence_over_spoofed_x_forwarded_for(self):
+        """Attacker providing spoofed X-Forwarded-For must NOT override verified proxy X-Real-IP."""
+        scope = {
+            "type": "http",
+            "headers": [
+                (b"x-forwarded-for", b"attacker-fake-ip"),
+                (b"x-real-ip", b"198.51.100.1"),
+            ],
+            "client": ("127.0.0.1", 8000),
+        }
+        req = Request(scope)
+        assert get_client_ip(req) == "198.51.100.1"
+
     def test_unknown_when_no_client(self):
         scope = {
             "type": "http",
