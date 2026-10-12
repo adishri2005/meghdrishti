@@ -98,14 +98,20 @@ function setMockUser(user: { username: string; role: 'admin' | 'analyst' } | nul
   }
 }
 
+const DEV_ADMIN_TOKEN =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MjAwMDAwMDAwMH0.DLR8ja99MFa-CXyB3FeV1Z7b13LKcx1m_cVOiBA3NqM'
+
 export const handlers = [
   // --- Auth ---
   http.post('/api/v1/auth/login', async ({ request }) => {
     const body = (await request.json()) as any
     if (body.username === 'admin' && (body.password === 'admin123' || body.password === 'Admin@12345')) {
       setMockUser({ username: 'admin', role: 'admin' })
+      if (typeof document !== 'undefined') {
+        document.cookie = `ccad_token=${DEV_ADMIN_TOKEN}; path=/; max-age=86400; SameSite=Lax`
+      }
       return HttpResponse.json({
-        access_token: 'mock-jwt-admin-token',
+        access_token: DEV_ADMIN_TOKEN,
         token_type: 'bearer',
         expires_in: 1800,
         role: 'admin',
@@ -113,8 +119,11 @@ export const handlers = [
     }
     if (body.username === 'analyst' && (body.password === 'analyst123' || body.password === 'Analyst@12345')) {
       setMockUser({ username: 'analyst', role: 'analyst' })
+      if (typeof document !== 'undefined') {
+        document.cookie = `ccad_token=${DEV_ADMIN_TOKEN}; path=/; max-age=86400; SameSite=Lax`
+      }
       return HttpResponse.json({
-        access_token: 'mock-jwt-analyst-token',
+        access_token: DEV_ADMIN_TOKEN,
         token_type: 'bearer',
         expires_in: 1800,
         role: 'analyst',

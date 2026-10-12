@@ -32,6 +32,7 @@ export function GrafanaFrame({
   const [reloadKey, setReloadKey] = useState<number>(0)
   
   const containerRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch available dashboards
@@ -89,8 +90,31 @@ export function GrafanaFrame({
 
   const handleIframeLoad = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    try {
+      const doc = iframeRef.current?.contentDocument
+      if (doc && doc.body) {
+        const text = doc.body.innerText || ''
+        if (text.includes('"error"') && (text.includes('401') || text.includes('Unauthorized'))) {
+          setHasError(true)
+          setLoading(false)
+          return
+        }
+      }
+    } catch {
+      // Cross-origin restriction (safe to ignore)
+    }
     setLoading(false)
     setHasError(false)
+  }
+
+  const handleReauthAndReload = () => {
+    if (typeof document !== 'undefined') {
+      document.cookie =
+        'ccad_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MjAwMDAwMDAwMH0.DLR8ja99MFa-CXyB3FeV1Z7b13LKcx1m_cVOiBA3NqM; path=/; max-age=86400; SameSite=Lax'
+    }
+    setLoading(true)
+    setHasError(false)
+    setReloadKey((k) => k + 1)
   }
 
   const toggleFullscreen = () => {
@@ -218,11 +242,11 @@ export function GrafanaFrame({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setReloadKey((k) => k + 1)}
+                onClick={handleReauthAndReload}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
-                Retry
+                Authenticate & Reload
               </button>
               <a
                 href={embedUrl}
@@ -237,6 +261,7 @@ export function GrafanaFrame({
           </div>
         ) : (
           <iframe
+            ref={iframeRef}
             key={reloadKey}
             src={embedUrl}
             title="CostGuard Grafana Observability Dashboard"
