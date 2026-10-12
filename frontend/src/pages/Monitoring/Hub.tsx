@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useMemo } from 'react'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Activity,
   Layers,
@@ -19,37 +19,54 @@ import { AlertsList } from '@/components/monitoring/AlertsList'
 type MonitoringTab = 'overview' | 'grafana' | 'prometheus' | 'alerts' | 'targets'
 
 export default function MonitoringHub() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTabParam = (searchParams.get('tab') as MonitoringTab) || 'overview'
-  const [activeTab, setActiveTab] = useState<MonitoringTab>(activeTabParam)
+  const { tab: routeTab } = useParams<{ tab?: string }>()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const activeTab = useMemo<MonitoringTab>(() => {
+    const raw = (routeTab || '').toLowerCase()
+    if (raw === 'native' || raw === 'overview') return 'overview'
+    if (raw === 'grafana') return 'grafana'
+    if (raw === 'prometheus') return 'prometheus'
+    if (raw === 'alerts') return 'alerts'
+    if (raw === 'targets') return 'targets'
+
+    const queryTab = searchParams.get('tab')?.toLowerCase()
+    if (queryTab === 'native' || queryTab === 'overview') return 'overview'
+    if (queryTab === 'grafana') return 'grafana'
+    if (queryTab === 'prometheus') return 'prometheus'
+    if (queryTab === 'alerts') return 'alerts'
+    if (queryTab === 'targets') return 'targets'
+
+    return 'overview'
+  }, [routeTab, searchParams])
   
   // Custom PromQL pre-fill query when navigating from panel
   const [promConsoleQuery, setPromConsoleQuery] = useState<string>(PROM_QUERIES.rps)
   const [promMode, setPromMode] = useState<'console' | 'embed'>('console')
 
-  // Sync tab with URL
-  useEffect(() => {
-    const current = searchParams.get('tab') as MonitoringTab
-    if (current && current !== activeTab) {
-      setActiveTab(current)
-    }
-  }, [searchParams, activeTab])
-
   const handleTabChange = (tab: MonitoringTab) => {
-    setActiveTab(tab)
-    const next = new URLSearchParams(searchParams)
-    next.set('tab', tab)
-    setSearchParams(next, { replace: true })
+    const slug = tab === 'overview' ? 'native' : tab
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('tab')
+    const qs = nextParams.toString() ? `?${nextParams.toString()}` : ''
+    navigate(`/monitoring/${slug}${qs}`)
   }
 
   const handleOpenInPrometheus = (expr: string) => {
     setPromConsoleQuery(expr)
     setPromMode('console')
-    handleTabChange('prometheus')
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('tab')
+    const qs = nextParams.toString() ? `?${nextParams.toString()}` : ''
+    navigate(`/monitoring/prometheus${qs}`)
   }
 
   const handleOpenInGrafana = () => {
-    handleTabChange('grafana')
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('tab')
+    const qs = nextParams.toString() ? `?${nextParams.toString()}` : ''
+    navigate(`/monitoring/grafana${qs}`)
   }
 
   return (
@@ -122,7 +139,7 @@ export default function MonitoringHub() {
             }`}
           >
             <Bell className="h-3.5 w-3.5" />
-            <span>Alerts</span>
+            <span>Alert Rules</span>
           </button>
 
           <button
@@ -135,7 +152,7 @@ export default function MonitoringHub() {
             }`}
           >
             <Radio className="h-3.5 w-3.5" />
-            <span>Targets</span>
+            <span>Scrape Targets</span>
           </button>
         </div>
       </div>

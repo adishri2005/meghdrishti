@@ -35,6 +35,16 @@ export function Sidebar() {
     location.pathname.startsWith('/logs')
   )
 
+  // Auto-expand active group on route change
+  useEffect(() => {
+    if (location.pathname.startsWith('/monitoring')) {
+      setMonitoringOpen(true)
+    }
+    if (location.pathname.startsWith('/logs')) {
+      setLogsOpen(true)
+    }
+  }, [location.pathname])
+
   // Auto-close mobile drawer on route change
   useEffect(() => {
     setMobileMenuOpen(false)
@@ -56,6 +66,22 @@ export function Sidebar() {
         ? 'text-foreground font-medium bg-muted/60'
         : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
     }`
+
+  const isMonitoringSubActive = (target: string) => {
+    const segments = location.pathname.split('/').filter(Boolean)
+    if (segments[0] === 'monitoring') {
+      const sub = segments[1]?.toLowerCase()
+      if (!sub || sub === 'overview' || sub === 'native') {
+        const tab = new URLSearchParams(location.search).get('tab')?.toLowerCase()
+        if (tab) {
+          return (target === 'native' && (tab === 'overview' || tab === 'native')) || target === tab
+        }
+        return target === 'native'
+      }
+      return sub === target
+    }
+    return false
+  }
 
   const handleLogout = async () => {
     await logout()
@@ -243,31 +269,31 @@ export function Sidebar() {
               <div className="ml-6 mt-1 space-y-0.5 pl-2 border-l border-border/60">
                 <NavLink
                   to="/monitoring/native"
-                  className={({ isActive }) => subNavItemClass(isActive)}
+                  className={() => subNavItemClass(isMonitoringSubActive('native'))}
                 >
                   Native Charts
                 </NavLink>
                 <NavLink
                   to="/monitoring/grafana"
-                  className={({ isActive }) => subNavItemClass(isActive)}
+                  className={() => subNavItemClass(isMonitoringSubActive('grafana'))}
                 >
                   Grafana (Embedded)
                 </NavLink>
                 <NavLink
                   to="/monitoring/prometheus"
-                  className={({ isActive }) => subNavItemClass(isActive)}
+                  className={() => subNavItemClass(isMonitoringSubActive('prometheus'))}
                 >
                   Prometheus Console
                 </NavLink>
                 <NavLink
                   to="/monitoring/alerts"
-                  className={({ isActive }) => subNavItemClass(isActive)}
+                  className={() => subNavItemClass(isMonitoringSubActive('alerts'))}
                 >
                   Alert Rules
                 </NavLink>
                 <NavLink
                   to="/monitoring/targets"
-                  className={({ isActive }) => subNavItemClass(isActive)}
+                  className={() => subNavItemClass(isMonitoringSubActive('targets'))}
                 >
                   Scrape Targets
                 </NavLink>

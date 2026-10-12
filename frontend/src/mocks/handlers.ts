@@ -531,7 +531,86 @@ export const handlers = [
     return HttpResponse.json({
       status: 'success',
       data: {
-        groups: [],
+        groups: [
+          {
+            name: 'ccad_alerts',
+            file: '/etc/prometheus/alert_rules.yml',
+            rules: [
+              {
+                state: 'inactive',
+                name: 'HighErrorRate',
+                query: 'sum(rate(api_requests_total{status=~"5.."}[30s])) / sum(rate(api_requests_total[30s])) > 0.05',
+                duration: 30,
+                labels: { severity: 'critical' },
+                annotations: {
+                  summary: 'High 5xx error rate (> 5%)',
+                  description: 'The API error rate has exceeded 5% for the last 30 seconds.',
+                },
+                type: 'alerting',
+              },
+              {
+                state: 'inactive',
+                name: 'HighLatencyP95',
+                query: 'histogram_quantile(0.95, sum(rate(api_latency_seconds_bucket[1m])) by (le)) > 1.0',
+                duration: 60,
+                labels: { severity: 'warning' },
+                annotations: {
+                  summary: 'High API p95 latency (> 1s)',
+                  description: 'The p95 API latency has exceeded 1 second for the last minute.',
+                },
+                type: 'alerting',
+              },
+              {
+                state: 'inactive',
+                name: 'QueueLagHigh',
+                query: 'queue_lag > 500',
+                duration: 20,
+                labels: { severity: 'warning' },
+                annotations: {
+                  summary: 'Queue lag is high (> 500 messages)',
+                  description: 'The cost_records stream has more than 500 pending messages.',
+                },
+                type: 'alerting',
+              },
+              {
+                state: 'inactive',
+                name: 'WorkerDown',
+                query: 'up{job="worker"} == 0',
+                duration: 10,
+                labels: { severity: 'critical' },
+                annotations: {
+                  summary: 'Worker is down',
+                  description: 'No worker instances are responding to health checks.',
+                },
+                type: 'alerting',
+              },
+              {
+                state: 'inactive',
+                name: 'DLQNotEmpty',
+                query: 'dlq_length > 0',
+                duration: 30,
+                labels: { severity: 'warning' },
+                annotations: {
+                  summary: 'Dead-letter queue has messages',
+                  description: 'Messages in the DLQ need investigation.',
+                },
+                type: 'alerting',
+              },
+              {
+                state: 'inactive',
+                name: 'NoRecordsProcessed',
+                query: 'increase(records_ingested_total[1m]) > 0 and increase(records_processed_total[1m]) == 0',
+                duration: 60,
+                labels: { severity: 'critical' },
+                annotations: {
+                  summary: 'Records being ingested but none processed',
+                  description: 'The worker may be stuck — records are being ingested but not processed.',
+                },
+                type: 'alerting',
+              },
+            ],
+          },
+        ],
       },
     })
   }),

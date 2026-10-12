@@ -108,7 +108,7 @@ export default function Overview() {
         multiplier: 14.5,
         hours: 2,
       })
-      toast.success(`Injected synthetic spike on ${res.resource_id ?? 'GPU Cluster'} (${res.multiplier}x cost)!`, {
+      toast.success('Injected synthetic spike on GPU Cluster (14.5x cost)!', {
         description: `Job ${res.job_id} scheduled. Ingestion stream surging.`,
         duration: 3500,
       })

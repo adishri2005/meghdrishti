@@ -162,7 +162,15 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'monitoring/*',
+        path: 'monitoring',
+        element: (
+          <PageSuspense>
+            <MonitoringHub />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'monitoring/:tab',
         element: (
           <PageSuspense>
             <MonitoringHub />
