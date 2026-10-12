@@ -78,9 +78,14 @@ def _handle_signal(signum, frame):
                 extra={"event": "worker_shutdown"})
 
 
-def upsert_resource(db, payload: dict) -> tuple[int, dict, bool]:
+def upsert_resource(db, payload: dict, resource_cache: dict | None = None) -> tuple[int, dict, bool]:
     """Insert or get a resource, returning (db_id, meta_dict, is_new)."""
     resource_id = payload["resource_id"]
+
+    if resource_cache is not None and resource_id in resource_cache:
+        cached_id, cached_meta = resource_cache[resource_id]
+        return cached_id, cached_meta, False
+
     res = db.query(Resource).filter(Resource.resource_id == resource_id).first()
     is_new = False
     if not res:
@@ -101,6 +106,10 @@ def upsert_resource(db, payload: dict) -> tuple[int, dict, bool]:
         "region": res.region,
         "type": res.type,
     }
+
+    if resource_cache is not None:
+        resource_cache[resource_id] = (res.id, meta)
+
     return res.id, meta, is_new
 
 
@@ -188,13 +197,16 @@ def process_batch(
 
         batch_start = time.time()
 
+        # Cache for resources within this batch to prevent N+1 queries
+        resource_cache: dict[str, tuple[int, dict]] = {}
+
         for item in parsed:
             payload = item["payload"]
             msg_id = item["msg_id"]
             job_id = item["job_id"]
 
             try:
-                resource_db_id, meta, is_new = upsert_resource(db, payload)
+                resource_db_id, meta, is_new = upsert_resource(db, payload, resource_cache=resource_cache)
                 inserted = insert_cost_record(db, resource_db_id, payload, job_id)
 
                 ts_str = payload.get("timestamp", "")
