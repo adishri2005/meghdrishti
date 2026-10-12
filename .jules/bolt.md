@@ -1,0 +1,3 @@
+## 2024-10-12 - Prevented Repeated DB Reads in Batch Worker
+**Learning:** The `app/worker/main.py` processes streams in large batches, and calling an upsert row function repeatedly for the same resource resulted in severe repeated reads to the database within a single batch.
+**Action:** Implemented an in-memory `resource_cache: dict` localized to the scope of a single `process_batch` operation. This significantly drops database queries per batch, trading small memory overhead for major query reduction. This is a common pattern for batch data ingestion in SQLAlchemy where we want to avoid bulk queries but need idempotency for resources.
