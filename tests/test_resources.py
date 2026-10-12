@@ -1,8 +1,7 @@
 """Tests for resource router endpoints, pagination, and sorting."""
 
-import pytest
-from app.models import Anomaly, Baseline, CostRecord, Resource
-from datetime import datetime, timezone, timedelta
+from app.models import Anomaly, CostRecord, Resource
+from datetime import datetime, timezone
 
 
 def test_list_resources_db_sorting_and_pagination(client, admin_headers, db_session):

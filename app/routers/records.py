@@ -16,7 +16,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.metrics import RECORDS_INGESTED
 from app.models import IngestionJob
 from app.queue import enqueue_records
 from app.schemas import (
@@ -109,7 +108,7 @@ def get_job_status(
     try:
         job_uuid = uuid.UUID(job_id) if isinstance(job_id, str) else job_id
     except (ValueError, AttributeError):
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail="Job not found") from None
 
     job = db.query(IngestionJob).filter(IngestionJob.id == job_uuid).first()
     if not job:

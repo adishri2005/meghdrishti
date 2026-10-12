@@ -24,8 +24,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import get_settings
 from app.logging_setup import (
     request_id_var,
-    request_role_var,
-    request_user_var,
     setup_logging,
 )
 from app.metrics import API_LATENCY, API_REQUESTS, APP_VERSION_INFO

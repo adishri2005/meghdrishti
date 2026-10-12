@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import CostRecordIn, BatchIngestRequest, LoginRequest, RegisterRequest
+from app.schemas import CostRecordIn, LoginRequest, RegisterRequest
 
 
 class TestCostRecordInValidation:

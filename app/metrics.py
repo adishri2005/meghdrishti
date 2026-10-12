@@ -7,7 +7,7 @@ even when prometheus_client is not running a server (metrics are just
 in-memory objects until scraped).
 """
 
-from prometheus_client import Counter, Gauge, Histogram, Info
+from prometheus_client import Counter, Gauge, Histogram
 
 # ---------------------------------------------------------------------------
 # API metrics

@@ -91,7 +91,7 @@ def get_job_detail(
     try:
         job_uuid = uuid.UUID(job_id) if isinstance(job_id, str) else job_id
     except (ValueError, AttributeError):
-        raise HTTPException(status_code=404, detail="Ingestion job not found")
+        raise HTTPException(status_code=404, detail="Ingestion job not found") from None
 
     job = db.query(IngestionJob).filter(IngestionJob.id == job_uuid).first()
     if not job:

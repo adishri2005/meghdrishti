@@ -8,7 +8,6 @@ import pytest
 from app.detection.baseline import BaselineStats
 from app.detection.rules import (
     DetectionConfig,
-    Verdict,
     classify_severity,
     compute_z_and_pct,
     evaluate,
@@ -87,22 +86,18 @@ class TestEvaluate:
         # Simulate a previous EWMA that's been creeping up
         high_ewma = 1.25  # Already elevated
         # Cost slightly above mean — not enough for z or pct
-        cost = 2.4  # 20% above mean of 2.0
-        verdict = evaluate(cost=cost, baseline=normal_baseline, ewma_prev=high_ewma, cfg=default_cfg)
-        # After update: new_ewma = 0.3 * (2.4/2.0) + 0.7 * 1.25 = 0.36 + 0.875 = 1.235
-        # This is below 1.3, so it shouldn't fire yet. Let's use higher ewma.
-        verdict2 = evaluate(cost=cost, baseline=normal_baseline, ewma_prev=1.28, cfg=default_cfg)
-        # new_ewma = 0.3 * 1.2 + 0.7 * 1.28 = 0.36 + 0.896 = 1.256, still below
-        # Need cost that pushes EWMA over 1.3
-        verdict3 = evaluate(cost=3.0, baseline=normal_baseline, ewma_prev=1.28, cfg=default_cfg)
-        # new_ewma = 0.3 * 1.5 + 0.7 * 1.28 = 0.45 + 0.896 = 1.346 > 1.3
-        # But pct = 50% exactly, z = (3-2)/0.2 = 5 > 3, so z_score fires first
+        cost = 2.4
+        v1 = evaluate(cost=cost, baseline=normal_baseline, ewma_prev=high_ewma, cfg=default_cfg)
+        assert v1.is_anomaly is False
+        v2 = evaluate(cost=cost, baseline=normal_baseline, ewma_prev=1.28, cfg=default_cfg)
+        assert v2.is_anomaly is False
+        v3 = evaluate(cost=3.0, baseline=normal_baseline, ewma_prev=1.28, cfg=default_cfg)
+        assert v3.is_anomaly is True
         # EWMA drift fires ONLY when neither A nor B fired
         # We need: pct <= 50 AND z <= 3 AND ewma > 1.3
         cost4 = 2.3  # pct = 15%, z = (2.3-2)/0.2 = 1.5
-        verdict4 = evaluate(cost=cost4, baseline=normal_baseline, ewma_prev=1.29, cfg=default_cfg)
-        # new_ewma = 0.3 * (2.3/2.0) + 0.7 * 1.29 = 0.3*1.15 + 0.903 = 0.345 + 0.903 = 1.248
-        # Still below 1.3. Need very high previous EWMA.
+        v4 = evaluate(cost=cost4, baseline=normal_baseline, ewma_prev=1.29, cfg=default_cfg)
+        assert v4.is_anomaly is False
         verdict5 = evaluate(cost=cost4, baseline=normal_baseline, ewma_prev=1.4, cfg=default_cfg)
         # new_ewma = 0.345 + 0.7 * 1.4 = 0.345 + 0.98 = 1.325 > 1.3
         # z = 1.5 < 3, pct = 15% < 50% — EWMA drift should fire

@@ -1,8 +1,6 @@
 """Unit and integration tests for worker stream consumption pipeline."""
 
-from datetime import datetime, timezone
 import json
-import pytest
 from unittest.mock import MagicMock, patch
 
 from app.models import CostRecord, Resource

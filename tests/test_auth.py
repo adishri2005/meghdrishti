@@ -1,6 +1,5 @@
 """Tests for authentication and security utilities."""
 
-import pytest
 from app.security import (
     generate_api_key,
     get_client_ip,

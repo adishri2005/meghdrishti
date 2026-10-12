@@ -1,7 +1,6 @@
 """Tests for worker alert dispatching, webhooks, error handling, and idempotency."""
 
 from datetime import datetime, timezone
-import pytest
 from unittest.mock import MagicMock, patch
 
 from app.config import get_settings

@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 import bcrypt as _bcrypt
-from fastapi import Depends, Header, HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 

@@ -11,8 +11,6 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
-import os
-import uuid
 from contextvars import ContextVar
 from pathlib import Path
 

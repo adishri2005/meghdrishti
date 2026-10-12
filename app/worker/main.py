@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import signal
 import socket
 import sys
@@ -29,12 +28,11 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.cache import get_redis
-from app.config import get_detection_config, get_settings, load_yaml_config
-from app.db import get_engine, get_session_factory
+from app.config import get_detection_config, get_settings
+from app.db import get_session_factory
 from app.detection.engine import (
     process_aggregate,
     process_record,
@@ -50,7 +48,6 @@ from app.metrics import (
     WORKER_BATCH_SECONDS,
 )
 from app.models import (
-    Base,
     CostRecord,
     IngestionJob,
     Resource,
@@ -208,7 +205,7 @@ def process_batch(
 
             try:
                 resource_db_id, meta, is_new = upsert_resource(db, payload)
-                inserted = insert_cost_record(db, resource_db_id, payload, job_id)
+                insert_cost_record(db, resource_db_id, payload, job_id)
 
                 ts_str = payload.get("timestamp", "")
                 if isinstance(ts_str, str):
@@ -439,7 +436,7 @@ def run():
             )
 
             if messages:
-                for stream_name, stream_messages in messages:
+                for _stream_name, stream_messages in messages:
                     if stream_messages:
                         process_batch(stream_messages, consumer_name, cfg_cache)
 

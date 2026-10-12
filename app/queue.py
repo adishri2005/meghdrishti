@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any
+from typing import Any, Optional
 
 from app.cache import get_redis
 from app.metrics import RECORDS_INGESTED

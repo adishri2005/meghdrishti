@@ -1,6 +1,5 @@
 """Integration tests for Health and Auth API endpoints."""
 
-import pytest
 from app.security import create_access_token
 
 

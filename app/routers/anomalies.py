@@ -9,7 +9,7 @@ audit-logged so there's a clear trail of who handled each incident.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -17,7 +17,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.db import get_db
-from app.models import Alert, Anomaly, Baseline, CostRecord, Resource
+from app.models import Alert, Anomaly, Baseline, CostRecord
 from app.schemas import (
     AlertOut,
     AnomalyDetail,

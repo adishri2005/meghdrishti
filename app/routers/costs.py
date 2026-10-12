@@ -10,7 +10,6 @@ get independent caches.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional

@@ -22,7 +22,7 @@ from __future__ import annotations
 import math
 import random
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from app.simulator.catalog import CATALOG, CatalogEntry
