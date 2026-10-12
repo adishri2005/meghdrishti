@@ -105,9 +105,22 @@ def get_job_status(
     db: Session = Depends(get_db),
 ):
     """Check the status and progress of an ingestion job."""
-    job = db.query(IngestionJob).filter(IngestionJob.id == job_id).first()
+    import uuid
+    try:
+        job_uuid = uuid.UUID(job_id) if isinstance(job_id, str) else job_id
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = db.query(IngestionJob).filter(IngestionJob.id == job_uuid).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+
+    # IDOR check: non-admin users may only view their own submitted jobs
+    if principal.role != "admin" and job.submitted_by != principal.name:
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: You can only view status of jobs submitted by your account",
+        )
 
     return JobStatusResponse(
         id=str(job.id),
