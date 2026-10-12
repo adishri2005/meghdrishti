@@ -98,6 +98,7 @@ export function Sidebar() {
 
           {isMobile ? (
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(false)}
               className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               aria-label="Close menu"
@@ -106,6 +107,7 @@ export function Sidebar() {
             </button>
           ) : (
             <button
+              type="button"
               onClick={toggleSidebar}
               className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -211,10 +213,12 @@ export function Sidebar() {
           {/* Monitoring Group */}
           <div>
             <button
+              type="button"
               onClick={() => {
                 if (isCollapsed && !isMobile) toggleSidebar()
                 setMonitoringOpen(!monitoringOpen)
               }}
+              aria-expanded={monitoringOpen}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
                 location.pathname.startsWith('/monitoring')
                   ? 'text-foreground font-medium bg-muted/40'
@@ -275,10 +279,12 @@ export function Sidebar() {
           {canViewLogs(user?.role) && (
             <div>
               <button
+                type="button"
                 onClick={() => {
                   if (isCollapsed && !isMobile) toggleSidebar()
                   setLogsOpen(!logsOpen)
                 }}
+                aria-expanded={logsOpen}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
                   location.pathname.startsWith('/logs')
                     ? 'text-foreground font-medium bg-muted/40'
@@ -390,6 +396,7 @@ export function Sidebar() {
           </div>
 
           <button
+            type="button"
             onClick={handleLogout}
             className="p-1 rounded-md text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors"
             title="Sign out"

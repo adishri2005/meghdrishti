@@ -94,9 +94,13 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
         {/* Global Time Range Selector */}
         <div className="relative">
           <button
+            type="button"
             onClick={() => setTimeDropdownOpen(!timeDropdownOpen)}
+            aria-expanded={timeDropdownOpen}
+            aria-haspopup="true"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border bg-surface hover:bg-muted/50 text-foreground text-xs font-medium transition-colors shadow-xs"
             title="Global time range"
+            aria-label={`Time range: ${timeRange.label}`}
           >
             <Clock className="w-3.5 h-3.5 text-muted-foreground" />
             <span>{timeRange.label}</span>
@@ -116,6 +120,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
                 {TIME_PRESETS.map((p) => (
                   <button
                     key={p.id}
+                    type="button"
                     onClick={() => {
                       setTimeRange(p.id)
                       setTimeDropdownOpen(false)
@@ -141,6 +146,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
         <div className="relative">
           <div className="flex items-center rounded-md border border-border bg-surface text-xs font-medium overflow-hidden shadow-xs">
             <button
+              type="button"
               onClick={toggleLive}
               className={`flex items-center gap-1.5 px-2 py-1 transition-colors ${
                 liveEnabled
@@ -148,6 +154,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               title={liveEnabled ? 'Pause auto-refresh' : 'Enable live auto-refresh'}
+              aria-label={liveEnabled ? 'Pause auto-refresh' : 'Enable live auto-refresh'}
             >
               <Radio
                 className={`w-3 h-3 ${
@@ -158,9 +165,13 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
             </button>
 
             <button
+              type="button"
               onClick={() => setRefreshDropdownOpen(!refreshDropdownOpen)}
+              aria-expanded={refreshDropdownOpen}
+              aria-haspopup="true"
               className="px-1.5 py-1 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors border-l border-border"
               title="Change refresh interval"
+              aria-label="Change refresh interval"
             >
               <span className="text-[11px] font-mono mr-0.5">
                 {refreshInterval === 0 ? 'Off' : `${refreshInterval}s`}
@@ -182,6 +193,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
                 {REFRESH_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
+                    type="button"
                     onClick={() => {
                       setRefreshInterval(opt.value)
                       setRefreshDropdownOpen(false)
@@ -206,9 +218,11 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
         {/* Manual Refresh Trigger */}
         {onRefresh && (
           <button
+            type="button"
             onClick={onRefresh}
             className="p-1.5 rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-xs"
             title="Refresh now (r)"
+            aria-label="Refresh now"
           >
             <RotateCw className="w-3.5 h-3.5" />
           </button>
@@ -216,6 +230,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
 
         {/* Theme Toggle */}
         <button
+          type="button"
           onClick={cycleTheme}
           className="p-1.5 rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-xs"
           title={`Theme: ${theme} (Click to change)`}

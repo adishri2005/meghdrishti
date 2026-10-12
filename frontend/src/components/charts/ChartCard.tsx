@@ -137,9 +137,10 @@ export function ChartCard({
             <a
               href={externalUrl}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="p-1.5 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors inline-flex items-center shadow-xs"
               title={externalLabel || 'Open in external dashboard'}
+              aria-label={externalLabel || 'Open in external dashboard'}
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>

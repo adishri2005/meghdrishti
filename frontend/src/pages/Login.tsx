@@ -2,11 +2,12 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff, ShieldCheck, AlertCircle, KeyRound } from 'lucide-react'
 import { useAuthStore } from '@/hooks/useAuth'
+import { sanitizeRedirect } from '@/lib/security'
 
 export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const nextPath = searchParams.get('next') || '/'
+  const nextPath = sanitizeRedirect(searchParams.get('next'))
 
   const { login, isLoading, error } = useAuthStore()
 
@@ -139,8 +140,10 @@ export default function Login() {
                 Username
               </label>
               <input
+                id="login-username"
                 type="text"
                 required
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
@@ -150,14 +153,16 @@ export default function Login() {
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-foreground">
+                <label htmlFor="login-password" className="text-xs font-medium text-foreground">
                   Password
                 </label>
               </div>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-1.5 pr-8 rounded-md bg-surface border border-border text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors font-mono shadow-xs"
@@ -165,8 +170,9 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                   title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>

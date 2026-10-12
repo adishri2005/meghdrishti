@@ -179,6 +179,7 @@ export default function Deployments() {
                       onClick={() => copyToClipboard(item.cmd)}
                       className="inline-flex items-center gap-1 rounded bg-surface px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors border border-border shadow-xs"
                       title="Copy command"
+                      aria-label={`Copy ${item.title} command`}
                     >
                       {copiedCmd === item.cmd ? (
                         <Check className="h-3 w-3 text-success" />
