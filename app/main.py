@@ -57,6 +57,7 @@ def create_app() -> FastAPI:
     ).set(1)
 
     # --- Middleware ---
+    app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(TimingMiddleware)
     if settings.faulty_release:
@@ -108,6 +109,21 @@ def create_app() -> FastAPI:
     )
 
     return app
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Enforce standard OWASP security response headers across all HTTP responses."""
+
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "0"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        if request.url.scheme == "https" or request.headers.get("X-Forwarded-Proto") == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):

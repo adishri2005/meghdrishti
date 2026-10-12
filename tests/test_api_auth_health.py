@@ -25,6 +25,14 @@ class TestHealthAndMetricsEndpoints:
         resp = client.get("/health", headers={"X-Request-ID": custom_rid})
         assert resp.headers.get("X-Request-ID") == custom_rid
 
+    def test_security_headers_middleware(self, client):
+        resp = client.get("/health")
+        assert resp.headers.get("X-Content-Type-Options") == "nosniff"
+        assert resp.headers.get("X-Frame-Options") == "SAMEORIGIN"
+        assert resp.headers.get("X-XSS-Protection") == "0"
+        assert resp.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+        assert "camera=()" in resp.headers.get("Permissions-Policy", "")
+
 
 class TestAuthEndpoints:
     def test_login_success(self, client):
