@@ -14,6 +14,21 @@ class TestHealthAndMetricsEndpoints:
         assert "version" in data
         assert "color" in data
 
+    def test_liveness_endpoint(self, client):
+        resp = client.get("/health/live")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "alive"
+        assert "version" in data
+
+    def test_readiness_endpoint(self, client):
+        resp = client.get("/health/ready")
+        assert resp.status_code in (200, 503)
+        data = resp.json()
+        assert "status" in data
+        assert "db" in data
+        assert "redis" in data
+
     def test_metrics_endpoint_returns_prometheus_format(self, client):
         resp = client.get("/metrics")
         assert resp.status_code == 200

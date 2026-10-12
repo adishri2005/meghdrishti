@@ -224,6 +224,11 @@ class SimulateResponse(BaseModel):
 # Health
 # ---------------------------------------------------------------------------
 
+class LivenessResponse(BaseModel):
+    status: str
+    version: str
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
