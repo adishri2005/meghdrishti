@@ -61,7 +61,7 @@ export default function Resources() {
   return (
     <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-resources-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
@@ -169,7 +169,7 @@ export default function Resources() {
       </div>
 
       {/* Resources Table */}
-      <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-xs">
+      <div id="tour-resources-table" className="rounded-xl border border-border bg-surface overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead className="bg-surface-elevated text-muted-foreground font-mono border-b border-border sticky top-0 z-10">

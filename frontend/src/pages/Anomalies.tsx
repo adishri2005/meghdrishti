@@ -180,7 +180,7 @@ export default function Anomalies() {
   return (
     <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Title & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-anomalies-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
@@ -199,6 +199,7 @@ export default function Anomalies() {
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
           {canAck && (
             <button
+              id="tour-bulk-acknowledge"
               onClick={handleAcknowledgeAll}
               disabled={openCount === 0 || isBulkUpdating !== null}
               type="button"
@@ -221,6 +222,7 @@ export default function Anomalies() {
 
           {canResolve && (
             <button
+              id="tour-bulk-resolve"
               onClick={handleResolveAll}
               disabled={isBulkUpdating !== null || (data?.items?.length === 0 && openCount === 0)}
               type="button"
@@ -248,7 +250,7 @@ export default function Anomalies() {
       </div>
 
       {/* Summary Severity Chips (Quick Filters) */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+      <div id="tour-severity-chips" className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         {(['all', 'critical', 'high', 'medium', 'low'] as const).map((sev) => {
           const isSelected = severityFilter === sev
           const count = sev === 'all' ? severityCounts.total : severityCounts[sev as Severity]
@@ -282,7 +284,7 @@ export default function Anomalies() {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-2.5 shadow-xs">
+      <div id="tour-anomalies-filter-bar" className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-2.5 shadow-xs">
         <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
           {/* Search Box */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -339,6 +341,7 @@ export default function Anomalies() {
       </div>
 
       {/* Main Anomalies Table */}
+      <div id="tour-anomalies-table">
       <AnomalyTable
         data={data?.items || []}
         totalCount={data?.total || 0}
@@ -349,6 +352,7 @@ export default function Anomalies() {
         onSelectAnomaly={handleSelectAnomaly}
         isLoading={isLoading}
       />
+      </div>
 
       {/* Right Drawer Inspector */}
       <AnomalyDrawer

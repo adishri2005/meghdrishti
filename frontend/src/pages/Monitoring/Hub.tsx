@@ -89,7 +89,7 @@ export default function MonitoringHub() {
         </div>
 
         {/* Tab Navigation Pill Bar */}
-        <div className="flex rounded-md border border-border bg-muted/60 p-0.5 shadow-xs overflow-x-auto">
+        <div id="tour-monitoring-tabs" className="flex rounded-md border border-border bg-muted/60 p-0.5 shadow-xs overflow-x-auto">
           <button
             type="button"
             onClick={() => handleTabChange('overview')}

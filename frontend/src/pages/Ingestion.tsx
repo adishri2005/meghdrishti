@@ -206,7 +206,7 @@ export default function Ingestion() {
   return (
     <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-ingestion-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
@@ -250,7 +250,7 @@ export default function Ingestion() {
       </div>
 
       {/* 1. Animated Pipeline Visual Flow Diagram */}
-      <div className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-4">
+      <div id="tour-ingestion-kpis" className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Zap className="w-3.5 h-3.5 text-muted-foreground" />
@@ -370,7 +370,7 @@ export default function Ingestion() {
       </div>
 
       {/* 2. Simulator Control Panel (Admin Only) */}
-      <div className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-4">
+      <div id="tour-simulator-panel" className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
@@ -694,7 +694,7 @@ export default function Ingestion() {
       </div>
 
       {/* 3. Ingestion Jobs Table */}
-      <div className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-3">
+      <div id="tour-jobs-table" className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
             <h3 className="text-xs font-semibold text-foreground">

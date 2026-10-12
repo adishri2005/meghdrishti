@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Breadcrumbs } from './Breadcrumbs'
 import { NotificationsMenu } from './NotificationsMenu'
+import { TourButton } from './TourButton'
 import { useUIStore, Theme } from '@/store/ui'
 import { useTimeRange } from '@/hooks/useTimeRange'
 import { TIME_PRESETS } from '@/lib/time'
@@ -62,7 +63,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
   }
 
   return (
-    <header className="h-12 border-b border-border bg-surface/80 backdrop-blur-md px-3.5 flex items-center justify-between gap-3 sticky top-0 z-30 select-none">
+    <header id="tour-topbar" className="h-12 border-b border-border bg-surface/80 backdrop-blur-md px-3.5 flex items-center justify-between gap-3 sticky top-0 z-30 select-none">
       {/* Left: Mobile hamburger + Breadcrumbs */}
       <div className="flex items-center gap-2 min-w-0">
         <button
@@ -77,6 +78,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
 
       {/* Center: Command Palette Trigger (Linear/Raycast style) */}
       <button
+        id="tour-command-palette-trigger"
         onClick={onOpenCommandPalette}
         className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-md border border-border/80 bg-surface-elevated/60 hover:bg-muted/50 text-muted-foreground text-xs w-60 lg:w-72 justify-between transition-colors shadow-xs"
       >
@@ -92,7 +94,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
       {/* Right Controls */}
       <div className="flex items-center gap-1.5 shrink-0">
         {/* Global Time Range Selector */}
-        <div className="relative">
+        <div className="relative" id="tour-time-range">
           <button
             type="button"
             onClick={() => setTimeDropdownOpen(!timeDropdownOpen)}
@@ -143,7 +145,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
         </div>
 
         {/* Live Auto-Refresh Selector */}
-        <div className="relative">
+        <div className="relative" id="tour-live-toggle">
           <div className="flex items-center rounded-md border border-border bg-surface text-xs font-medium overflow-hidden shadow-xs">
             <button
               type="button"
@@ -230,6 +232,7 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
 
         {/* Theme Toggle */}
         <button
+          id="tour-theme-toggle"
           type="button"
           onClick={cycleTheme}
           className="p-1.5 rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-xs"
@@ -240,7 +243,12 @@ export function Topbar({ onOpenCommandPalette, onRefresh }: TopbarProps) {
         </button>
 
         {/* Notifications */}
-        <NotificationsMenu />
+        <div id="tour-notifications">
+          <NotificationsMenu />
+        </div>
+
+        {/* Guided Tours */}
+        <TourButton />
       </div>
     </header>
   )

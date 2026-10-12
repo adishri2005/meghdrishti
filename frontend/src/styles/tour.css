@@ -1,0 +1,159 @@
+/*
+ * CostGuard – driver.js Tour Theme Overrides
+ * ───────────────────────────────────────────
+ * Styled to match the app's dark/light design system.
+ * Targets the default driver.js classes plus our custom `.costguard-tour-popover`.
+ */
+
+/* ── Overlay ───────────────────────────────────────────────────────── */
+.driver-overlay {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+}
+
+/* ── Popover Container ─────────────────────────────────────────────── */
+.driver-popover.costguard-tour-popover {
+  background: hsl(var(--surface)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 0 0 1px hsl(var(--border) / 0.2),
+    0 8px 32px -4px rgba(0, 0, 0, 0.45),
+    0 2px 8px -2px rgba(0, 0, 0, 0.3) !important;
+  padding: 20px 22px !important;
+  max-width: 380px !important;
+  min-width: 280px !important;
+  font-family: var(--font-geist-sans, 'Inter', system-ui, -apple-system, sans-serif) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-title {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  color: hsl(var(--foreground)) !important;
+  margin-bottom: 6px !important;
+  line-height: 1.4 !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-description {
+  font-size: 12.5px !important;
+  line-height: 1.65 !important;
+  color: hsl(var(--muted-foreground)) !important;
+  margin-bottom: 0 !important;
+}
+
+/* ── Arrow ─────────────────────────────────────────────────────────── */
+.driver-popover.costguard-tour-popover .driver-popover-arrow {
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-arrow-side-left,
+.driver-popover.costguard-tour-popover .driver-popover-arrow-side-right,
+.driver-popover.costguard-tour-popover .driver-popover-arrow-side-top,
+.driver-popover.costguard-tour-popover .driver-popover-arrow-side-bottom {
+  background: hsl(var(--surface)) !important;
+}
+
+/* ── Progress Bar ──────────────────────────────────────────────────── */
+.driver-popover.costguard-tour-popover .driver-popover-progress-text {
+  font-size: 10px !important;
+  font-family: var(--font-geist-mono, 'Geist Mono', 'JetBrains Mono', monospace) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+}
+
+/* ── Navigation Buttons ────────────────────────────────────────────── */
+.driver-popover.costguard-tour-popover .driver-popover-footer {
+  margin-top: 16px !important;
+  gap: 8px !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-navigation-btns {
+  gap: 6px !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-prev-btn {
+  background: hsl(var(--surface-elevated, var(--muted))) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-prev-btn:hover {
+  background: hsl(var(--muted)) !important;
+  border-color: hsl(var(--border-strong, var(--border))) !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-next-btn,
+.driver-popover.costguard-tour-popover .driver-popover-close-btn-text {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 16px !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-next-btn:hover,
+.driver-popover.costguard-tour-popover .driver-popover-close-btn-text:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-0.5px) !important;
+}
+
+/* ── Close X Button ────────────────────────────────────────────────── */
+.driver-popover.costguard-tour-popover .driver-popover-close-btn {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 16px !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  transition: all 0.15s ease !important;
+  top: 14px !important;
+  right: 14px !important;
+}
+
+.driver-popover.costguard-tour-popover .driver-popover-close-btn:hover {
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ── Highlighted Element Stage ─────────────────────────────────────── */
+.driver-active-element {
+  outline: 2px solid hsl(var(--primary)) !important;
+  outline-offset: 2px !important;
+  border-radius: 8px !important;
+  transition: outline 0.2s ease !important;
+}
+
+/* ── Animation ─────────────────────────────────────────────────────── */
+@keyframes driver-popover-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.driver-popover.costguard-tour-popover {
+  animation: driver-popover-entrance 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}

@@ -150,7 +150,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5 scrollbar-none">
+        <nav id="tour-sidebar-nav" className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5 scrollbar-none">
           {/* Overview */}
           <NavLink
             to="/"
@@ -405,7 +405,7 @@ export function Sidebar() {
         )}
 
         {/* User Chip & Logout */}
-        <div className="flex items-center justify-between p-1">
+        <div className="flex items-center justify-between p-1" id="tour-user-panel">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-6 h-6 rounded-md bg-muted text-foreground flex items-center justify-center font-medium text-xs shrink-0 border border-border">
               <User className="w-3.5 h-3.5 text-muted-foreground" />

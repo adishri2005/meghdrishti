@@ -160,7 +160,7 @@ export default function Overview() {
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div id="tour-overview-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
@@ -178,6 +178,7 @@ export default function Overview() {
 
         <div className="flex items-center gap-2">
           <button
+            id="tour-quick-spike"
             onClick={handleQuickSimulate}
             disabled={quickSimulating}
             type="button"
@@ -209,7 +210,7 @@ export default function Overview() {
       </div>
 
       {/* 1. KPI Row (6 cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3.5">
+      <div id="tour-kpi-row" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3.5">
         {/* KPI 1: Cost 24h */}
         <KpiCard
           label="Cost (24h)"
@@ -323,7 +324,7 @@ export default function Overview() {
       {/* 2. Middle Row: Cost Over Time (Wide) & Latest Anomalies Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Cost Over Time with Anomaly Markers (8 cols) */}
-        <div className="lg:col-span-8">
+        <div id="tour-cost-chart" className="lg:col-span-8">
           <ChartCard
             title="Cloud Spend Over Time"
             subtitle="Hourly aggregate expenditure with overlaid anomaly detections (click diamond markers to inspect)"
@@ -357,7 +358,7 @@ export default function Overview() {
         </div>
 
         {/* Latest Anomalies Feed (4 cols) */}
-        <div className="lg:col-span-4">
+        <div id="tour-anomaly-feed" className="lg:col-span-4">
           <div className="rounded-xl border border-border bg-surface p-5 flex flex-col h-full min-h-[380px]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -435,7 +436,7 @@ export default function Overview() {
       {/* 3. Lower Row: Top Spenders, Cost Heatmap & Cluster Card */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Top Spenders (4 cols) */}
-        <div className="lg:col-span-4">
+        <div id="tour-top-spenders" className="lg:col-span-4">
           <div className="rounded-xl border border-border bg-surface p-5 flex flex-col h-full min-h-[360px]">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -485,7 +486,7 @@ export default function Overview() {
         </div>
 
         {/* Cost Heatmap (5 cols) */}
-        <div className="lg:col-span-5">
+        <div id="tour-heatmap" className="lg:col-span-5">
           <ChartCard
             title="Spend Density Heatmap"
             subtitle="Hourly cost intensity across resources"
@@ -552,7 +553,7 @@ export default function Overview() {
       </div>
 
       {/* 4. Pipeline Health (Prometheus Small Multiples) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="tour-pipeline-health" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <ChartCard
           title="Throughput (Ingest vs Process)"
           subtitle="Records per second streaming"

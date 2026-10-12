@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import '@/styles/globals.css'
+import '@/styles/tour.css'
 import { applyThemeToDocument, useUIStore } from './store/ui'
 
 async function prepareApp() {

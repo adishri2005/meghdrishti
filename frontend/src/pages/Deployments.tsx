@@ -92,7 +92,7 @@ export default function Deployments() {
   return (
     <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-deployments-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
@@ -130,7 +130,7 @@ export default function Deployments() {
       )}
 
       {/* Main Content Layout: Timeline on Left, Impact on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div id="tour-deployments-timeline" className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column: Timeline (Cols 1-5) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="rounded-xl border border-border bg-surface p-4 shadow-xs">

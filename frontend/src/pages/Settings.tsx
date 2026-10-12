@@ -80,7 +80,7 @@ export default function Settings() {
       </div>
 
       {/* Settings Tab Navigation */}
-      <div className="flex rounded-md border border-border bg-muted/60 p-0.5 shadow-xs overflow-x-auto">
+      <div id="tour-settings-tabs" className="flex rounded-md border border-border bg-muted/60 p-0.5 shadow-xs overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('thresholds')}

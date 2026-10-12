@@ -127,7 +127,7 @@ export default function Costs() {
   return (
     <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="tour-costs-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
@@ -156,7 +156,7 @@ export default function Costs() {
       </div>
 
       {/* Control Bar */}
-      <div className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      <div id="tour-costs-summary-cards" className="p-3 rounded-lg border border-border bg-surface flex flex-wrap items-center justify-between gap-3 shadow-xs">
         {/* Left: Group by & Interval */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -258,6 +258,7 @@ export default function Costs() {
       </div>
 
       {/* Main Cost Visualization Card */}
+      <div id="tour-costs-main-chart">
       <ChartCard
         title={`Spend Dynamics by ${groupBy.replace('_', ' ').toUpperCase()}`}
         subtitle={`Aggregated cost over the active window (Total: ${formatCurrency(grandTotal)})`}
@@ -292,9 +293,10 @@ export default function Costs() {
           />
         )}
       </ChartCard>
+      </div>
 
       {/* Middle Row: Treemap & Summary Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div id="tour-costs-breakdown" className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Treemap (5 cols) */}
         <div className="lg:col-span-5">
           <ChartCard
