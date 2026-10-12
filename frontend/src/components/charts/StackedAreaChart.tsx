@@ -170,9 +170,10 @@ export function StackedAreaChart({
     return {
       grid: {
         top: showLegend ? 40 : 20,
-        right: 20,
-        bottom: 25,
-        left: 54,
+        right: 18,
+        bottom: 24,
+        left: 8,
+        containLabel: true,
       },
       legend: showLegend
         ? {
@@ -184,8 +185,23 @@ export function StackedAreaChart({
       tooltip: {
         trigger: 'axis',
         axisPointer: {
-          type: 'cross',
+          type: 'line',
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.25)',
+            type: 'dashed',
+          },
         },
+        backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+        borderColor: isDark ? '#1E293B' : '#E2E8F0',
+        borderWidth: 1,
+        padding: [8, 12],
+        textStyle: {
+          color: isDark ? '#F8FAFC' : '#0F172A',
+          fontSize: 11,
+          fontFamily: '"Geist Variable", Inter, sans-serif',
+        },
+        extraCssText:
+          'box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4); border-radius: 8px; backdrop-filter: blur(10px);',
         formatter: (params: Array<{ seriesName: string; color: string; value: [number, number] }>) => {
           if (!params || params.length === 0) return ''
           const validParams = params.filter((p) => p.seriesName !== 'Anomalies')
@@ -229,22 +245,41 @@ export function StackedAreaChart({
         min: series[0]?.data?.[0]?.[0],
         max: series[0]?.data?.[series[0].data.length - 1]?.[0],
         splitNumber: 6,
+        axisLine: {
+          show: true,
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+          },
+        },
+        axisTick: { show: false },
+        splitLine: { show: false },
         axisLabel: {
           formatter: '{HH}:{mm}',
           fontSize: 10,
+          color: isDark ? '#7E91A6' : '#64748B',
           hideOverlap: true,
         },
       },
       yAxis: {
         type: 'value',
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            type: 'dashed',
+          },
+        },
         axisLabel: {
+          color: isDark ? '#7E91A6' : '#64748B',
           formatter: (v: number) => `$${v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v}`,
           fontSize: 10,
         },
       },
       series: eSeries,
     }
-  }, [series, anomalies, showLegend])
+  }, [series, anomalies, showLegend, isDark])
 
   return (
     <div className={`w-full ${className}`}>

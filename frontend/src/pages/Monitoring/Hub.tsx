@@ -160,7 +160,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.rps}
               description="Inbound HTTP requests per second"
               unit="req/s"
-              color="hsl(var(--primary))"
+              color="#38BDF8"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -171,7 +171,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.latencyP95}
               description="95th percentile response latency across endpoints"
               unit="s"
-              color="hsl(var(--warning))"
+              color="#FBBF24"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -182,7 +182,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.errorByColor}
               description="Server error rate partitioned by deployment color"
               unit="err/s"
-              color="hsl(var(--danger))"
+              color="#F43F5E"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -193,7 +193,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.ingestRate}
               description="Cost records written to queue per second"
               unit="rec/s"
-              color="hsl(var(--primary))"
+              color="#2DD4BF"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -204,7 +204,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.processedRate}
               description="Worker anomaly detection evaluations per second"
               unit="rec/s"
-              color="hsl(var(--primary))"
+              color="#06B6D4"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -215,7 +215,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.queueLag}
               description="Pending messages waiting in Redis Streams"
               unit="msgs"
-              color="hsl(var(--warning))"
+              color="#A78BFA"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -226,7 +226,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.detectionP95}
               description="Pipeline latency from record ingestion to anomaly trigger"
               unit="s"
-              color="hsl(var(--primary))"
+              color="#34D399"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -237,6 +237,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.anomaliesBySev}
               description="Hourly anomaly detection rate partitioned by severity"
               unit="events/h"
+              color="#FB7185"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -247,7 +248,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.cacheHitRatio}
               description="Redis baseline lookup hit efficiency"
               unit="ratio"
-              color="hsl(var(--primary))"
+              color="#10B981"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -258,7 +259,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.cpuPct}
               description="Node exporter host CPU load percentage"
               unit="%"
-              color="hsl(var(--muted-foreground))"
+              color="#F59E0B"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -269,7 +270,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.memPct}
               description="Node exporter RAM utilization percentage"
               unit="%"
-              color="hsl(var(--muted-foreground))"
+              color="#818CF8"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -280,7 +281,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.pgConnections}
               description="Concurrent client sessions connected to Postgres"
               unit="backends"
-              color="hsl(var(--muted-foreground))"
+              color="#60A5FA"
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
