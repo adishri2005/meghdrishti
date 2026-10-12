@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { AnomalySchema, type Anomaly } from '../types'
-import { MOCK_ANOMALIES } from '@/mocks/fixtures'
+import { MOCK_ANOMALIES, getMockAnomalies } from '@/mocks/fixtures'
 
 export interface AnomalyListParams {
   severity?: string
@@ -33,7 +33,8 @@ export async function getAnomalies(params: AnomalyListParams = {}): Promise<{
   total: number
 }> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    const mapped = MOCK_ANOMALIES.map((a) => AnomalySchema.parse(a))
+    const rawAnomalies = typeof getMockAnomalies === 'function' ? getMockAnomalies() : MOCK_ANOMALIES
+    const mapped = rawAnomalies.map((a) => AnomalySchema.parse(a))
     let filtered = [...mapped]
     if (params.status) {
       filtered = filtered.filter((a) => a.status === params.status)

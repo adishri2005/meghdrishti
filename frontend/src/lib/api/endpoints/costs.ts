@@ -5,7 +5,7 @@ import {
   CostHeatmapSchema,
   type CostHeatmap,
 } from '../types'
-import { MOCK_COST_TIMESERIES, MOCK_HEATMAP } from '@/mocks/fixtures'
+import { getMockCostTimeseries, MOCK_HEATMAP } from '@/mocks/fixtures'
 
 export async function getCostTimeseries(params: {
   group_by?: string
@@ -14,7 +14,7 @@ export async function getCostTimeseries(params: {
   interval?: string
 } = {}): Promise<CostTimeSeries> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    return MOCK_COST_TIMESERIES
+    return getMockCostTimeseries()
   }
   try {
     const res = await apiClient.get('/costs/timeseries', { params })
@@ -22,7 +22,7 @@ export async function getCostTimeseries(params: {
   } catch (error) {
     if (import.meta.env.DEV) {
       console.warn('Falling back to mock cost timeseries:', error)
-      return MOCK_COST_TIMESERIES
+      return getMockCostTimeseries()
     }
     throw error
   }

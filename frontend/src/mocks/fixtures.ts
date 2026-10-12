@@ -75,64 +75,66 @@ export const MOCK_RESOURCES: MockResource[] = Array.from({ length: 40 }).map((_,
   }
 })
 
-export const MOCK_ANOMALIES: MockAnomaly[] = [
-  {
-    id: 101,
-    scope: 'resource',
-    resource_id: 4,
-    resource_name: 'eks-ml-storage-04',
-    detected_at: new Date(Date.now() - 15 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 25 * 60000).toISOString(),
-    observed_cost: 324.5,
-    expected_cost: 42.1,
-    z_score: 6.8,
-    pct_increase: 670.8,
-    severity: 'critical',
-    method: 'z_score',
-    root_cause_summary: 'Sudden 671% cost spike detected on GPU training node cluster eks-ml-storage-04',
-    root_cause: {
-      breakdown_by_team: { ml: 82, core: 11, data: 7 },
-      breakdown_by_service: { compute: 75, storage: 20, database: 5 },
-      breakdown_by_region: { 'us-east-1': 90, 'eu-west-1': 10 },
-      top_contributors: [
-        { resource_id: 'eks-ml-storage-04', share_pct: 68, delta_cost: 282.4, observed_cost: 324.5 },
-        { resource_id: 'ec2-ml-compute-07', share_pct: 18, delta_cost: 65.2, observed_cost: 88.0 },
-        { resource_id: 's3-data-storage-03', share_pct: 8, delta_cost: 22.0, observed_cost: 34.1 },
-      ],
+export function getMockAnomalies(baseTime?: number): MockAnomaly[] {
+  const now = baseTime ?? Math.floor(Date.now() / 60000) * 60000
+  return [
+    {
+      id: 101,
+      scope: 'resource',
+      resource_id: 4,
+      resource_name: 'eks-ml-storage-04',
+      detected_at: new Date(now - 2 * 3600000 + 180000).toISOString(),
+      record_ts: new Date(now - 2 * 3600000).toISOString(),
+      observed_cost: 324.5,
+      expected_cost: 42.1,
+      z_score: 6.8,
+      pct_increase: 670.8,
+      severity: 'critical',
+      method: 'z_score',
+      root_cause_summary: 'Sudden 671% cost spike detected on GPU training node cluster eks-ml-storage-04',
+      root_cause: {
+        breakdown_by_team: { ml: 82, core: 11, data: 7 },
+        breakdown_by_service: { compute: 75, storage: 20, database: 5 },
+        breakdown_by_region: { 'us-east-1': 90, 'eu-west-1': 10 },
+        top_contributors: [
+          { resource_id: 'eks-ml-storage-04', share_pct: 68, delta_cost: 282.4, observed_cost: 324.5 },
+          { resource_id: 'ec2-ml-compute-07', share_pct: 18, delta_cost: 65.2, observed_cost: 88.0 },
+          { resource_id: 's3-data-storage-03', share_pct: 8, delta_cost: 22.0, observed_cost: 34.1 },
+        ],
+      },
+      status: 'open',
+      occurrences: 2,
+      peak_cost: 345.0,
+      last_seen_ts: new Date(now - 2 * 3600000 + 300000).toISOString(),
     },
-    status: 'open',
-    occurrences: 2,
-    peak_cost: 345.0,
-    last_seen_ts: new Date(Date.now() - 5 * 60000).toISOString(),
-  },
-  {
-    id: 102,
-    scope: 'resource',
-    resource_id: 8,
-    resource_name: 'rds-core-database-08',
-    detected_at: new Date(Date.now() - 45 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 55 * 60000).toISOString(),
-    observed_cost: 189.2,
-    expected_cost: 64.0,
-    z_score: 4.2,
-    pct_increase: 195.6,
-    severity: 'high',
-    method: 'pct_jump',
-    root_cause_summary: 'Sustained throughput jump and IOPS autoscaling on rds-core-database-08',
-    root_cause: {
-      breakdown_by_team: { core: 70, platform: 25, data: 5 },
-      breakdown_by_service: { database: 85, storage: 15 },
-      breakdown_by_region: { 'eu-west-1': 100 },
-      top_contributors: [
-        { resource_id: 'rds-core-database-08', share_pct: 74, delta_cost: 125.2, observed_cost: 189.2 },
-        { resource_id: 'ec2-core-compute-02', share_pct: 19, delta_cost: 32.0, observed_cost: 58.4 },
-      ],
+    {
+      id: 102,
+      scope: 'resource',
+      resource_id: 8,
+      resource_name: 'rds-core-database-08',
+      detected_at: new Date(now - 3 * 3600000 + 120000).toISOString(),
+      record_ts: new Date(now - 3 * 3600000).toISOString(),
+      observed_cost: 189.2,
+      expected_cost: 64.0,
+      z_score: 4.2,
+      pct_increase: 195.6,
+      severity: 'high',
+      method: 'pct_jump',
+      root_cause_summary: 'Sustained throughput jump and IOPS autoscaling on rds-core-database-08',
+      root_cause: {
+        breakdown_by_team: { core: 70, platform: 25, data: 5 },
+        breakdown_by_service: { database: 85, storage: 15 },
+        breakdown_by_region: { 'eu-west-1': 100 },
+        top_contributors: [
+          { resource_id: 'rds-core-database-08', share_pct: 74, delta_cost: 125.2, observed_cost: 189.2 },
+          { resource_id: 'ec2-core-compute-02', share_pct: 19, delta_cost: 32.0, observed_cost: 58.4 },
+        ],
+      },
+      status: 'open',
+      occurrences: 3,
+      peak_cost: 195.0,
+      last_seen_ts: new Date(now - 10 * 60000).toISOString(),
     },
-    status: 'open',
-    occurrences: 3,
-    peak_cost: 195.0,
-    last_seen_ts: new Date(Date.now() - 10 * 60000).toISOString(),
-  },
   {
     id: 103,
     scope: 'aggregate',
@@ -180,7 +182,10 @@ export const MOCK_ANOMALIES: MockAnomaly[] = [
     peak_cost: 45.0,
     last_seen_ts: new Date(Date.now() - 240 * 60000).toISOString(),
   },
-]
+  ]
+}
+
+export const MOCK_ANOMALIES = getMockAnomalies()
 
 export const MOCK_STATS_OVERVIEW = {
   generated_at: new Date().toISOString(),
@@ -272,20 +277,24 @@ export const MOCK_DEPLOYMENTS = [
   },
 ]
 
-export const MOCK_COST_TIMESERIES = {
-  interval: 'hour',
-  series: ['ml', 'core', 'data', 'platform', 'frontend'].map((team, tIdx) => {
-    const points: Array<[string, number]> = []
-    const now = Date.now()
-    for (let i = 23; i >= 0; i--) {
-      const ts = new Date(now - i * 3600000).toISOString()
-      const base = 25 + tIdx * 15 + Math.sin(i / 3) * 8
-      const spike = tIdx === 0 && i === 2 ? 140 : 0
-      points.push([ts, Math.round((base + spike) * 10) / 10])
-    }
-    return { name: team, points }
-  }),
+export function getMockCostTimeseries(baseTime?: number) {
+  const now = baseTime ?? Math.floor(Date.now() / 60000) * 60000
+  return {
+    interval: 'hour',
+    series: ['ml', 'core', 'data', 'platform', 'frontend'].map((team, tIdx) => {
+      const points: Array<[string, number]> = []
+      for (let i = 23; i >= 0; i--) {
+        const ts = new Date(now - i * 3600000).toISOString()
+        const base = 25 + tIdx * 15 + Math.sin(i / 3) * 8
+        const spike = (tIdx === 0 && i === 2 ? 140 : 0) + (tIdx === 1 && i === 3 ? 55 : 0)
+        points.push([ts, Math.round((base + spike) * 10) / 10])
+      }
+      return { name: team, points }
+    }),
+  }
 }
+
+export const MOCK_COST_TIMESERIES = getMockCostTimeseries()
 
 const heatmapResources = [
   'ec2-ml-gpu-07',

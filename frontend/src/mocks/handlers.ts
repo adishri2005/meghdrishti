@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import {
-  MOCK_ANOMALIES,
+  getMockAnomalies,
+  getMockCostTimeseries,
   MOCK_DEPLOYMENTS,
   MOCK_RESOURCES,
   MOCK_STATS_OVERVIEW,
@@ -134,6 +135,10 @@ export const handlers = [
     const groupBy = url.searchParams.get('group_by') || 'none'
     const interval = url.searchParams.get('interval') || 'hour'
 
+    if (groupBy === 'team') {
+      return HttpResponse.json(getMockCostTimeseries())
+    }
+
     const seriesNames =
       groupBy === 'team'
         ? ['ml', 'core', 'platform', 'data']
@@ -242,7 +247,7 @@ export const handlers = [
     const severity = url.searchParams.get('severity')
     const status = url.searchParams.get('status')
 
-    let filtered = [...MOCK_ANOMALIES]
+    let filtered = [...getMockAnomalies()]
     if (severity) filtered = filtered.filter((a) => a.severity === severity)
     if (status) filtered = filtered.filter((a) => a.status === status)
 
