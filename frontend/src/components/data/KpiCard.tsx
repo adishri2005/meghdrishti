@@ -113,7 +113,10 @@ export function KpiCard({
     >
       {/* Top Header: Label & Icon/Badge */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground tracking-normal truncate">
+        <span
+          title={label}
+          className="text-xs font-medium text-muted-foreground tracking-normal truncate"
+        >
           {label}
         </span>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -125,7 +128,10 @@ export function KpiCard({
       {/* Middle: Big Metric Value & Sparkline */}
       <div className="flex items-baseline justify-between gap-2">
         <div className="flex items-baseline gap-1 min-w-0">
-          <span className="text-2xl font-semibold font-mono text-foreground tracking-tight tabular-nums truncate">
+          <span
+            title={`${displayValue}${unit ? ' ' + unit : ''}`}
+            className="text-xl sm:text-2xl font-semibold font-mono text-foreground tracking-tight tabular-nums truncate"
+          >
             {displayValue}
           </span>
           {unit && (

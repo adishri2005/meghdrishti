@@ -197,9 +197,11 @@ export function TimeSeriesChart({
       },
       xAxis: {
         type: 'time',
+        splitNumber: 4,
         axisLabel: {
           formatter: '{HH}:{mm}',
           fontSize: 10,
+          hideOverlap: true,
         },
       },
       yAxis: {

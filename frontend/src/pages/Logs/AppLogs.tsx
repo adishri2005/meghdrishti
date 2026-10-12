@@ -130,6 +130,7 @@ export default function AppLogs() {
           <button
             type="button"
             onClick={isPaused ? resume : pause}
+            aria-label={isPaused ? 'Resume Stream' : 'Pause Stream'}
             className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-all shadow-xs ${
               isPaused
                 ? 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20'
@@ -149,6 +150,7 @@ export default function AppLogs() {
           <button
             type="button"
             onClick={() => setWrapLines(!wrapLines)}
+            aria-label="Toggle word wrap"
             className={`inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors shadow-xs ${
               wrapLines ? 'bg-muted text-foreground' : 'bg-surface text-muted-foreground hover:text-foreground'
             }`}
@@ -162,6 +164,7 @@ export default function AppLogs() {
           <button
             type="button"
             onClick={downloadNdjson}
+            aria-label="Download visible logs as NDJSON"
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors shadow-xs"
             title="Download visible logs as NDJSON"
           >
