@@ -62,27 +62,32 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Top Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-          <SettingsIcon className="h-6 w-6 text-primary" />
-          Settings & Administration
-        </h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          Detection sensitivity thresholds, operator RBAC, machine API credentials, and interface preferences.
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+            Settings & Admin
+          </h1>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+            <SettingsIcon className="w-3 h-3 text-muted-foreground" />
+            <span>Configuration</span>
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Detection sensitivity thresholds, access control, API tokens, and interface preferences.
         </p>
       </div>
 
       {/* Settings Tab Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-border pb-2">
+      <div className="flex rounded-md border border-border bg-muted/60 p-0.5 shadow-xs overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('thresholds')}
-          className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all ${
+          className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
             activeTab === 'thresholds'
-              ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
-              : 'text-muted-foreground hover:bg-surface hover:text-foreground'
+              ? 'bg-surface text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Sliders className="h-3.5 w-3.5" />
@@ -92,10 +97,10 @@ export default function Settings() {
         <button
           type="button"
           onClick={() => setActiveTab('users')}
-          className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all ${
+          className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
             activeTab === 'users'
-              ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
-              : 'text-muted-foreground hover:bg-surface hover:text-foreground'
+              ? 'bg-surface text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Users className="h-3.5 w-3.5" />
@@ -105,40 +110,40 @@ export default function Settings() {
         <button
           type="button"
           onClick={() => setActiveTab('api-clients')}
-          className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all ${
+          className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
             activeTab === 'api-clients'
-              ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
-              : 'text-muted-foreground hover:bg-surface hover:text-foreground'
+              ? 'bg-surface text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Key className="h-3.5 w-3.5" />
-          <span>API Clients & Tokens</span>
+          <span>API Tokens</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('appearance')}
-          className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all ${
+          className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
             activeTab === 'appearance'
-              ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
-              : 'text-muted-foreground hover:bg-surface hover:text-foreground'
+              ? 'bg-surface text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Palette className="h-3.5 w-3.5" />
-          <span>Appearance & Preferences</span>
+          <span>Appearance</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('about')}
-          className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all ${
+          className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
             activeTab === 'about'
-              ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
-              : 'text-muted-foreground hover:bg-surface hover:text-foreground'
+              ? 'bg-surface text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Info className="h-3.5 w-3.5" />
-          <span>About & Documentation</span>
+          <span>About</span>
         </button>
       </div>
 
@@ -146,7 +151,7 @@ export default function Settings() {
       {activeTab === 'thresholds' && (
         <div className="space-y-4">
           {loadingThresholds || !thresholds ? (
-            <SkeletonCard className="h-96 w-full" />
+            <SkeletonCard className="h-80 w-full" />
           ) : (
             <ThresholdForm
               initialThresholds={thresholds}
@@ -163,11 +168,11 @@ export default function Settings() {
           {userIsAdmin ? (
             <UsersPanel />
           ) : (
-            <div className="rounded-xl border border-warning/30 bg-warning/10 p-8 text-center text-warning">
-              <ShieldAlert className="h-8 w-8 mx-auto mb-2 text-warning" />
-              <h3 className="text-sm font-semibold text-foreground">Administrator Privileges Required</h3>
-              <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-                User management and credential issuance are restricted to administrators. Contact an administrator to add or modify accounts.
+            <div className="rounded-xl border border-warning/25 bg-warning/5 p-6 text-center text-warning">
+              <ShieldAlert className="h-7 w-7 mx-auto mb-2 text-warning" />
+              <h3 className="text-xs font-semibold text-foreground">Administrator Privileges Required</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md mx-auto">
+                User management is restricted to administrators. Contact an administrator to add or modify accounts.
               </p>
             </div>
           )}
@@ -180,10 +185,10 @@ export default function Settings() {
           {userIsAdmin ? (
             <ApiClientsPanel />
           ) : (
-            <div className="rounded-xl border border-warning/30 bg-warning/10 p-8 text-center text-warning">
-              <ShieldAlert className="h-8 w-8 mx-auto mb-2 text-warning" />
-              <h3 className="text-sm font-semibold text-foreground">Administrator Privileges Required</h3>
-              <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
+            <div className="rounded-xl border border-warning/25 bg-warning/5 p-6 text-center text-warning">
+              <ShieldAlert className="h-7 w-7 mx-auto mb-2 text-warning" />
+              <h3 className="text-xs font-semibold text-foreground">Administrator Privileges Required</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md mx-auto">
                 Machine API client generation is restricted to system administrators.
               </p>
             </div>
@@ -193,37 +198,37 @@ export default function Settings() {
 
       {/* Tab 4: Appearance & UI Preferences */}
       {activeTab === 'appearance' && (
-        <div className="rounded-xl border border-border bg-card p-6 space-y-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-surface p-5 space-y-5 shadow-xs">
           <div className="border-b border-border pb-3">
-            <h3 className="text-base font-semibold text-foreground">
-              Local Interface Preferences
+            <h3 className="text-xs font-semibold text-foreground">
+              Interface Preferences
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Preferences are preserved in your browser and sync across sessions.
             </p>
           </div>
 
-          <div className="space-y-6 max-w-2xl">
+          <div className="space-y-5 max-w-2xl">
             {/* Theme Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground">Color Theme</label>
-              <div className="grid grid-cols-3 gap-3">
+              <label className="text-xs font-medium text-foreground">Theme</label>
+              <div className="grid grid-cols-3 gap-2.5">
                 {[
-                  { id: 'dark', label: 'Dark Mode (Default)', icon: Moon },
+                  { id: 'dark', label: 'Dark Mode', icon: Moon },
                   { id: 'light', label: 'Light Mode', icon: Sun },
-                  { id: 'system', label: 'System Sync', icon: Monitor },
+                  { id: 'system', label: 'System', icon: Monitor },
                 ].map(({ id, label, icon: Icon }) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() => setTheme(id as Theme)}
-                    className={`flex items-center gap-2 rounded-xl border p-3 text-xs font-medium transition-all ${
+                    className={`flex items-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-all shadow-xs ${
                       theme === id
-                        ? 'border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/40'
-                        : 'border-border bg-surface text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
+                        ? 'border-border-strong bg-muted/80 text-foreground'
+                        : 'border-border bg-surface text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5" />
                     <span>{label}</span>
                   </button>
                 ))}
@@ -232,20 +237,20 @@ export default function Settings() {
 
             {/* Density Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground">Display Density</label>
-              <div className="grid grid-cols-2 gap-3">
+              <label className="text-xs font-medium text-foreground">Density</label>
+              <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { id: 'comfortable', label: 'Comfortable (Standard)' },
-                  { id: 'compact', label: 'Compact (High Density)' },
+                  { id: 'comfortable', label: 'Comfortable' },
+                  { id: 'compact', label: 'Compact' },
                 ].map(({ id, label }) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() => setDensity(id as Density)}
-                    className={`rounded-xl border p-3 text-xs font-medium transition-all ${
+                    className={`rounded-lg border p-2.5 text-xs font-medium transition-all shadow-xs ${
                       density === id
-                        ? 'border-primary bg-primary/10 text-primary font-semibold'
-                        : 'border-border bg-surface text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
+                        ? 'border-border-strong bg-muted/80 text-foreground'
+                        : 'border-border bg-surface text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                     }`}
                   >
                     {label}
@@ -256,25 +261,25 @@ export default function Settings() {
 
             {/* Default Auto-Refresh Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground">
-                Dashboard Auto-Refresh Frequency
+              <label className="text-xs font-medium text-foreground">
+                Dashboard Auto-Refresh Interval
               </label>
               <div className="flex flex-wrap gap-2">
                 {[
                   { val: 0, label: 'Off' },
-                  { val: 5, label: '5 seconds' },
-                  { val: 10, label: '10 seconds (Default)' },
-                  { val: 30, label: '30 seconds' },
-                  { val: 60, label: '1 minute' },
+                  { val: 5, label: '5s' },
+                  { val: 10, label: '10s (Default)' },
+                  { val: 30, label: '30s' },
+                  { val: 60, label: '1m' },
                 ].map(({ val, label }) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setRefreshInterval(val)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-all shadow-xs ${
                       refreshInterval === val
-                        ? 'border-primary bg-primary text-primary-foreground font-semibold shadow-xs'
-                        : 'border-border bg-surface text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
+                        ? 'border-border-strong bg-muted/80 text-foreground'
+                        : 'border-border bg-surface text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                     }`}
                   >
                     {label}
@@ -284,19 +289,19 @@ export default function Settings() {
             </div>
 
             {/* Sound Effects Toggle */}
-            <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2.5">
                 {soundEnabled ? (
-                  <Volume2 className="h-5 w-5 text-primary" />
+                  <Volume2 className="h-4 w-4 text-foreground" />
                 ) : (
-                  <VolumeX className="h-5 w-5 text-muted-foreground" />
+                  <VolumeX className="h-4 w-4 text-muted-foreground" />
                 )}
                 <div>
-                  <span className="text-xs font-semibold text-foreground block">
-                    Anomaly Detection Sound Alerts
+                  <span className="text-xs font-medium text-foreground block">
+                    Audio Chime for Incidents
                   </span>
                   <span className="text-[11px] text-muted-foreground">
-                    Play a gentle audio chime when critical anomalies appear in live watch mode.
+                    Play chime when critical anomalies are detected in live stream.
                   </span>
                 </div>
               </div>
@@ -304,22 +309,22 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`h-6 w-11 rounded-full p-0.5 transition-colors ${
+                className={`h-5 w-9 rounded-full p-0.5 transition-colors ${
                   soundEnabled ? 'bg-primary' : 'bg-muted'
                 }`}
               >
                 <div
-                  className={`h-5 w-5 rounded-full bg-white transition-transform ${
-                    soundEnabled ? 'translate-x-5' : 'translate-x-0'
+                  className={`h-4 w-4 rounded-full bg-white transition-transform ${
+                    soundEnabled ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>
             </div>
 
             {/* Reduced Motion Toggle */}
-            <div className="flex items-center justify-between rounded-xl border border-border bg-surface p-4">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
               <div>
-                <span className="text-xs font-semibold text-foreground block">
+                <span className="text-xs font-medium text-foreground block">
                   Force Reduced Motion Override
                 </span>
                 <span className="text-[11px] text-muted-foreground">
@@ -330,13 +335,13 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={() => setReduceMotionOverride(!reduceMotionOverride)}
-                className={`h-6 w-11 rounded-full p-0.5 transition-colors ${
+                className={`h-5 w-9 rounded-full p-0.5 transition-colors ${
                   reduceMotionOverride ? 'bg-primary' : 'bg-muted'
                 }`}
               >
                 <div
-                  className={`h-5 w-5 rounded-full bg-white transition-transform ${
-                    reduceMotionOverride ? 'translate-x-5' : 'translate-x-0'
+                  className={`h-4 w-4 rounded-full bg-white transition-transform ${
+                    reduceMotionOverride ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -347,9 +352,9 @@ export default function Settings() {
 
       {/* Tab 5: About & Documentation */}
       {activeTab === 'about' && (
-        <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
-            <h3 className="text-base font-bold text-foreground">
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border bg-surface p-5 shadow-xs space-y-4">
+            <h3 className="text-xs font-semibold text-foreground">
               CostGuard: Autonomous Cloud Spend Anomaly Detection System
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
@@ -359,53 +364,53 @@ export default function Settings() {
               cutover.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              <div className="rounded-lg border border-border bg-surface p-3.5 space-y-1">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  System Architecture
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider font-mono">
+                  Architecture
                 </span>
                 <div className="text-xs font-medium text-foreground">
                   FastAPI + PostgreSQL 16 + Redis 7 + Nginx 1.27
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-surface p-3.5 space-y-1">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Telemetry & Metrics
+              <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider font-mono">
+                  Telemetry Engine
                 </span>
                 <div className="text-xs font-medium text-foreground">
-                  Prometheus 2.54 + Grafana 11.2 (Embedded Solo/Kiosk)
+                  Prometheus 2.54 + Grafana 11.2 (Embedded)
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-surface p-3.5 space-y-1">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Frontend Console
+              <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider font-mono">
+                  Frontend
                 </span>
                 <div className="text-xs font-medium text-foreground">
-                  React 18.3 + TypeScript 5.6 + Apache ECharts 5
+                  React 18.3 + TypeScript 5.6 + ECharts 5
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
               <a
                 href="/docs"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated hover:text-primary transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors shadow-xs"
               >
-                <ExternalLink className="h-3.5 w-3.5" />
-                <span>Swagger API Documentation (/docs)</span>
+                <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                <span>Swagger API Docs (/docs)</span>
               </a>
 
               <a
                 href="https://github.com/adishri2005/cloud-cost-anomaly-detection"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated hover:text-primary transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors shadow-xs"
               >
-                <ExternalLink className="h-3.5 w-3.5" />
+                <ExternalLink className="h-3 w-3 text-muted-foreground" />
                 <span>GitHub Repository</span>
               </a>
             </div>

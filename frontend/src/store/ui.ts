@@ -10,6 +10,9 @@ interface UIState {
   sidebarCollapsed: boolean
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
+  mobileMenuOpen: boolean
+  toggleMobileMenu: () => void
+  setMobileMenuOpen: (open: boolean) => void
   liveEnabled: boolean
   toggleLive: () => void
   setLiveEnabled: (enabled: boolean) => void
@@ -34,6 +37,9 @@ export const useUIStore = create<UIState>()(
       sidebarCollapsed: false,
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+      mobileMenuOpen: false,
+      toggleMobileMenu: () => set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen })),
+      setMobileMenuOpen: (mobileMenuOpen) => set({ mobileMenuOpen }),
       liveEnabled: true,
       toggleLive: () => set((state) => ({ liveEnabled: !state.liveEnabled })),
       setLiveEnabled: (liveEnabled) => set({ liveEnabled }),

@@ -7,58 +7,146 @@
 
 @layer base {
   :root {
-    --background: 216 38% 97%;
-    --foreground: 214 47% 11%;
+    /* ─── Surfaces ─── */
+    --background: 220 16% 96%;
+    --foreground: 220 20% 10%;
     --surface: 0 0% 100%;
-    --surface-elevated: 0 0% 100%;
-    --card: 0 0% 100%;
-    --card-foreground: 214 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 214 47% 11%;
-    --primary: 172 82% 34%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 213 94% 68%;
-    --secondary-foreground: 214 47% 11%;
-    --muted: 210 20% 92%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 20% 94%;
-    --accent-foreground: 214 47% 11%;
-    --destructive: 350 89% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 213 33% 90%;
-    --border-strong: 214 32% 84%;
-    --input: 213 33% 90%;
-    --ring: 172 82% 34%;
-    --radius: 0.75rem;
+    --surface-elevated: 220 14% 98%;
 
-    --grid-dot-color: rgba(15, 27, 42, 0.04);
+    /* ─── Cards / Popovers ─── */
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    /* ─── Accent (Teal — one restrained accent) ─── */
+    --primary: 172 66% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    /* ─── Secondary ─── */
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 220 20% 10%;
+
+    /* ─── Muted ─── */
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 9% 46%;
+
+    /* ─── Accent backgrounds ─── */
+    --accent: 220 14% 94%;
+    --accent-foreground: 220 20% 10%;
+
+    /* ─── Destructive ─── */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* ─── Borders ─── */
+    --border: 220 13% 91%;
+    --border-strong: 220 13% 85%;
+    --input: 220 13% 91%;
+
+    /* ─── Focus ring ─── */
+    --ring: 172 66% 36%;
+
+    /* ─── Radius ─── */
+    --radius: 0.5rem;
+
+    /* ─── Semantic status (desaturated, harmonious) ─── */
+    --success: 152 48% 40%;
+    --success-foreground: 0 0% 100%;
+    --success-subtle: 152 40% 95%;
+    --warning: 38 72% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-subtle: 38 60% 95%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+    --danger-subtle: 0 60% 96%;
+    --info: 210 60% 50%;
+    --info-foreground: 0 0% 100%;
+    --info-subtle: 210 50% 96%;
+
+    /* ─── Severity scale (via CSS vars) ─── */
+    --severity-critical: 0 72% 51%;
+    --severity-high: 25 90% 55%;
+    --severity-medium: 38 72% 50%;
+    --severity-low: 210 60% 50%;
+
+    /* ─── Shadows ─── */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-md: 0 2px 8px -2px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-lg: 0 8px 24px -4px rgb(0 0 0 / 0.1), 0 2px 6px -2px rgb(0 0 0 / 0.05);
+
+    /* ─── Overlay ─── */
+    --overlay: 220 20% 10%;
   }
 
   .dark {
-    --background: 213 31% 6%;
-    --foreground: 212 37% 93%;
-    --surface: 214 33% 10%;
-    --surface-elevated: 216 35% 14%;
-    --card: 214 33% 10%;
-    --card-foreground: 212 37% 93%;
-    --popover: 214 33% 10%;
-    --popover-foreground: 212 37% 93%;
-    --primary: 173 66% 50%;
-    --primary-foreground: 171 78% 7%;
-    --secondary: 213 94% 68%;
-    --secondary-foreground: 213 31% 6%;
-    --muted: 215 28% 17%;
-    --muted-foreground: 212 21% 63%;
-    --accent: 215 28% 17%;
-    --accent-foreground: 212 37% 93%;
-    --destructive: 350 89% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 31% 19%;
-    --border-strong: 213 30% 26%;
-    --input: 214 31% 19%;
-    --ring: 173 66% 50%;
+    /* ─── Surfaces (off-black, no pure #000) ─── */
+    --background: 220 16% 7%;
+    --foreground: 220 14% 90%;
+    --surface: 220 16% 10%;
+    --surface-elevated: 220 16% 13%;
 
-    --grid-dot-color: rgba(231, 237, 244, 0.04);
+    /* ─── Cards / Popovers ─── */
+    --card: 220 16% 10%;
+    --card-foreground: 220 14% 90%;
+    --popover: 220 16% 12%;
+    --popover-foreground: 220 14% 90%;
+
+    /* ─── Accent (Teal — brighter in dark mode) ─── */
+    --primary: 172 56% 48%;
+    --primary-foreground: 172 66% 6%;
+
+    /* ─── Secondary ─── */
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 220 14% 90%;
+
+    /* ─── Muted ─── */
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 9% 55%;
+
+    /* ─── Accent backgrounds ─── */
+    --accent: 220 14% 16%;
+    --accent-foreground: 220 14% 90%;
+
+    /* ─── Destructive ─── */
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* ─── Borders ─── */
+    --border: 220 14% 16%;
+    --border-strong: 220 13% 22%;
+    --input: 220 14% 16%;
+
+    /* ─── Focus ring ─── */
+    --ring: 172 56% 48%;
+
+    /* ─── Semantic status (desaturated for dark) ─── */
+    --success: 152 44% 46%;
+    --success-foreground: 152 60% 6%;
+    --success-subtle: 152 30% 12%;
+    --warning: 38 64% 52%;
+    --warning-foreground: 38 80% 6%;
+    --warning-subtle: 38 40% 12%;
+    --danger: 0 62% 55%;
+    --danger-foreground: 0 0% 100%;
+    --danger-subtle: 0 40% 12%;
+    --info: 210 50% 55%;
+    --info-foreground: 210 60% 6%;
+    --info-subtle: 210 30% 12%;
+
+    /* ─── Severity scale ─── */
+    --severity-critical: 0 62% 55%;
+    --severity-high: 25 80% 55%;
+    --severity-medium: 38 64% 52%;
+    --severity-low: 210 50% 55%;
+
+    /* ─── Shadows ─── */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+    --shadow-md: 0 2px 8px -2px rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.15);
+    --shadow-lg: 0 8px 24px -4px rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.2);
+
+    /* ─── Overlay ─── */
+    --overlay: 220 16% 4%;
   }
 }
 
@@ -69,17 +157,32 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-image: radial-gradient(var(--grid-dot-color) 1px, transparent 1px);
-    background-size: 24px 24px;
     min-height: 100vh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
+  /* ─── Tabular numbers for data-heavy UI ─── */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  /* ─── Focus-visible: consistent across the app ─── */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+
+  /* ─── Selection styling ─── */
+  ::selection {
+    background: hsl(var(--primary) / 0.15);
+    color: hsl(var(--foreground));
+  }
 }
 
-/* Polished Scrollbar */
+/* ─── Scrollbar: thin and unobtrusive ─── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -98,23 +201,25 @@
   background: hsl(var(--muted-foreground));
 }
 
-/* Custom visual utility classes */
-.glow-critical {
-  box-shadow: 0 0 0 1px rgb(244 63 94 / 0.35), 0 0 24px rgb(244 63 94 / 0.15);
+/* ─── Reduced motion: respect user preferences ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.glow-primary {
-  box-shadow: 0 0 0 1px rgb(45 212 191 / 0.35), 0 0 20px rgb(45 212 191 / 0.15);
-}
-
-/* Card subtle gradient surface */
-.dark .card-surface {
-  background: linear-gradient(180deg, hsl(var(--surface-elevated)) 0%, hsl(var(--surface)) 100%);
-  border: 1px solid hsl(var(--border));
-}
-
+/* ─── Utility: card surface ─── */
 .card-surface {
   background: hsl(var(--surface));
   border: 1px solid hsl(var(--border));
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+}
+
+.dark .card-surface {
+  background: hsl(var(--surface));
+  border: 1px solid hsl(var(--border));
 }

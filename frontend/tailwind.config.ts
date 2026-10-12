@@ -11,13 +11,23 @@ const config: Config = {
       center: true,
       padding: '2rem',
       screens: {
-        '2xl': '1600px',
+        '2xl': '1400px',
       },
     },
     extend: {
       fontFamily: {
-        sans: ['Geist Variable', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['Geist Mono Variable', 'monospace'],
+        sans: ['Geist Variable', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['Geist Mono Variable', 'ui-monospace', 'monospace'],
+      },
+      fontSize: {
+        // Modular type scale: 11 / 12 / 13 / 14 / 16 / 20 / 24 / 32
+        'xs': ['0.75rem', { lineHeight: '1rem' }],       // 12px
+        'sm': ['0.8125rem', { lineHeight: '1.25rem' }],  // 13px
+        'base': ['0.875rem', { lineHeight: '1.375rem' }], // 14px — body
+        'lg': ['1rem', { lineHeight: '1.5rem' }],         // 16px
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],     // 20px
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],        // 24px
+        '3xl': ['2rem', { lineHeight: '2.25rem', letterSpacing: '-0.02em' }], // 32px
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -58,35 +68,54 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Semantic status colors
+        // Semantic status colors — all from CSS variables
         success: {
-          DEFAULT: '#22C55E',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+          subtle: 'hsl(var(--success-subtle))',
         },
         warning: {
-          DEFAULT: '#F59E0B',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+          subtle: 'hsl(var(--warning-subtle))',
         },
         danger: {
-          DEFAULT: '#F43F5E',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--danger))',
+          foreground: 'hsl(var(--danger-foreground))',
+          subtle: 'hsl(var(--danger-subtle))',
         },
         info: {
-          DEFAULT: '#38BDF8',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+          subtle: 'hsl(var(--info-subtle))',
         },
-        // Severity scale
+        // Severity scale — from CSS variables
         severity: {
-          critical: '#F43F5E',
-          high: '#FB923C',
-          medium: '#FBBF24',
-          low: '#38BDF8',
+          critical: 'hsl(var(--severity-critical))',
+          high: 'hsl(var(--severity-high))',
+          medium: 'hsl(var(--severity-medium))',
+          low: 'hsl(var(--severity-low))',
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: 'var(--radius)',        // 8px — inputs, buttons
+        md: 'calc(var(--radius) - 2px)', // 6px — small elements
+        sm: 'calc(var(--radius) - 4px)', // 4px — badges, tags
+        xl: 'calc(var(--radius) + 4px)', // 12px — cards
+        '2xl': 'calc(var(--radius) + 8px)', // 16px — modals, large panels
+      },
+      spacing: {
+        // Strict 4px base unit (most already in Tailwind, add extras)
+        '4.5': '1.125rem',  // 18px
+        '13': '3.25rem',    // 52px
+        '15': '3.75rem',    // 60px
+        '18': '4.5rem',     // 72px
+      },
+      boxShadow: {
+        'xs': 'var(--shadow-sm)',
+        'elevation-1': 'var(--shadow-sm)',
+        'elevation-2': 'var(--shadow-md)',
+        'elevation-3': 'var(--shadow-lg)',
       },
       keyframes: {
         'accordion-down': {
@@ -101,11 +130,24 @@ const config: Config = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.4' },
         },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'slide-in': {
+          from: { opacity: '0', transform: 'translateY(4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'pulse-subtle': 'pulse_subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fade-in 0.15s ease-out',
+        'slide-in': 'slide-in 0.2s ease-out',
+      },
+      transitionTimingFunction: {
+        'ease-spring': 'cubic-bezier(0.2, 0, 0, 1)',
       },
     },
   },

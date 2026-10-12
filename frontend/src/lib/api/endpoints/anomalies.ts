@@ -66,23 +66,68 @@ export async function getAnomalies(params: AnomalyListParams = {}): Promise<{
   } catch (error) {
     if (import.meta.env.DEV) {
       console.warn('Falling back to mock anomalies:', error)
+      let filtered = [...MOCK_ANOMALIES]
+      if (params.status) {
+        filtered = filtered.filter((a) => a.status === params.status)
+      }
+      if (params.severity) {
+        filtered = filtered.filter((a) => a.severity === params.severity)
+      }
       return {
-        items: MOCK_ANOMALIES.slice(0, params.limit || 25).map((a) => AnomalySchema.parse(a)),
-        total: MOCK_ANOMALIES.length,
+        items: filtered.slice(0, params.limit || 25).map((a) => AnomalySchema.parse(a)),
+        total: filtered.length,
       }
     }
     throw error
   }
 }
 
-export async function acknowledgeAnomaly(id: string): Promise<Anomaly> {
-  const res = await apiClient.post(`/anomalies/${id}/acknowledge`)
-  return AnomalySchema.parse(res.data)
+export async function acknowledgeAnomaly(id: string | number): Promise<Anomaly> {
+  if (import.meta.env.VITE_MOCK === 'true') {
+    const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
+    if (match) {
+      match.status = 'acknowledged'
+      return AnomalySchema.parse(match)
+    }
+  }
+
+  try {
+    const res = await apiClient.patch(`/anomalies/${id}`, { status: 'acknowledged' })
+    return AnomalySchema.parse(res.data)
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
+      if (match) {
+        match.status = 'acknowledged'
+        return AnomalySchema.parse(match)
+      }
+    }
+    throw error
+  }
 }
 
-export async function resolveAnomaly(id: string): Promise<Anomaly> {
-  const res = await apiClient.post(`/anomalies/${id}/resolve`)
-  return AnomalySchema.parse(res.data)
+export async function resolveAnomaly(id: string | number): Promise<Anomaly> {
+  if (import.meta.env.VITE_MOCK === 'true') {
+    const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
+    if (match) {
+      match.status = 'resolved'
+      return AnomalySchema.parse(match)
+    }
+  }
+
+  try {
+    const res = await apiClient.patch(`/anomalies/${id}`, { status: 'resolved' })
+    return AnomalySchema.parse(res.data)
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
+      if (match) {
+        match.status = 'resolved'
+        return AnomalySchema.parse(match)
+      }
+    }
+    throw error
+  }
 }
 
 export async function getAnomalyTimeline(id: string): Promise<AnomalyTimelineData> {

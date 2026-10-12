@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   ChevronDown,
   LogOut,
   User,
+  X,
 } from 'lucide-react'
 import { useUIStore } from '@/store/ui'
 import { useAuthStore } from '@/hooks/useAuth'
@@ -24,7 +25,7 @@ import { MOCK_ANOMALIES } from '@/mocks/fixtures'
 export function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { sidebarCollapsed, toggleSidebar } = useUIStore()
+  const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen } = useUIStore()
   const { user, logout } = useAuthStore()
 
   const [monitoringOpen, setMonitoringOpen] = useState(
@@ -34,14 +35,26 @@ export function Sidebar() {
     location.pathname.startsWith('/logs')
   )
 
+  // Auto-close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname, setMobileMenuOpen])
+
   const openAnomalies = MOCK_ANOMALIES.filter((a) => a.status === 'open')
   const hasCritical = openAnomalies.some((a) => a.severity === 'critical')
 
-  const navItemClass = (isActive: boolean) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all group relative ${
+  const navItemClass = (isActive: boolean, isCollapsed: boolean) =>
+    `flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group relative ${
       isActive
-        ? 'bg-primary/15 text-primary font-semibold shadow-sm'
+        ? 'bg-muted/80 text-foreground font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-primary before:rounded-r'
         : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+    } ${isCollapsed ? 'justify-center px-0' : ''}`
+
+  const subNavItemClass = (isActive: boolean) =>
+    `block px-2.5 py-1.5 rounded-md text-xs transition-colors ${
+      isActive
+        ? 'text-foreground font-medium bg-muted/60'
+        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
     }`
 
   const handleLogout = async () => {
@@ -49,81 +62,96 @@ export function Sidebar() {
     navigate('/login')
   }
 
-  return (
-    <aside
-      className={`h-screen sticky top-0 border-r border-border bg-surface flex flex-col justify-between transition-all duration-300 z-40 select-none ${
-        sidebarCollapsed ? 'w-16' : 'w-64'
-      }`}
-    >
+  const renderContent = (isCollapsed: boolean, isMobile: boolean) => (
+    <div className="flex flex-col h-full justify-between">
       {/* Top Header & Navigation */}
       <div className="flex flex-col flex-1 min-h-0">
         {/* Brand Header */}
-        <div className="h-14 border-b border-border px-4 flex items-center justify-between">
-          <NavLink to="/" className="flex items-center gap-2.5 min-w-0 overflow-hidden">
-            {/* Inline SVG Shield & Pulse Mark */}
-            <svg
-              className="w-7 h-7 shrink-0 text-primary"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-            {!sidebarCollapsed && (
-              <div className="flex flex-col">
-                <span className="font-bold text-sm tracking-tight text-foreground font-mono">
+        <div className="h-14 border-b border-border px-3.5 flex items-center justify-between shrink-0">
+          <NavLink to="/" className="flex items-center gap-2.5 min-w-0 overflow-hidden group">
+            {/* Minimalist Shield Mark */}
+            <div className="w-7 h-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-105">
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            </div>
+            {!isCollapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="font-semibold text-xs tracking-tight text-foreground truncate">
                   CostGuard
                 </span>
-                <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
-                  FinOps Mission Control
+                <span className="text-[10px] text-muted-foreground tracking-wider uppercase truncate">
+                  FinOps Control
                 </span>
               </div>
             )}
           </NavLink>
 
-          <button
-            onClick={toggleSidebar}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {sidebarCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </button>
+          {isMobile ? (
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={toggleSidebar}
+              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronLeft className="w-3.5 h-3.5" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-none">
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5 scrollbar-none">
           {/* Overview */}
-          <NavLink to="/" end className={({ isActive }) => navItemClass(isActive)}>
-            <LayoutDashboard className="w-4 h-4 shrink-0 text-primary" />
-            {!sidebarCollapsed && <span>Overview</span>}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+          >
+            <LayoutDashboard className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+            {!isCollapsed && <span>Overview</span>}
+            {isCollapsed && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                 Overview
               </span>
             )}
           </NavLink>
 
           {/* Anomalies */}
-          <NavLink to="/anomalies" className={({ isActive }) => navItemClass(isActive)}>
-            <AlertTriangle className="w-4 h-4 shrink-0 text-warning" />
-            {!sidebarCollapsed && (
-              <div className="flex items-center justify-between flex-1">
-                <span>Anomalies</span>
+          <NavLink
+            to="/anomalies"
+            className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+          >
+            <AlertTriangle className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+            {!isCollapsed && (
+              <div className="flex items-center justify-between flex-1 min-w-0">
+                <span className="truncate">Anomalies</span>
                 {openAnomalies.length > 0 && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium shrink-0 ${
                       hasCritical
-                        ? 'bg-danger text-white animate-pulse'
-                        : 'bg-warning/20 text-warning'
+                        ? 'bg-danger/15 text-danger border border-danger/30'
+                        : 'bg-warning/15 text-warning border border-warning/30'
                     }`}
                   >
                     {openAnomalies.length}
@@ -131,41 +159,50 @@ export function Sidebar() {
                 )}
               </div>
             )}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+            {isCollapsed && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                 Anomalies ({openAnomalies.length})
               </span>
             )}
           </NavLink>
 
           {/* Costs */}
-          <NavLink to="/costs" className={({ isActive }) => navItemClass(isActive)}>
-            <DollarSign className="w-4 h-4 shrink-0 text-info" />
-            {!sidebarCollapsed && <span>Costs</span>}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+          <NavLink
+            to="/costs"
+            className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+          >
+            <DollarSign className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+            {!isCollapsed && <span>Costs</span>}
+            {isCollapsed && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                 Costs
               </span>
             )}
           </NavLink>
 
           {/* Resources */}
-          <NavLink to="/resources" className={({ isActive }) => navItemClass(isActive)}>
-            <Server className="w-4 h-4 shrink-0 text-muted-foreground" />
-            {!sidebarCollapsed && <span>Resources</span>}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+          <NavLink
+            to="/resources"
+            className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+          >
+            <Server className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+            {!isCollapsed && <span>Resources</span>}
+            {isCollapsed && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                 Resources
               </span>
             )}
           </NavLink>
 
           {/* Ingestion */}
-          <NavLink to="/ingestion" className={({ isActive }) => navItemClass(isActive)}>
-            <Zap className="w-4 h-4 shrink-0 text-warning" />
-            {!sidebarCollapsed && <span>Ingestion</span>}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+          <NavLink
+            to="/ingestion"
+            className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+          >
+            <Zap className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+            {!isCollapsed && <span>Ingestion</span>}
+            {isCollapsed && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                 Ingestion
               </span>
             )}
@@ -175,85 +212,58 @@ export function Sidebar() {
           <div>
             <button
               onClick={() => {
-                if (sidebarCollapsed) toggleSidebar()
+                if (isCollapsed && !isMobile) toggleSidebar()
                 setMonitoringOpen(!monitoringOpen)
               }}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
-                location.pathname.startsWith('/monitoring') ? 'text-foreground font-semibold' : ''
-              }`}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
+                location.pathname.startsWith('/monitoring')
+                  ? 'text-foreground font-medium bg-muted/40'
+                  : ''
+              } ${isCollapsed ? 'justify-center px-0' : ''}`}
+              title={isCollapsed ? 'Monitoring' : undefined}
             >
-              <div className="flex items-center gap-3">
-                <Activity className="w-4 h-4 shrink-0 text-primary" />
-                {!sidebarCollapsed && <span>Monitoring</span>}
+              <div className="flex items-center gap-2.5">
+                <Activity className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+                {!isCollapsed && <span>Monitoring</span>}
               </div>
-              {!sidebarCollapsed && (
+              {!isCollapsed && (
                 <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform ${
+                  className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${
                     monitoringOpen ? 'rotate-180' : ''
                   }`}
                 />
               )}
             </button>
 
-            {monitoringOpen && !sidebarCollapsed && (
-              <div className="ml-7 mt-1 space-y-1 pl-2 border-l border-border/60">
+            {monitoringOpen && !isCollapsed && (
+              <div className="ml-6 mt-1 space-y-0.5 pl-2 border-l border-border/60">
                 <NavLink
                   to="/monitoring/native"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
+                  className={({ isActive }) => subNavItemClass(isActive)}
                 >
                   Native Charts
                 </NavLink>
                 <NavLink
                   to="/monitoring/grafana"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
+                  className={({ isActive }) => subNavItemClass(isActive)}
                 >
                   Grafana (Embedded)
                 </NavLink>
                 <NavLink
                   to="/monitoring/prometheus"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
+                  className={({ isActive }) => subNavItemClass(isActive)}
                 >
                   Prometheus Console
                 </NavLink>
                 <NavLink
                   to="/monitoring/alerts"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
+                  className={({ isActive }) => subNavItemClass(isActive)}
                 >
                   Alert Rules
                 </NavLink>
                 <NavLink
                   to="/monitoring/targets"
-                  className={({ isActive }) =>
-                    `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                      isActive
-                        ? 'text-primary font-semibold bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`
-                  }
+                  className={({ isActive }) => subNavItemClass(isActive)}
                 >
                   Scrape Targets
                 </NavLink>
@@ -266,47 +276,40 @@ export function Sidebar() {
             <div>
               <button
                 onClick={() => {
-                  if (sidebarCollapsed) toggleSidebar()
+                  if (isCollapsed && !isMobile) toggleSidebar()
                   setLogsOpen(!logsOpen)
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
-                  location.pathname.startsWith('/logs') ? 'text-foreground font-semibold' : ''
-                }`}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors ${
+                  location.pathname.startsWith('/logs')
+                    ? 'text-foreground font-medium bg-muted/40'
+                    : ''
+                } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                title={isCollapsed ? 'Logs' : undefined}
               >
-                <div className="flex items-center gap-3">
-                  <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
-                  {!sidebarCollapsed && <span>Logs</span>}
+                <div className="flex items-center gap-2.5">
+                  <FileText className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  {!isCollapsed && <span>Logs</span>}
                 </div>
-                {!sidebarCollapsed && (
+                {!isCollapsed && (
                   <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform ${logsOpen ? 'rotate-180' : ''}`}
+                    className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${
+                      logsOpen ? 'rotate-180' : ''
+                    }`}
                   />
                 )}
               </button>
 
-              {logsOpen && !sidebarCollapsed && (
-                <div className="ml-7 mt-1 space-y-1 pl-2 border-l border-border/60">
+              {logsOpen && !isCollapsed && (
+                <div className="ml-6 mt-1 space-y-0.5 pl-2 border-l border-border/60">
                   <NavLink
                     to="/logs/app"
-                    className={({ isActive }) =>
-                      `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                        isActive
-                          ? 'text-primary font-semibold bg-primary/10'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`
-                    }
+                    className={({ isActive }) => subNavItemClass(isActive)}
                   >
                     Application Live Tail
                   </NavLink>
                   <NavLink
                     to="/logs/audit"
-                    className={({ isActive }) =>
-                      `block px-2.5 py-1.5 rounded-md text-[11px] ${
-                        isActive
-                          ? 'text-primary font-semibold bg-primary/10'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`
-                    }
+                    className={({ isActive }) => subNavItemClass(isActive)}
                   >
                     Audit Trail
                   </NavLink>
@@ -316,11 +319,14 @@ export function Sidebar() {
           )}
 
           {/* Deployments */}
-          <NavLink to="/deployments" className={({ isActive }) => navItemClass(isActive)}>
-            <GitBranch className="w-4 h-4 shrink-0 text-info" />
-            {!sidebarCollapsed && <span>Deployments</span>}
-            {sidebarCollapsed && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+          <NavLink
+            to="/deployments"
+            className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+          >
+            <GitBranch className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+            {!isCollapsed && <span>Deployments</span>}
+            {isCollapsed && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                 Deployments
               </span>
             )}
@@ -328,11 +334,14 @@ export function Sidebar() {
 
           {/* Settings (Admin only) */}
           {canManageSettings(user?.role) && (
-            <NavLink to="/settings" className={({ isActive }) => navItemClass(isActive)}>
-              <SettingsIcon className="w-4 h-4 shrink-0 text-muted-foreground" />
-              {!sidebarCollapsed && <span>Settings</span>}
-              {sidebarCollapsed && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground border border-border text-xs rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => navItemClass(isActive, isCollapsed)}
+            >
+              <SettingsIcon className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+              {!isCollapsed && <span>Settings</span>}
+              {isCollapsed && (
+                <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-border text-xs rounded-md shadow-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                   Settings
                 </span>
               )}
@@ -342,16 +351,16 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Environment & User Info */}
-      <div className="p-3 border-t border-border space-y-2">
+      <div className="p-2.5 border-t border-border space-y-2 shrink-0">
         {/* Environment Card */}
-        {!sidebarCollapsed && (
-          <div className="p-2.5 rounded-lg bg-surface-elevated border border-border text-xs">
+        {!isCollapsed && (
+          <div className="p-2 rounded-md bg-surface-elevated/60 border border-border/60 text-xs">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-muted-foreground">Cluster Active</span>
+              <span className="text-[11px] text-muted-foreground">Cluster</span>
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="font-mono text-[11px] font-bold text-primary uppercase">
-                  Blue
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <span className="font-mono text-[11px] font-medium text-foreground">
+                  Blue (Active)
                 </span>
               </div>
             </div>
@@ -365,15 +374,15 @@ export function Sidebar() {
         {/* User Chip & Logout */}
         <div className="flex items-center justify-between p-1">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0">
-              <User className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-md bg-muted text-foreground flex items-center justify-center font-medium text-xs shrink-0 border border-border">
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
-            {!sidebarCollapsed && (
+            {!isCollapsed && (
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-foreground truncate">
+                <span className="text-xs font-medium text-foreground truncate">
                   {user?.username || 'User'}
                 </span>
-                <span className="text-[10px] text-primary font-mono capitalize">
+                <span className="text-[10px] text-muted-foreground font-mono capitalize">
                   {user?.role || 'Operator'}
                 </span>
               </div>
@@ -382,14 +391,40 @@ export function Sidebar() {
 
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors"
+            className="p-1 rounded-md text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors"
             title="Sign out"
             aria-label="Sign out"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
-    </aside>
+    </div>
+  )
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside
+        className={`hidden md:flex h-screen sticky top-0 border-r border-border bg-surface flex-col justify-between transition-all duration-200 z-40 select-none ${
+          sidebarCollapsed ? 'w-14' : 'w-60'
+        }`}
+      >
+        {renderContent(sidebarCollapsed, false)}
+      </aside>
+
+      {/* Mobile Backdrop & Drawer */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="fixed inset-0 bg-overlay/50 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <aside className="fixed inset-y-0 left-0 w-64 bg-surface border-r border-border shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200">
+            {renderContent(false, true)}
+          </aside>
+        </div>
+      )}
+    </>
   )
 }

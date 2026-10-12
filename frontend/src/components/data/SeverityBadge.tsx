@@ -11,28 +11,28 @@ const SEVERITY_STYLES: Record<
   { bg: string; text: string; border: string; dot: string }
 > = {
   critical: {
-    bg: 'bg-danger/10',
-    text: 'text-danger font-semibold',
-    border: 'border-danger/30',
-    dot: 'bg-danger',
+    bg: 'bg-severity-critical/10',
+    text: 'text-severity-critical font-medium',
+    border: 'border-severity-critical/25',
+    dot: 'bg-severity-critical',
   },
   high: {
-    bg: 'bg-amber-500/10',
-    text: 'text-orange-400 font-medium',
-    border: 'border-orange-500/30',
-    dot: 'bg-orange-400',
+    bg: 'bg-severity-high/10',
+    text: 'text-severity-high font-medium',
+    border: 'border-severity-high/25',
+    dot: 'bg-severity-high',
   },
   medium: {
-    bg: 'bg-warning/10',
-    text: 'text-warning font-medium',
-    border: 'border-warning/30',
-    dot: 'bg-warning',
+    bg: 'bg-severity-medium/10',
+    text: 'text-severity-medium font-medium',
+    border: 'border-severity-medium/25',
+    dot: 'bg-severity-medium',
   },
   low: {
-    bg: 'bg-info/10',
-    text: 'text-info font-normal',
-    border: 'border-info/30',
-    dot: 'bg-info',
+    bg: 'bg-severity-low/10',
+    text: 'text-severity-low font-normal',
+    border: 'border-severity-low/25',
+    dot: 'bg-severity-low',
   },
 }
 
@@ -50,9 +50,7 @@ export function SeverityBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono uppercase tracking-wider border select-none ${style.bg} ${style.text} ${style.border} ${
-        isCritical ? 'shadow-[0_0_12px_rgba(244,63,94,0.25)]' : ''
-      } ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider border select-none ${style.bg} ${style.text} ${style.border} ${className}`}
     >
       {showDot && (
         <span className="relative flex h-1.5 w-1.5">

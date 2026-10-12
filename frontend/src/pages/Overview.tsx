@@ -77,7 +77,7 @@ export default function Overview() {
     if (!anomaliesData?.items) return []
     return anomaliesData.items.map((a) => ({
       id: a.id,
-      timestampMs: new Date(a.detected_at).getTime(),
+      timestampMs: new Date(a.record_ts || a.detected_at).getTime(),
       cost: a.actual_cost,
       severity: a.severity,
       resourceId: a.resource_id,

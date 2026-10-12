@@ -62,28 +62,33 @@ export default function MonitoringHub() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-5 max-w-[1600px] mx-auto animate-in fade-in duration-200">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Activity className="h-6 w-6 text-primary" />
-            Monitoring Hub
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Real-time telemetry, Prometheus native queries, and embedded Grafana dashboards.
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              Monitoring Hub
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted/70 text-muted-foreground border border-border">
+              <Activity className="w-3 h-3 text-muted-foreground" />
+              <span>Prometheus Telemetry</span>
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Real-time metric telemetry, PromQL analytics, and embedded Grafana dashboards.
           </p>
         </div>
 
         {/* Tab Navigation Pill Bar */}
-        <div className="flex rounded-xl border border-border bg-surface p-1 shadow-xs">
+        <div className="flex rounded-md border border-border bg-muted/60 p-0.5 shadow-xs overflow-x-auto">
           <button
             type="button"
             onClick={() => handleTabChange('overview')}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
               activeTab === 'overview'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
+                ? 'bg-surface text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Layers className="h-3.5 w-3.5" />
@@ -93,10 +98,10 @@ export default function MonitoringHub() {
           <button
             type="button"
             onClick={() => handleTabChange('grafana')}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
               activeTab === 'grafana'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
+                ? 'bg-surface text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Activity className="h-3.5 w-3.5" />
@@ -106,10 +111,10 @@ export default function MonitoringHub() {
           <button
             type="button"
             onClick={() => handleTabChange('prometheus')}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
               activeTab === 'prometheus'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
+                ? 'bg-surface text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Terminal className="h-3.5 w-3.5" />
@@ -119,10 +124,10 @@ export default function MonitoringHub() {
           <button
             type="button"
             onClick={() => handleTabChange('alerts')}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
               activeTab === 'alerts'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
+                ? 'bg-surface text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Bell className="h-3.5 w-3.5" />
@@ -132,10 +137,10 @@ export default function MonitoringHub() {
           <button
             type="button"
             onClick={() => handleTabChange('targets')}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all shrink-0 ${
               activeTab === 'targets'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
+                ? 'bg-surface text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Radio className="h-3.5 w-3.5" />
@@ -146,27 +151,25 @@ export default function MonitoringHub() {
 
       {/* Tab 1: Overview (Native PromQL Panels Grid) */}
       {activeTab === 'overview' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
-              12 live telemetry panels queried natively from Prometheus. Synchronized crosshair across time range.
+              12 live telemetry panels queried natively via Prometheus PromQL engine.
             </span>
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-[11px] font-mono">
-                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                Live PromQL
-              </span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span>Live Queries</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {/* 1. Request Rate */}
             <NativePanelCard
               title="Request Rate"
               query={PROM_QUERIES.rps}
-              description="Total inbound HTTP requests per second"
+              description="Inbound HTTP requests per second"
               unit="req/s"
-              color="#2DD4BF"
+              color="hsl(var(--primary))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -176,9 +179,9 @@ export default function MonitoringHub() {
             <NativePanelCard
               title="API Latency (p95)"
               query={PROM_QUERIES.latencyP95}
-              description="95th percentile response time across endpoints"
+              description="95th percentile response latency across endpoints"
               unit="s"
-              color="#FB923C"
+              color="hsl(var(--warning))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -188,9 +191,9 @@ export default function MonitoringHub() {
             <NativePanelCard
               title="5xx Errors by Color"
               query={PROM_QUERIES.errorByColor}
-              description="Internal server error rate per deployment color"
+              description="Server error rate partitioned by deployment color"
               unit="err/s"
-              color="#F43F5E"
+              color="hsl(var(--danger))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -201,8 +204,8 @@ export default function MonitoringHub() {
               title="Ingestion Rate"
               query={PROM_QUERIES.ingestRate}
               description="Cost records written to queue per second"
-              unit="records/s"
-              color="#60A5FA"
+              unit="rec/s"
+              color="hsl(var(--primary))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -212,9 +215,9 @@ export default function MonitoringHub() {
             <NativePanelCard
               title="Processed Rate"
               query={PROM_QUERIES.processedRate}
-              description="Worker anomaly detection records evaluated per second"
-              unit="records/s"
-              color="#34D399"
+              description="Worker anomaly detection evaluations per second"
+              unit="rec/s"
+              color="hsl(var(--primary))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -226,7 +229,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.queueLag}
               description="Pending messages waiting in Redis Streams"
               unit="msgs"
-              color="#FBBF24"
+              color="hsl(var(--warning))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -238,7 +241,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.detectionP95}
               description="Pipeline latency from record ingestion to anomaly trigger"
               unit="s"
-              color="#A78BFA"
+              color="hsl(var(--primary))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -261,7 +264,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.cacheHitRatio}
               description="Redis baseline lookup hit efficiency"
               unit="ratio"
-              color="#2DD4BF"
+              color="hsl(var(--primary))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -273,7 +276,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.cpuPct}
               description="Node exporter host CPU load percentage"
               unit="%"
-              color="#F472B6"
+              color="hsl(var(--muted-foreground))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -285,7 +288,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.memPct}
               description="Node exporter RAM utilization percentage"
               unit="%"
-              color="#38BDF8"
+              color="hsl(var(--muted-foreground))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -297,7 +300,7 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.pgConnections}
               description="Concurrent client sessions connected to Postgres"
               unit="backends"
-              color="#94A3B8"
+              color="hsl(var(--muted-foreground))"
               deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
@@ -316,14 +319,14 @@ export default function MonitoringHub() {
       {/* Tab 3: Prometheus (Native Console or Embedded Web UI) */}
       {activeTab === 'prometheus' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <div className="flex rounded-lg border border-border bg-surface p-0.5 text-xs">
+          <div className="flex items-center justify-between border-b border-border pb-2.5">
+            <div className="flex rounded-md border border-border bg-muted/60 p-0.5 text-xs shadow-xs">
               <button
                 type="button"
                 onClick={() => setPromMode('console')}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition-colors ${
+                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 font-medium transition-colors ${
                   promMode === 'console'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-surface text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -333,19 +336,19 @@ export default function MonitoringHub() {
               <button
                 type="button"
                 onClick={() => setPromMode('embed')}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition-colors ${
+                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1 font-medium transition-colors ${
                   promMode === 'embed'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-surface text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                <span>Embedded Prometheus Web UI</span>
+                <span>Embedded Web UI</span>
               </button>
             </div>
 
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              {promMode === 'console' ? 'Query directly via /prometheus/api/v1' : 'Official /prometheus/graph gateway'}
+            <span className="text-xs text-muted-foreground hidden sm:inline font-mono">
+              {promMode === 'console' ? '/prometheus/api/v1' : '/prometheus/graph'}
             </span>
           </div>
 

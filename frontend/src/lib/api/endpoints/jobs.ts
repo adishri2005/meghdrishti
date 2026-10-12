@@ -2,14 +2,21 @@ import { apiClient } from '../client'
 
 export interface IngestionJob {
   id: string
-  status: 'queued' | 'processing' | 'done' | 'failed'
-  job_type: string
-  total_records: number
-  processed_records: number
-  error_count: number
-  started_at: string
+  status: 'queued' | 'processing' | 'done' | 'failed' | string
+  job_type?: string
+  backfill?: boolean
+  record_count?: number
+  total_records?: number
+  processed_count?: number
+  processed_records?: number
+  failed_count?: number
+  error_count?: number
+  started_at?: string
+  created_at?: string | null
+  finished_at?: string | null
   completed_at?: string | null
   submitted_by?: string
+  duration_seconds?: number
   duration_ms?: number
   message?: string
 }
@@ -67,7 +74,15 @@ export async function getJobs(params: { limit?: number; status?: string } = {}):
 
   try {
     const res = await apiClient.get('/jobs', { params })
-    return res.data.items || res.data || []
+    const items = Array.isArray(res.data) ? res.data : (res.data?.items || [])
+    return items.map((j: any) => ({
+      ...j,
+      job_type: j.job_type || (j.backfill ? 'seed_history' : 'batch_ingest'),
+      total_records: j.total_records ?? j.record_count ?? 0,
+      processed_records: j.processed_records ?? j.processed_count ?? 0,
+      started_at: j.started_at || j.created_at || new Date().toISOString(),
+      duration_ms: j.duration_ms ?? (j.duration_seconds != null ? j.duration_seconds * 1000 : undefined),
+    }))
   } catch (error) {
     if (import.meta.env.DEV) {
       return MOCK_JOBS
@@ -84,7 +99,15 @@ export async function getJob(id: string): Promise<IngestionJob> {
 
   try {
     const res = await apiClient.get(`/jobs/${encodeURIComponent(id)}`)
-    return res.data
+    const j = res.data
+    return {
+      ...j,
+      job_type: j.job_type || (j.backfill ? 'seed_history' : 'batch_ingest'),
+      total_records: j.total_records ?? j.record_count ?? 0,
+      processed_records: j.processed_records ?? j.processed_count ?? 0,
+      started_at: j.started_at || j.created_at || new Date().toISOString(),
+      duration_ms: j.duration_ms ?? (j.duration_seconds != null ? j.duration_seconds * 1000 : undefined),
+    }
   } catch (error) {
     if (import.meta.env.DEV) {
       return {

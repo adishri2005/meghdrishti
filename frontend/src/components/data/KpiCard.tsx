@@ -31,7 +31,7 @@ export function KpiCard({
   reverseTrendColor = false,
   trendSuffix = 'vs prior 24h',
   sparklineData,
-  sparklineColor = '#2DD4BF',
+  sparklineColor = 'hsl(var(--primary))',
   badge,
   icon,
   isLoading = false,
@@ -47,7 +47,7 @@ export function KpiCard({
   useEffect(() => {
     if (typeof value === 'number') {
       const start = typeof displayValue === 'number' ? displayValue : 0
-      const duration = 600
+      const duration = 500
       const startTime = performance.now()
 
       const animate = (time: number) => {
@@ -73,17 +73,17 @@ export function KpiCard({
   }, [value])
 
   if (isLoading) {
-    return <SkeletonCard className={`h-[120px] ${className}`} />
+    return <SkeletonCard className={`h-28 ${className}`} />
   }
 
   if (isError) {
     return (
       <div
-        className={`p-4 rounded-xl border border-danger/30 bg-danger/5 flex flex-col justify-between h-[120px] ${className}`}
+        className={`p-3.5 rounded-lg border border-danger/30 bg-danger/5 flex flex-col justify-between h-28 ${className}`}
       >
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="font-medium text-foreground">{label}</span>
-          <AlertCircle className="w-4 h-4 text-danger" />
+          <AlertCircle className="w-3.5 h-3.5 text-danger" />
         </div>
         <div className="flex items-center justify-between gap-2">
           <div className="text-xs text-danger font-mono truncate">{errorMessage}</div>
@@ -94,7 +94,7 @@ export function KpiCard({
                 onRetry()
               }}
               type="button"
-              className="text-[11px] underline text-muted-foreground hover:text-foreground shrink-0"
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 shrink-0"
             >
               Retry
             </button>
@@ -107,13 +107,13 @@ export function KpiCard({
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-xl border border-border bg-surface hover:border-border-strong transition-all flex flex-col justify-between h-[120px] relative overflow-hidden group ${
-        onClick ? 'cursor-pointer hover:bg-surface-elevated/80' : ''
+      className={`p-3.5 rounded-lg border border-border bg-surface hover:border-border-strong transition-all flex flex-col justify-between h-28 relative overflow-hidden group shadow-xs ${
+        onClick ? 'cursor-pointer hover:bg-surface-elevated/60' : ''
       } ${className}`}
     >
       {/* Top Header: Label & Icon/Badge */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
+        <span className="text-xs font-medium text-muted-foreground tracking-normal truncate">
           {label}
         </span>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -125,11 +125,11 @@ export function KpiCard({
       {/* Middle: Big Metric Value & Sparkline */}
       <div className="flex items-baseline justify-between gap-2">
         <div className="flex items-baseline gap-1 min-w-0">
-          <span className="text-2xl sm:text-3xl font-bold font-mono text-foreground tracking-tight tabular-nums truncate">
+          <span className="text-2xl font-semibold font-mono text-foreground tracking-tight tabular-nums truncate">
             {displayValue}
           </span>
           {unit && (
-            <span className="text-xs text-muted-foreground font-mono font-medium">
+            <span className="text-xs text-muted-foreground font-mono">
               {unit}
             </span>
           )}
@@ -139,14 +139,14 @@ export function KpiCard({
           <Sparkline
             data={sparklineData}
             color={sparklineColor}
-            width={84}
-            height={26}
+            width={80}
+            height={24}
           />
         )}
       </div>
 
       {/* Bottom: Trend Delta */}
-      <div className="flex items-center justify-between text-xs min-h-[18px]">
+      <div className="flex items-center justify-between text-xs min-h-[16px]">
         {trendDelta !== undefined && (
           <TrendDelta
             value={trendDelta}

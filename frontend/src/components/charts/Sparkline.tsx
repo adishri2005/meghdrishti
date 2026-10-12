@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 
 interface SparklineProps {
   data: number[]
@@ -13,10 +13,12 @@ export function Sparkline({
   data = [],
   width = 96,
   height = 28,
-  color = '#2DD4BF',
+  color = 'hsl(var(--primary))',
   fill = true,
   className = '',
 }: SparklineProps) {
+  const uniqueId = useId().replace(/:/g, '')
+
   const points = useMemo(() => {
     if (!data || data.length < 2) return null
     const min = Math.min(...data)
@@ -45,13 +47,15 @@ export function Sparkline({
   if (!points) {
     return (
       <div
-        className={`flex items-center justify-center text-[10px] text-muted-foreground/60 ${className}`}
+        className={`flex items-center justify-center text-xs text-muted-foreground/50 font-mono ${className}`}
         style={{ width, height }}
       >
         --
       </div>
     )
   }
+
+  const gradId = `spark-grad-${uniqueId}`
 
   return (
     <svg
@@ -61,8 +65,8 @@ export function Sparkline({
       viewBox={`0 0 ${width} ${height}`}
     >
       <defs>
-        <linearGradient id={`spark-grad-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
           <stop offset="100%" stopColor={color} stopOpacity="0.0" />
         </linearGradient>
       </defs>
@@ -70,7 +74,7 @@ export function Sparkline({
       {fill && (
         <path
           d={points.areaD}
-          fill={`url(#spark-grad-${color.replace('#', '')})`}
+          fill={`url(#${gradId})`}
         />
       )}
 
