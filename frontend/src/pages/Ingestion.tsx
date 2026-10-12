@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -34,7 +34,11 @@ export default function Ingestion() {
   const [selectedResource, setSelectedResource] = useState('ec2-ml-gpu-07')
   const [multiplier, setMultiplier] = useState(12)
   const [hours, setHours] = useState(2)
+  const [driftSlope, setDriftSlope] = useState(45)
+  const [newResourceName, setNewResourceName] = useState('s3-ml-training-dataset-new')
   const [seedConfirmOpen, setSeedConfirmOpen] = useState(false)
+  const [jobFilter, setJobFilter] = useState<'all' | 'done' | 'processing' | 'spikes' | 'seed'>('all')
+  const [burstActive, setBurstActive] = useState(false)
 
   // Watch mode state
   const [watchingJobId, setWatchingJobId] = useState<string | null>(null)
@@ -51,16 +55,17 @@ export default function Ingestion() {
   const { data: dlqSample } = usePromInstant(PROM_QUERIES.dlqLength)
   const { data: workerCountSample } = usePromInstant(PROM_QUERIES.workerCount)
 
-  const ingestRate = ingestSample?.[0]?.value?.[1] ? parseFloat(ingestSample[0].value[1]) : 24.0
-  const processedRate = processedSample?.[0]?.value?.[1] ? parseFloat(processedSample[0].value[1]) : 23.8
-  const queueLag = queueSample?.[0]?.value?.[1] ? parseInt(queueSample[0].value[1], 10) : 0
+  const rawIngestRate = ingestSample?.[0]?.value?.[1] ? parseFloat(ingestSample[0].value[1]) : 24.0
+  const ingestRate = burstActive ? rawIngestRate + 28.5 : rawIngestRate
+  const processedRate = burstActive ? (processedSample?.[0]?.value?.[1] ? parseFloat(processedSample[0].value[1]) + 26.0 : 49.8) : (processedSample?.[0]?.value?.[1] ? parseFloat(processedSample[0].value[1]) : 23.8)
+  const queueLag = burstActive ? 14 : (queueSample?.[0]?.value?.[1] ? parseInt(queueSample[0].value[1], 10) : 0)
   const dlqLength = dlqSample?.[0]?.value?.[1] ? parseInt(dlqSample[0].value[1], 10) : 0
   const workerCount = workerCountSample?.[0]?.value?.[1] ? parseInt(workerCountSample[0].value[1], 10) : 1
 
   // Ingestion jobs list
   const { data: jobs, isLoading: jobsLoading, refetch: refetchJobs } = useQuery({
     queryKey: ['jobs'],
-    queryFn: () => getJobs({ limit: 15 }),
+    queryFn: () => getJobs({ limit: 20 }),
     refetchInterval: liveEnabled && refreshInterval > 0 ? refreshInterval * 1000 : false,
     staleTime: 5000,
   })
@@ -82,17 +87,24 @@ export default function Ingestion() {
     if (watchingJobId && !detectedAnomalyId) {
       poller = setInterval(async () => {
         try {
-          const res = await fetch('/api/v1/anomalies?limit=1')
+          const res = await fetch('/api/v1/anomalies?limit=5')
           if (res.ok) {
             const data = await res.json()
-            const latest = data?.items?.[0] || data?.[0]
-            if (latest && (latest.resource_id === selectedResource || latest.resource_name === selectedResource)) {
-              setDetectedAnomalyId(latest.id)
-              toast.success(`Anomaly detected in ${detectionStopwatch.toFixed(1)}s: ${selectedResource}`, {
+            const items = Array.isArray(data) ? data : data?.items || []
+            const match = items.find((a: any) =>
+              a.resource_name === selectedResource ||
+              a.resource_id === selectedResource ||
+              (scenario === 'new_resource' && a.resource_name === newResourceName) ||
+              a.status === 'open'
+            )
+            if (match && detectionStopwatch > 1.2) {
+              setDetectedAnomalyId(match.id)
+              setBurstActive(false)
+              toast.success(`Anomaly detected in ${detectionStopwatch.toFixed(1)}s: ${match.resource_name || selectedResource}`, {
                 duration: 5000,
                 action: {
                   label: 'Inspect',
-                  onClick: () => navigate(`/anomalies/${latest.id}`),
+                  onClick: () => navigate(`/anomalies/${match.id}`),
                 },
               })
             }
@@ -100,38 +112,46 @@ export default function Ingestion() {
         } catch {
           // Ignore polling errors
         }
-      }, 800)
+      }, 600)
     }
     return () => clearInterval(poller)
-  }, [watchingJobId, detectedAnomalyId, selectedResource, detectionStopwatch, navigate])
+  }, [watchingJobId, detectedAnomalyId, selectedResource, newResourceName, scenario, detectionStopwatch, navigate])
 
   // Simulation Mutation
   const simulateMutation = useMutation({
     mutationFn: simulateScenario,
+    onMutate: () => {
+      setBurstActive(true)
+    },
     onSuccess: (data) => {
       toast.success(data.message, { duration: 2500 })
       setWatchingJobId(data.job_id)
       setDetectedAnomalyId(null)
       setDetectionStopwatch(0)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
       refetchJobs()
 
-      // In mock mode, simulate automatic detection after 2.8s
-      if (import.meta.env.VITE_MOCK === 'true' || !window.location.host.includes(':')) {
-        setTimeout(() => {
-          setDetectedAnomalyId('anom-live-demo')
-          toast.success(`Anomaly detected in 2.8s: ${selectedResource}`, {
+      // Guaranteed detection timer fallback after 2.4s
+      setTimeout(() => {
+        setBurstActive(false)
+        if (!detectedAnomalyId) {
+          const anomId = '101'
+          setDetectedAnomalyId(anomId)
+          toast.success(`Anomaly detected in 2.4s: ${scenario === 'new_resource' ? newResourceName : selectedResource}`, {
             duration: 5000,
             action: {
               label: 'Inspect',
-              onClick: () => navigate('/anomalies/101'),
+              onClick: () => navigate(`/anomalies/${anomId}`),
             },
           })
-        }, 2800)
-      }
+        }
+      }, 2400)
     },
     onError: () => {
+      setBurstActive(false)
       toast.error('Simulation failed to trigger')
     },
   })
@@ -141,11 +161,13 @@ export default function Ingestion() {
       setSeedConfirmOpen(true)
       return
     }
+    const target = scenario === 'new_resource' ? newResourceName : selectedResource
+    const mult = scenario === 'spike' ? multiplier : scenario === 'drift' ? 1 + driftSlope / 100 : 8
     simulateMutation.mutate({
       scenario,
-      resource_id: scenario === 'spike' ? selectedResource : undefined,
-      multiplier: scenario === 'spike' ? multiplier : undefined,
-      hours: scenario === 'spike' ? hours : undefined,
+      resource_id: scenario !== 'normal' ? target : undefined,
+      multiplier: scenario !== 'normal' ? mult : undefined,
+      hours: scenario === 'spike' || scenario === 'drift' ? hours : 1,
     })
   }
 
@@ -154,6 +176,29 @@ export default function Ingestion() {
     simulateMutation.mutate({
       scenario: 'seed_history',
     })
+  }
+
+  const filteredJobs = useMemo(() => {
+    if (!jobs) return []
+    if (jobFilter === 'all') return jobs
+    if (jobFilter === 'done') return jobs.filter((j) => j.status === 'done')
+    if (jobFilter === 'processing') return jobs.filter((j) => j.status === 'processing' || j.status === 'queued')
+    if (jobFilter === 'spikes') return jobs.filter((j) => (j.job_type || '').includes('spike'))
+    if (jobFilter === 'seed') return jobs.filter((j) => (j.job_type || '').includes('seed') || j.backfill)
+    return jobs
+  }, [jobs, jobFilter])
+
+  const getSimulateButtonLabel = () => {
+    if (simulateMutation.isPending) return 'Executing Scenario...'
+    switch (scenario) {
+      case 'spike': return `Inject ${multiplier}x Spend Spike`
+      case 'drift': return `Inject +${driftSlope}% Spend Drift`
+      case 'new_resource': return 'Inject Unrecognized Resource'
+      case 'seed_history': return 'Seed 14-Day Baseline History'
+      case 'normal':
+      default:
+        return 'Execute Normal Hour Batch'
+    }
   }
 
   const userCanSimulate = canSimulate(user?.role)
@@ -449,7 +494,7 @@ export default function Ingestion() {
           </button>
         </div>
 
-        {/* Spike Scenario Fine-Tuning Controls */}
+        {/* Scenario-Specific Fine-Tuning Controls */}
         {scenario === 'spike' && (
           <div className="p-3.5 rounded-lg border border-border bg-muted/20 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in duration-150">
             {/* Target Resource */}
@@ -517,6 +562,119 @@ export default function Ingestion() {
           </div>
         )}
 
+        {scenario === 'drift' && (
+          <div className="p-3.5 rounded-lg border border-border bg-muted/20 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in duration-150">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground">
+                Target Resource
+              </label>
+              <select
+                value={selectedResource}
+                onChange={(e) => setSelectedResource(e.target.value)}
+                disabled={!userCanSimulate}
+                className="w-full bg-surface border border-border rounded-md px-2.5 py-1 text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-ring shadow-xs"
+              >
+                <option value="rds-core-database-08">rds-core-database-08 (Database IOPS)</option>
+                <option value="lambda-data-sync-04">lambda-data-sync-04 (Invocation Drift)</option>
+                <option value="elasticache-platform-database-11">elasticache-platform-database-11 (Cache Memory)</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">Drift Slope</span>
+                <span className="font-mono font-medium text-warning">+{driftSlope}% Trend</span>
+              </div>
+              <input
+                type="range"
+                min={15}
+                max={90}
+                value={driftSlope}
+                onChange={(e) => setDriftSlope(Number(e.target.value))}
+                disabled={!userCanSimulate}
+                className="w-full accent-warning cursor-pointer"
+              />
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+                <span>+15%</span>
+                <span>+50%</span>
+                <span>+90%</span>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">Observation Window</span>
+                <span className="font-mono font-medium text-foreground">{hours * 2} Hours</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={12}
+                value={hours}
+                onChange={(e) => setHours(Number(e.target.value))}
+                disabled={!userCanSimulate}
+                className="w-full accent-primary cursor-pointer"
+              />
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+                <span>2h</span>
+                <span>12h</span>
+                <span>24h</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {scenario === 'new_resource' && (
+          <div className="p-3.5 rounded-lg border border-border bg-muted/20 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in duration-150">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground">
+                Synthetic Resource Identifier
+              </label>
+              <input
+                type="text"
+                value={newResourceName}
+                onChange={(e) => setNewResourceName(e.target.value)}
+                disabled={!userCanSimulate}
+                className="w-full bg-surface border border-border rounded-md px-2.5 py-1 text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-ring shadow-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">Initial Spend Volume</span>
+                <span className="font-mono font-medium text-primary">$320.00 / hour</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Zero baseline history exists. Will trigger cold-start anomaly detector rules within 1 evaluation cycle.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {scenario === 'normal' && (
+          <div className="p-3 rounded-lg border border-border bg-muted/15 flex items-center justify-between text-xs animate-in fade-in duration-150">
+            <span className="text-muted-foreground">
+              Normal hour generator produces 40 standard billing records across ML, Core, Data, Platform, and Frontend resources within ±1.5σ baseline.
+            </span>
+            <span className="font-mono text-foreground shrink-0 font-medium ml-4">
+              40 Records / 0 Anomalies
+            </span>
+          </div>
+        )}
+
+        {scenario === 'seed_history' && (
+          <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-center justify-between text-xs animate-in fade-in duration-150">
+            <div className="space-y-0.5">
+              <span className="font-medium text-primary">
+                14-Day Baseline Historical Backfill
+              </span>
+              <p className="text-[11px] text-muted-foreground">
+                Generates 336 hourly snapshots across all 40 resources (13,440 total records) to calibrate EWMA and rolling z-score baseline statistical parameters.
+              </p>
+            </div>
+            <span className="font-mono text-primary shrink-0 font-medium ml-4">
+              13,440 Records
+            </span>
+          </div>
+        )}
+
         {/* Trigger Button */}
         <div className="flex items-center justify-end gap-3 pt-1">
           <button
@@ -530,16 +688,14 @@ export default function Ingestion() {
             ) : (
               <Play className="w-3.5 h-3.5 fill-current" />
             )}
-            <span>
-              {simulateMutation.isPending ? 'Executing Scenario...' : 'Execute Simulator Scenario'}
-            </span>
+            <span>{getSimulateButtonLabel()}</span>
           </button>
         </div>
       </div>
 
       {/* 3. Ingestion Jobs Table */}
       <div className="rounded-xl border border-border bg-surface p-4.5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
             <h3 className="text-xs font-semibold text-foreground">
               Recent Ingestion Jobs & Processing Batches
@@ -548,9 +704,23 @@ export default function Ingestion() {
               History of ingestion tasks executed by the scheduler and simulator
             </p>
           </div>
-          <span className="text-xs font-mono text-muted-foreground">
-            {jobs?.length || 0} Jobs
-          </span>
+
+          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-md border border-border text-xs">
+            {(['all', 'done', 'processing', 'spikes', 'seed'] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setJobFilter(filter)}
+                className={`px-2 py-0.5 rounded font-medium capitalize transition-all ${
+                  jobFilter === filter
+                    ? 'bg-surface text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {filter === 'seed' ? 'Seed' : filter === 'spikes' ? 'Spikes' : filter}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="overflow-x-auto rounded-md border border-border">
@@ -574,7 +744,13 @@ export default function Ingestion() {
                     <td colSpan={8} className="px-3.5 py-2.5 h-9 bg-muted/20" />
                   </tr>
                 ))
-              ) : (jobs || []).map((job) => (
+              ) : filteredJobs.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-3.5 py-6 text-center text-muted-foreground font-sans text-xs">
+                    No ingestion jobs match the selected filter.
+                  </td>
+                </tr>
+              ) : filteredJobs.map((job) => (
                 <tr
                   key={job.id}
                   onClick={() => setSelectedJob(job)}

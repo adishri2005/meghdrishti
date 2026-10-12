@@ -1,4 +1,5 @@
 import { apiClient } from '../client'
+import { getActiveMockJobs, addMockJob, injectMockAnomaly } from '@/mocks/fixtures'
 
 export interface IngestionJob {
   id: string
@@ -65,8 +66,8 @@ export const MOCK_JOBS: IngestionJob[] = [
 
 export async function getJobs(params: { limit?: number; status?: string } = {}): Promise<IngestionJob[]> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    let res = [...MOCK_JOBS]
-    if (params.status) {
+    let res = [...getActiveMockJobs()]
+    if (params.status && params.status !== 'all') {
       res = res.filter((j) => j.status === params.status)
     }
     return res.slice(0, params.limit || 20)
@@ -85,7 +86,7 @@ export async function getJobs(params: { limit?: number; status?: string } = {}):
     }))
   } catch (error) {
     if (import.meta.env.DEV) {
-      return MOCK_JOBS
+      return getActiveMockJobs()
     }
     throw error
   }
@@ -93,7 +94,7 @@ export async function getJobs(params: { limit?: number; status?: string } = {}):
 
 export async function getJob(id: string): Promise<IngestionJob> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    const match = MOCK_JOBS.find((j) => j.id === id)
+    const match = getActiveMockJobs().find((j) => j.id === id)
     if (match) return match
   }
 
@@ -110,8 +111,10 @@ export async function getJob(id: string): Promise<IngestionJob> {
     }
   } catch (error) {
     if (import.meta.env.DEV) {
+      const match = getActiveMockJobs().find((j) => j.id === id)
+      if (match) return match
       return {
-        ...MOCK_JOBS[0],
+        ...getActiveMockJobs()[0],
         id,
       }
     }
@@ -125,20 +128,60 @@ export async function simulateScenario(payload: {
   multiplier?: number
   hours?: number
 }): Promise<{ job_id: string; message: string; estimated_seconds: number }> {
+  const backendPayload: any = {
+    hours: payload.hours || (payload.scenario === 'seed_history' ? 336 : 1),
+    backfill: payload.scenario === 'seed_history',
+  }
+  if (payload.scenario === 'spike' || payload.scenario === 'drift' || payload.scenario === 'new_resource') {
+    backendPayload.inject = payload.scenario
+    backendPayload.resource_id = payload.resource_id || 'ec2-ml-gpu-07'
+    backendPayload.multiplier = payload.multiplier || 12.0
+  }
+
+  // Helper to record local mock job & anomaly
+  const recordLocalSimulation = () => {
+    const targetResource = payload.resource_id || 'ec2-ml-gpu-07'
+    const mult = payload.multiplier || 12.0
+    const recCount = payload.scenario === 'seed_history' ? 13440 : 40 * (payload.hours || 1)
+    const newJob = addMockJob({
+      job_type: `simulate_${payload.scenario}`,
+      total_records: recCount,
+      processed_records: recCount,
+      duration_ms: payload.scenario === 'seed_history' ? 14200 : 2600,
+      message: payload.scenario === 'seed_history'
+        ? 'Seeded 14 days of multi-cloud hourly baseline billing telemetry'
+        : `Simulated ${mult}x spend surge injected on ${targetResource} (anomaly detected in 2.4s)`,
+    })
+
+    if (payload.scenario === 'spike' || payload.scenario === 'drift' || payload.scenario === 'new_resource') {
+      injectMockAnomaly({
+        resource_name: targetResource,
+        observed_cost: Math.round(35 * mult * 10) / 10,
+        expected_cost: 35.0,
+        severity: mult >= 5 ? 'critical' : mult >= 2 ? 'high' : 'medium',
+        root_cause_summary: `Live pipeline anomaly detected on ${targetResource} (${mult}x baseline)`,
+      })
+    }
+    return newJob
+  }
+
   try {
-    const res = await apiClient.post<any>('/admin/simulate', payload)
+    const res = await apiClient.post<any>('/admin/simulate', backendPayload)
     const job_id = res.data?.job_id || res.data?.job_ids?.[0] || `job-${Math.floor(1000 + Math.random() * 9000)}`
     const message = res.data?.message || `Scenario '${payload.scenario}' initiated successfully`
+    
+    // Also record locally for instant UI state update
+    recordLocalSimulation()
+
     return {
       job_id,
       message,
-      estimated_seconds: res.data?.estimated_seconds || 3,
+      estimated_seconds: res.data?.estimated_seconds || (payload.scenario === 'seed_history' ? 12 : 3),
     }
   } catch {
-    // Mock simulation response
-    const job_id = `job-${Math.floor(1000 + Math.random() * 9000)}`
+    const newJob = recordLocalSimulation()
     return {
-      job_id,
+      job_id: newJob.id,
       message: `Scenario '${payload.scenario}' initiated successfully`,
       estimated_seconds: payload.scenario === 'seed_history' ? 12 : 3,
     }

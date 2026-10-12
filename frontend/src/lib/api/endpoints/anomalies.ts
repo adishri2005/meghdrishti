@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { AnomalySchema, type Anomaly } from '../types'
-import { MOCK_ANOMALIES, getMockAnomalies } from '@/mocks/fixtures'
+import { MOCK_ANOMALIES, getMockAnomalies, updateMockAnomalyStatus } from '@/mocks/fixtures'
 
 export interface AnomalyListParams {
   severity?: string
@@ -85,10 +85,9 @@ export async function getAnomalies(params: AnomalyListParams = {}): Promise<{
 
 export async function acknowledgeAnomaly(id: string | number): Promise<Anomaly> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
-    if (match) {
-      match.status = 'acknowledged'
-      return AnomalySchema.parse(match)
+    const updated = updateMockAnomalyStatus(id, 'acknowledged')
+    if (updated) {
+      return AnomalySchema.parse(updated)
     }
   }
 
@@ -97,10 +96,9 @@ export async function acknowledgeAnomaly(id: string | number): Promise<Anomaly> 
     return AnomalySchema.parse(res.data)
   } catch (error) {
     if (import.meta.env.DEV) {
-      const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
-      if (match) {
-        match.status = 'acknowledged'
-        return AnomalySchema.parse(match)
+      const updated = updateMockAnomalyStatus(id, 'acknowledged')
+      if (updated) {
+        return AnomalySchema.parse(updated)
       }
     }
     throw error
@@ -109,10 +107,9 @@ export async function acknowledgeAnomaly(id: string | number): Promise<Anomaly> 
 
 export async function resolveAnomaly(id: string | number): Promise<Anomaly> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
-    if (match) {
-      match.status = 'resolved'
-      return AnomalySchema.parse(match)
+    const updated = updateMockAnomalyStatus(id, 'resolved')
+    if (updated) {
+      return AnomalySchema.parse(updated)
     }
   }
 
@@ -121,10 +118,9 @@ export async function resolveAnomaly(id: string | number): Promise<Anomaly> {
     return AnomalySchema.parse(res.data)
   } catch (error) {
     if (import.meta.env.DEV) {
-      const match = MOCK_ANOMALIES.find((a) => String(a.id) === String(id))
-      if (match) {
-        match.status = 'resolved'
-        return AnomalySchema.parse(match)
+      const updated = updateMockAnomalyStatus(id, 'resolved')
+      if (updated) {
+        return AnomalySchema.parse(updated)
       }
     }
     throw error

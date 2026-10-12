@@ -14,7 +14,7 @@ export async function getCostTimeseries(params: {
   interval?: string
 } = {}): Promise<CostTimeSeries> {
   if (import.meta.env.VITE_MOCK === 'true') {
-    return getMockCostTimeseries()
+    return getMockCostTimeseries(undefined, params.group_by)
   }
   try {
     const res = await apiClient.get('/costs/timeseries', { params })
@@ -22,7 +22,7 @@ export async function getCostTimeseries(params: {
   } catch (error) {
     if (import.meta.env.DEV) {
       console.warn('Falling back to mock cost timeseries:', error)
-      return getMockCostTimeseries()
+      return getMockCostTimeseries(undefined, params.group_by)
     }
     throw error
   }

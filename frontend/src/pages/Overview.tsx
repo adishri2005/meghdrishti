@@ -24,6 +24,7 @@ import {
 import { usePromInstant, usePromRange } from '@/hooks/useProm'
 import { PROM_QUERIES } from '@/lib/prom/queries'
 import { acknowledgeAnomaly } from '@/lib/api/endpoints/anomalies'
+import { simulateScenario } from '@/lib/api/endpoints/jobs'
 import { KpiCard } from '@/components/data/KpiCard'
 import { ChartCard } from '@/components/charts/ChartCard'
 import { StackedAreaChart, type StackedSeriesItem, type AnomalyMarker } from '@/components/charts/StackedAreaChart'
@@ -36,7 +37,8 @@ import { formatCurrency, formatDuration, formatRelativeTime } from '@/lib/format
 export default function Overview() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [costGroupBy, setCostGroupBy] = useState<'team' | 'service' | 'region'>('team')
+  const [costGroupBy, setCostGroupBy] = useState<'team' | 'service' | 'region' | 'resource_type'>('team')
+  const [quickSimulating, setQuickSimulating] = useState(false)
 
   // API overview queries
   const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useOverviewStats()
@@ -96,6 +98,31 @@ export default function Overview() {
     return res
   }, [ingestSeries, processedSeries])
 
+  // Quick simulate handler
+  const handleQuickSimulate = async () => {
+    setQuickSimulating(true)
+    try {
+      const res = await simulateScenario({
+        scenario: 'spike',
+        resource_id: 'i-0a8b9c-gpu-cluster',
+        multiplier: 14.5,
+        hours: 2,
+      })
+      toast.success(`Injected synthetic spike on ${res.resource_id ?? 'GPU Cluster'} (${res.multiplier}x cost)!`, {
+        description: `Job ${res.job_id} scheduled. Ingestion stream surging.`,
+        duration: 3500,
+      })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['jobs'] })
+    } catch {
+      toast.error('Simulation failed. Check backend connection.')
+    } finally {
+      setQuickSimulating(false)
+    }
+  }
+
   // Handle quick acknowledge
   const handleAcknowledge = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -147,12 +174,26 @@ export default function Overview() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleQuickSimulate}
+            disabled={quickSimulating}
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-danger/15 text-danger border border-danger/30 hover:bg-danger/25 transition-all shadow-xs disabled:opacity-50"
+            title="Inject an instant 14.5x cloud cost spike to test ingestion and anomaly detection"
+          >
+            {quickSimulating ? (
+              <span className="w-3.5 h-3.5 border-2 border-danger border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span>{quickSimulating ? 'Injecting Spike...' : '⚡ Quick Spike'}</span>
+          </button>
           <Link
             to="/ingestion"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Simulate Anomaly</span>
+            <Activity className="w-3.5 h-3.5" />
+            <span>Simulator Studio</span>
           </Link>
           <Link
             to="/monitoring/grafana"
@@ -286,7 +327,7 @@ export default function Overview() {
             isLoading={costLoading}
             action={
               <div className="flex items-center gap-1 bg-surface-elevated p-0.5 rounded-lg border border-border">
-                {(['team', 'service', 'region'] as const).map((mode) => (
+                {(['team', 'service', 'region', 'resource_type'] as const).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setCostGroupBy(mode)}
@@ -297,7 +338,7 @@ export default function Overview() {
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {mode}
+                    {mode.replace('_', ' ')}
                   </button>
                 ))}
               </div>

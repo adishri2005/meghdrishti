@@ -75,7 +75,9 @@ export const MOCK_RESOURCES: MockResource[] = Array.from({ length: 40 }).map((_,
   }
 })
 
-export function getMockAnomalies(baseTime?: number): MockAnomaly[] {
+let _activeMockAnomalies: MockAnomaly[] | null = null
+
+function initializeMockAnomalies(baseTime?: number): MockAnomaly[] {
   const now = baseTime ?? Math.floor(Date.now() / 60000) * 60000
   return [
     {
@@ -135,54 +137,107 @@ export function getMockAnomalies(baseTime?: number): MockAnomaly[] {
       peak_cost: 195.0,
       last_seen_ts: new Date(now - 10 * 60000).toISOString(),
     },
-  {
-    id: 103,
-    scope: 'aggregate',
-    resource_id: null,
-    resource_name: 'aggregate (platform)',
-    detected_at: new Date(Date.now() - 120 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 130 * 60000).toISOString(),
-    observed_cost: 612.0,
-    expected_cost: 410.0,
-    z_score: 3.1,
-    pct_increase: 49.3,
-    severity: 'medium',
-    method: 'ewma_drift',
-    root_cause_summary: 'Multi-resource EWMA cost baseline drift across platform networking resources',
-    root_cause: {
-      breakdown_by_team: { platform: 60, data: 25, core: 15 },
-      breakdown_by_service: { networking: 70, compute: 30 },
-      breakdown_by_region: { 'ap-southeast-1': 80, 'us-east-1': 20 },
-      top_contributors: [
-        { resource_id: 'lambda-platform-networking-16', share_pct: 42, delta_cost: 84.8, observed_cost: 122.0 },
-        { resource_id: 'elasticache-platform-database-11', share_pct: 31, delta_cost: 62.6, observed_cost: 95.0 },
-      ],
+    {
+      id: 103,
+      scope: 'aggregate',
+      resource_id: null,
+      resource_name: 'aggregate (platform)',
+      detected_at: new Date(now - 120 * 60000).toISOString(),
+      record_ts: new Date(now - 130 * 60000).toISOString(),
+      observed_cost: 612.0,
+      expected_cost: 410.0,
+      z_score: 3.1,
+      pct_increase: 49.3,
+      severity: 'medium',
+      method: 'ewma_drift',
+      root_cause_summary: 'Multi-resource EWMA cost baseline drift across platform networking resources',
+      root_cause: {
+        breakdown_by_team: { platform: 60, data: 25, core: 15 },
+        breakdown_by_service: { networking: 70, compute: 30 },
+        breakdown_by_region: { 'ap-southeast-1': 80, 'us-east-1': 20 },
+        top_contributors: [
+          { resource_id: 'lambda-platform-networking-16', share_pct: 42, delta_cost: 84.8, observed_cost: 122.0 },
+          { resource_id: 'elasticache-platform-database-11', share_pct: 31, delta_cost: 62.6, observed_cost: 95.0 },
+        ],
+      },
+      status: 'acknowledged',
+      occurrences: 1,
+      peak_cost: 612.0,
+      last_seen_ts: new Date(now - 60 * 60000).toISOString(),
     },
-    status: 'acknowledged',
-    occurrences: 1,
-    peak_cost: 612.0,
-    last_seen_ts: new Date(Date.now() - 60 * 60000).toISOString(),
-  },
-  {
-    id: 104,
-    scope: 'resource',
-    resource_id: 16,
-    resource_name: 's3-security-storage-16',
-    detected_at: new Date(Date.now() - 360 * 60000).toISOString(),
-    record_ts: new Date(Date.now() - 370 * 60000).toISOString(),
-    observed_cost: 45.0,
-    expected_cost: 18.2,
-    z_score: 2.2,
-    pct_increase: 147.3,
-    severity: 'low',
-    method: 'new_resource',
-    root_cause_summary: 'New S3 audit bucket first seen with heavy initial export ingestion',
-    status: 'resolved',
-    occurrences: 1,
-    peak_cost: 45.0,
-    last_seen_ts: new Date(Date.now() - 240 * 60000).toISOString(),
-  },
+    {
+      id: 104,
+      scope: 'resource',
+      resource_id: 16,
+      resource_name: 's3-security-storage-16',
+      detected_at: new Date(now - 360 * 60000).toISOString(),
+      record_ts: new Date(now - 370 * 60000).toISOString(),
+      observed_cost: 45.0,
+      expected_cost: 18.2,
+      z_score: 2.2,
+      pct_increase: 147.3,
+      severity: 'low',
+      method: 'new_resource',
+      root_cause_summary: 'New S3 audit bucket first seen with heavy initial export ingestion',
+      status: 'resolved',
+      occurrences: 1,
+      peak_cost: 45.0,
+      last_seen_ts: new Date(now - 240 * 60000).toISOString(),
+    },
   ]
+}
+
+export function getMockAnomalies(baseTime?: number): MockAnomaly[] {
+  if (!_activeMockAnomalies) {
+    _activeMockAnomalies = initializeMockAnomalies(baseTime)
+  }
+  return _activeMockAnomalies
+}
+
+export function injectMockAnomaly(anomaly: Partial<MockAnomaly>): MockAnomaly {
+  const list = getMockAnomalies()
+  const maxId = list.reduce((max, a) => Math.max(max, Number(a.id) || 100), 100)
+  const newId = maxId + 1
+  const targetName = anomaly.resource_name || 'ec2-ml-gpu-07'
+  const created: MockAnomaly = {
+    id: newId,
+    scope: 'resource',
+    resource_id: 4,
+    resource_name: targetName,
+    detected_at: new Date().toISOString(),
+    record_ts: new Date().toISOString(),
+    observed_cost: anomaly.observed_cost ?? 345.0,
+    expected_cost: anomaly.expected_cost ?? 32.5,
+    z_score: anomaly.z_score ?? 6.2,
+    pct_increase: anomaly.pct_increase ?? 961.5,
+    severity: (anomaly.severity as any) || 'critical',
+    method: 'z_score',
+    root_cause_summary: anomaly.root_cause_summary || `Sudden spend surge injected on ${targetName}`,
+    root_cause: {
+      breakdown_by_team: { ml: 85, core: 10, data: 5 },
+      breakdown_by_service: { compute: 90, storage: 10 },
+      breakdown_by_region: { 'us-east-1': 100 },
+      top_contributors: [
+        { resource_id: targetName, share_pct: 88, delta_cost: 312.5, observed_cost: 345.0 }
+      ]
+    },
+    status: 'open',
+    occurrences: 1,
+    peak_cost: anomaly.observed_cost ?? 345.0,
+    last_seen_ts: new Date().toISOString(),
+    ...anomaly,
+  }
+  list.unshift(created)
+  return created
+}
+
+export function updateMockAnomalyStatus(id: number | string, status: 'open' | 'acknowledged' | 'resolved'): MockAnomaly | undefined {
+  const list = getMockAnomalies()
+  const match = list.find((a) => String(a.id) === String(id))
+  if (match) {
+    match.status = status
+  }
+  return match
 }
 
 export const MOCK_ANOMALIES = getMockAnomalies()
@@ -277,24 +332,129 @@ export const MOCK_DEPLOYMENTS = [
   },
 ]
 
-export function getMockCostTimeseries(baseTime?: number) {
+export function getMockCostTimeseries(baseTime?: number, groupBy: string = 'team') {
   const now = baseTime ?? Math.floor(Date.now() / 60000) * 60000
+
+  let names: string[] = []
+  let baseWeights: number[] = []
+
+  switch (groupBy) {
+    case 'service':
+      names = ['compute', 'database', 'storage', 'networking', 'analytics']
+      baseWeights = [115, 68, 42, 26, 16]
+      break
+    case 'region':
+      names = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1']
+      baseWeights = [145, 65, 45, 20]
+      break
+    case 'resource_type':
+      names = ['ec2', 'rds', 'eks', 's3', 'lambda']
+      baseWeights = [110, 72, 48, 28, 14]
+      break
+    case 'team':
+    default:
+      names = ['ml', 'core', 'data', 'platform', 'frontend']
+      baseWeights = [85, 55, 42, 30, 18]
+      break
+  }
+
   return {
     interval: 'hour',
-    series: ['ml', 'core', 'data', 'platform', 'frontend'].map((team, tIdx) => {
+    series: names.map((name, idx) => {
       const points: Array<[string, number]> = []
+      const baseWeight = baseWeights[idx] || 25
       for (let i = 23; i >= 0; i--) {
         const ts = new Date(now - i * 3600000).toISOString()
-        const base = 25 + tIdx * 15 + Math.sin(i / 3) * 8
-        const spike = (tIdx === 0 && i === 2 ? 140 : 0) + (tIdx === 1 && i === 3 ? 55 : 0)
-        points.push([ts, Math.round((base + spike) * 10) / 10])
+        const wave = baseWeight + Math.sin((i + idx * 2) / 3.5) * (baseWeight * 0.12)
+        // Distinct spike on primary dimension at 2h ago and secondary at 3h ago
+        const spike = (idx === 0 && i === 2 ? 140 : 0) + (idx === 1 && i === 3 ? 55 : 0)
+        points.push([ts, Math.round((wave + spike) * 10) / 10])
       }
-      return { name: team, points }
+      return { name, points }
     }),
   }
 }
 
 export const MOCK_COST_TIMESERIES = getMockCostTimeseries()
+
+export interface MockIngestionJob {
+  id: string
+  status: 'queued' | 'processing' | 'done' | 'failed'
+  job_type: string
+  total_records: number
+  processed_records: number
+  error_count: number
+  started_at: string
+  completed_at?: string
+  submitted_by: string
+  duration_ms: number
+  message?: string
+}
+
+const _activeMockJobs: MockIngestionJob[] = [
+  {
+    id: 'job-9842',
+    status: 'done',
+    job_type: 'simulate_spike',
+    total_records: 48,
+    processed_records: 48,
+    error_count: 0,
+    started_at: new Date(Date.now() - 300000).toISOString(),
+    completed_at: new Date(Date.now() - 296000).toISOString(),
+    submitted_by: 'admin',
+    duration_ms: 4120,
+    message: 'Simulated 12x cost spike on ec2-ml-gpu-07 (detected anomaly #101 in 2.8s)',
+  },
+  {
+    id: 'job-9841',
+    status: 'done',
+    job_type: 'normal_hour',
+    total_records: 40,
+    processed_records: 40,
+    error_count: 0,
+    started_at: new Date(Date.now() - 3600000).toISOString(),
+    completed_at: new Date(Date.now() - 3597000).toISOString(),
+    submitted_by: 'scheduler',
+    duration_ms: 2850,
+    message: 'Hourly synthetic billing records ingestion across all 40 cloud resources',
+  },
+  {
+    id: 'job-9840',
+    status: 'done',
+    job_type: 'seed_history',
+    total_records: 13440,
+    processed_records: 13440,
+    error_count: 0,
+    started_at: new Date(Date.now() - 86400000).toISOString(),
+    completed_at: new Date(Date.now() - 86372000).toISOString(),
+    submitted_by: 'admin',
+    duration_ms: 27800,
+    message: 'Seeded 14 days of hourly multi-cloud baseline billing history',
+  },
+]
+
+export function getActiveMockJobs(): MockIngestionJob[] {
+  return _activeMockJobs
+}
+
+export function addMockJob(job: Partial<MockIngestionJob>): MockIngestionJob {
+  const newJob: MockIngestionJob = {
+    id: `job-${Math.floor(1000 + Math.random() * 9000)}`,
+    status: 'done',
+    job_type: 'simulate_spike',
+    total_records: 40,
+    processed_records: 40,
+    error_count: 0,
+    started_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+    submitted_by: 'admin',
+    duration_ms: 2400,
+    message: 'Scenario execution completed successfully',
+    ...job,
+  }
+  _activeMockJobs.unshift(newJob)
+  return newJob
+}
 
 const heatmapResources = [
   'ec2-ml-gpu-07',

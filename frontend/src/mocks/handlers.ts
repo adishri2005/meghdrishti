@@ -2,29 +2,67 @@ import { http, HttpResponse } from 'msw'
 import {
   getMockAnomalies,
   getMockCostTimeseries,
+  updateMockAnomalyStatus,
+  injectMockAnomaly,
+  getActiveMockJobs,
+  addMockJob,
   MOCK_DEPLOYMENTS,
   MOCK_RESOURCES,
   MOCK_STATS_OVERVIEW,
   MOCK_SYSTEM_STATUS,
 } from './fixtures'
 
-// Generates plausible time-series points for Prometheus matrix query_range
+// Generates plausible time-series points for Prometheus matrix query_range with distinct behaviors per metric
 function generatePrometheusMatrix(query: string, start: number, end: number, step: number) {
   const points: [number, string][] = []
   const count = Math.min(Math.floor((end - start) / step), 500)
 
-  let baseVal = 25.0
-  if (query.includes('latency')) baseVal = 0.085
-  if (query.includes('queue_lag')) baseVal = 12.0
-  if (query.includes('error')) baseVal = 0.002
-  if (query.includes('cache_hit')) baseVal = 0.94
-
   for (let i = 0; i <= count; i++) {
     const ts = start + i * step
-    // Sinusoidal with slight noise
-    const noise = Math.sin(i / 8) * (baseVal * 0.2) + (Math.random() - 0.5) * (baseVal * 0.1)
-    const val = Math.max(baseVal + noise, 0)
-    points.push([ts, val.toFixed(4)])
+    let val = 24.0
+
+    if (query.includes('error') || query.includes('5..')) {
+      // Near-zero error ratio (0.01% - 0.04%), with realistic micro-variations
+      val = 0.0002 + Math.sin(i / 14) * 0.0001 + (i % 17 === 0 ? 0.0003 : 0)
+    } else if (query.includes('queue_lag') || query.includes('backlog') || query.includes('dlq')) {
+      // 0 msgs normal state with occasional small batch buffer
+      val = i > count - 8 && i < count - 4 ? 8 : i % 22 === 0 ? 3 : 0
+    } else if (query.includes('latency')) {
+      // Stable p95 latency in seconds (0.022s - 0.038s = 22ms - 38ms)
+      val = 0.026 + Math.sin(i / 11) * 0.005 + (i % 13) * 0.0004
+    } else if (query.includes('detection') || query.includes('mttd')) {
+      // Stable MTTD detection delay (1.8s - 2.8s)
+      val = 2.1 + Math.sin(i / 7) * 0.35 + (i % 5) * 0.08
+    } else if (query.includes('ingest') || query.includes('records_ingested')) {
+      // Ingestion rate (22 - 28 rec/s with realistic jitter)
+      val = 24.5 + Math.sin(i / 9) * 3.2 + (Math.sin(i * 3.7) * 0.8)
+    } else if (query.includes('processed')) {
+      // Processed rate tracking ingest
+      val = 24.2 + Math.sin((i - 1) / 9) * 3.1 + (Math.sin(i * 3.7) * 0.7)
+    } else if (query.includes('cpu')) {
+      // Host CPU usage % (18% - 32%)
+      val = 24.5 + Math.sin(i / 13) * 6.0 + (Math.sin(i * 2.1) * 2.5)
+    } else if (query.includes('memory') || query.includes('mem')) {
+      // Host RAM usage % (58% - 66%)
+      val = 62.4 + Math.sin(i / 20) * 3.5 + (Math.sin(i * 1.5) * 0.8)
+    } else if (query.includes('pg_stat') || query.includes('connections') || query.includes('numbackends')) {
+      // PostgreSQL active backend connections (8 - 14)
+      val = 11 + Math.floor(Math.sin(i / 8) * 2) + (i % 9 === 0 ? 1 : 0)
+    } else if (query.includes('anomalies_detected') || query.includes('severity')) {
+      // Anomaly detection frequency (0 - 4 events per hour)
+      val = i % 18 === 0 ? 3 : i % 29 === 0 ? 1 : 0
+    } else if (query.includes('http_requests') || query.includes('rps')) {
+      // Web request rate (180 - 320 req/s)
+      val = 240 + Math.sin(i / 6) * 45 + ((i % 7) * 4)
+    } else if (query.includes('cache_hit')) {
+      // Cache hit ratio (94% - 97%)
+      val = 0.952 + Math.sin(i / 15) * 0.012
+    } else {
+      // Default metric
+      val = 14.0 + Math.sin(i / 10) * 2.0
+    }
+
+    points.push([ts, Math.max(val, 0).toFixed(4)])
   }
 
   return [
@@ -132,33 +170,8 @@ export const handlers = [
   // --- Costs ---
   http.get('/api/v1/costs/timeseries', ({ request }) => {
     const url = new URL(request.url)
-    const groupBy = url.searchParams.get('group_by') || 'none'
-    const interval = url.searchParams.get('interval') || 'hour'
-
-    if (groupBy === 'team') {
-      return HttpResponse.json(getMockCostTimeseries())
-    }
-
-    const seriesNames =
-      groupBy === 'team'
-        ? ['ml', 'core', 'platform', 'data']
-        : groupBy === 'service'
-        ? ['compute', 'database', 'storage']
-        : ['total']
-
-    const now = Date.now()
-    const series = seriesNames.map((name, sIdx) => {
-      const points: [string, number][] = []
-      for (let i = 24; i >= 0; i--) {
-        const ts = new Date(now - i * 3600000).toISOString()
-        const base = (sIdx + 1) * 35
-        const cost = Math.round((base + Math.sin(i / 2) * 12 + Math.random() * 5) * 100) / 100
-        points.push([ts, cost])
-      }
-      return { name, points }
-    })
-
-    return HttpResponse.json({ interval, series })
+    const groupBy = url.searchParams.get('group_by') || 'team'
+    return HttpResponse.json(getMockCostTimeseries(undefined, groupBy))
   }),
 
   http.get('/api/v1/costs/heatmap', () => {
@@ -246,30 +259,38 @@ export const handlers = [
     const url = new URL(request.url)
     const severity = url.searchParams.get('severity')
     const status = url.searchParams.get('status')
+    const resourceId = url.searchParams.get('resource_id')
 
     let filtered = [...getMockAnomalies()]
-    if (severity) filtered = filtered.filter((a) => a.severity === severity)
-    if (status) filtered = filtered.filter((a) => a.status === status)
+    if (severity && severity !== 'all') filtered = filtered.filter((a) => a.severity === severity)
+    if (status && status !== 'all') filtered = filtered.filter((a) => a.status === status)
+    if (resourceId) filtered = filtered.filter((a) => a.resource_name.toLowerCase().includes(resourceId.toLowerCase()))
 
-    return HttpResponse.json(filtered, {
+    return HttpResponse.json({
+      items: filtered,
+      total: filtered.length,
+    }, {
       headers: { 'X-Total-Count': String(filtered.length) },
     })
   }),
 
   http.get('/api/v1/anomalies/:id', ({ params }) => {
-    const anom = MOCK_ANOMALIES.find((a) => String(a.id) === params.id) || MOCK_ANOMALIES[0]
+    const list = getMockAnomalies()
+    const anom = list.find((a) => String(a.id) === params.id) || list[0]
     return HttpResponse.json(anom)
   }),
 
   http.patch('/api/v1/anomalies/:id', async ({ params, request }) => {
     const body = (await request.json()) as any
-    const anom = MOCK_ANOMALIES.find((a) => String(a.id) === params.id) || MOCK_ANOMALIES[0]
-    anom.status = body.status
+    const updated = updateMockAnomalyStatus(params.id as string, body.status)
+    const list = getMockAnomalies()
+    const anom = updated || list.find((a) => String(a.id) === params.id) || list[0]
     return HttpResponse.json(anom)
   }),
 
   http.get('/api/v1/anomalies/:id/timeline', ({ params }) => {
-    const anom = MOCK_ANOMALIES.find((a) => String(a.id) === params.id) || MOCK_ANOMALIES[0]
+    const list = getMockAnomalies()
+    const anom = list.find((a) => String(a.id) === params.id) || list[0]
     const now = Date.now()
     const points = Array.from({ length: 30 }).map((_, i) => {
       const ts = new Date(now - (24 - i) * 3600000).toISOString()
@@ -307,29 +328,57 @@ export const handlers = [
   }),
 
   // --- Ingestion Jobs ---
-  http.get('/api/v1/jobs', () => {
-    return HttpResponse.json([
-      {
-        id: '9f2913b8-6a31-419b-b0b3-05ecfb1a783a',
-        submitted_by: 'admin',
-        record_count: 500,
-        processed_count: 500,
-        failed_count: 0,
-        status: 'done',
-        progress_pct: 100,
-        duration_seconds: 3.4,
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-      },
-    ])
+  http.get('/api/v1/jobs', ({ request }) => {
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    let jobs = [...getActiveMockJobs()]
+    if (status && status !== 'all') {
+      jobs = jobs.filter((j) => j.status === status)
+    }
+    return HttpResponse.json({
+      items: jobs,
+      total: jobs.length,
+    })
   }),
 
-  http.post('/api/v1/admin/simulate', () => {
+  http.post('/api/v1/admin/simulate', async ({ request }) => {
+    let body: any = {}
+    try {
+      body = await request.json()
+    } catch {
+      // ignore
+    }
+    const scenario = body.inject || body.scenario || 'spike'
+    const resource = body.resource_id || 'ec2-ml-gpu-07'
+    const mult = Number(body.multiplier) || 12.0
+    const recCount = scenario === 'seed_history' ? 13440 : 40 * (Number(body.hours) || 1)
+
+    const job = addMockJob({
+      job_type: `simulate_${scenario}`,
+      total_records: recCount,
+      processed_records: recCount,
+      duration_ms: scenario === 'seed_history' ? 14200 : 2600,
+      message: scenario === 'seed_history'
+        ? 'Seeded 14 days of multi-cloud hourly baseline billing telemetry'
+        : `Simulated ${mult}x spend surge injected on ${resource} (anomaly detected in 2.4s)`,
+    })
+
+    if (scenario === 'spike' || scenario === 'drift' || scenario === 'new_resource') {
+      injectMockAnomaly({
+        resource_name: resource,
+        observed_cost: Math.round(35 * mult * 10) / 10,
+        expected_cost: 35.0,
+        severity: mult >= 5 ? 'critical' : mult >= 2 ? 'high' : 'medium',
+        root_cause_summary: `Live pipeline anomaly detected on ${resource} (${mult}x baseline)`,
+      })
+    }
+
     return HttpResponse.json({
-      job_id: 'sim-job-12345',
-      job_ids: ['sim-job-12345'],
-      message: 'Simulation scenario initiated successfully',
-      records_generated: 40,
-      injection: { kind: 'spike', resource_id: 'ec2-ml-gpu-07', multiplier: 12.0 },
+      job_id: job.id,
+      job_ids: [job.id],
+      message: `Simulation scenario '${scenario}' initiated successfully`,
+      records_generated: job.total_records,
+      injection: { kind: scenario, resource_id: resource, multiplier: mult },
     })
   }),
 
