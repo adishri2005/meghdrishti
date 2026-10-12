@@ -6,19 +6,28 @@ import {
   Search,
   X,
   RefreshCw,
+  Check,
+  CheckCheck,
 } from 'lucide-react'
-import { getAnomalies } from '@/lib/api/endpoints/anomalies'
+import { getAnomalies, acknowledgeAllAnomalies, resolveAllAnomalies } from '@/lib/api/endpoints/anomalies'
 import { AnomalyTable } from '@/components/anomalies/AnomalyTable'
 import { AnomalyDrawer } from '@/components/anomalies/AnomalyDrawer'
 import { useOverviewStats } from '@/hooks/useOverview'
 import { useUIStore } from '@/store/ui'
+import { useAuthStore } from '@/hooks/useAuth'
+import { canAcknowledgeAnomalies, canResolveAnomalies } from '@/lib/rbac'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import type { Anomaly, Severity } from '@/lib/api/types'
 
 export default function Anomalies() {
   const { id: urlAnomalyId } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
   const [searchParams, setSearchParams] = useSearchParams()
   const { liveEnabled, refreshInterval } = useUIStore()
+  const [isBulkUpdating, setIsBulkUpdating] = useState<'ack' | 'resolve' | null>(null)
 
   // URL state
   const statusFilter = searchParams.get('status') || 'open'
@@ -77,6 +86,43 @@ export default function Anomalies() {
   }, [urlAnomalyId, data])
 
   const { data: stats } = useOverviewStats()
+  const openCount = stats?.anomalies_open?.total ?? data?.total ?? 0
+  const canAck = canAcknowledgeAnomalies(user?.role)
+  const canResolve = canResolveAnomalies(user?.role)
+
+  const handleAcknowledgeAll = async () => {
+    if (!canAck || openCount === 0 || isBulkUpdating !== null) return
+    setIsBulkUpdating('ack')
+    try {
+      const count = await acknowledgeAllAnomalies()
+      toast.success(`Acknowledged ${count || openCount} anomalies`, { duration: 2500 })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+    } catch {
+      toast.error('Failed to acknowledge all anomalies')
+    } finally {
+      setIsBulkUpdating(null)
+    }
+  }
+
+  const handleResolveAll = async () => {
+    if (!canResolve || isBulkUpdating !== null) return
+    setIsBulkUpdating('resolve')
+    try {
+      const count = await resolveAllAnomalies()
+      toast.success(`Resolved ${count || openCount} anomalies`, { duration: 2500 })
+      queryClient.invalidateQueries({ queryKey: ['anomalies'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['costs'] })
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+    } catch {
+      toast.error('Failed to resolve all anomalies')
+    } finally {
+      setIsBulkUpdating(null)
+    }
+  }
 
   // Count open anomalies by severity for quick filter chips (global sync)
   const severityCounts = useMemo(() => {
@@ -150,14 +196,55 @@ export default function Anomalies() {
           </p>
         </div>
 
-        <button
-          onClick={() => refetch()}
-          type="button"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted/50 text-foreground border border-border shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {canAck && (
+            <button
+              onClick={handleAcknowledgeAll}
+              disabled={openCount === 0 || isBulkUpdating !== null}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              title={openCount === 0 ? 'No open anomalies to acknowledge' : 'Acknowledge all open anomalies'}
+            >
+              {isBulkUpdating === 'ack' ? (
+                <span className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )}
+              <span>Acknowledge All</span>
+              {openCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/25 font-bold">
+                  {openCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {canResolve && (
+            <button
+              onClick={handleResolveAll}
+              disabled={isBulkUpdating !== null || (data?.items?.length === 0 && openCount === 0)}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Resolve all anomalies"
+            >
+              {isBulkUpdating === 'resolve' ? (
+                <span className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <CheckCheck className="w-3.5 h-3.5" />
+              )}
+              <span>Resolve All</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => refetch()}
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-surface hover:bg-muted/50 text-foreground border border-border shadow-xs transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Severity Chips (Quick Filters) */}

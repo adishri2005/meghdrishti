@@ -4,6 +4,7 @@ import {
   getMockCostTimeseries,
   getMockStatsOverview,
   updateMockAnomalyStatus,
+  bulkUpdateMockAnomaliesStatus,
   injectMockAnomaly,
   getActiveMockJobs,
   addMockJob,
@@ -293,6 +294,16 @@ export const handlers = [
     }, {
       headers: { 'X-Total-Count': String(total) },
     })
+  }),
+
+  http.post('/api/v1/anomalies/bulk-acknowledge', () => {
+    const count = bulkUpdateMockAnomaliesStatus('acknowledged', 'open')
+    return HttpResponse.json({ status: 'ok', count, message: `Acknowledged ${count} anomalies` })
+  }),
+
+  http.post('/api/v1/anomalies/bulk-resolve', () => {
+    const count = bulkUpdateMockAnomaliesStatus('resolved')
+    return HttpResponse.json({ status: 'ok', count, message: `Resolved ${count} anomalies` })
   }),
 
   http.get('/api/v1/anomalies/:id', ({ params }) => {

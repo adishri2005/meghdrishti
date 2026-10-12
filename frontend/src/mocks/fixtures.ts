@@ -352,6 +352,41 @@ export function updateMockAnomalyStatus(id: number | string, status: 'open' | 'a
   return match
 }
 
+export function bulkUpdateMockAnomaliesStatus(
+  status: 'acknowledged' | 'resolved',
+  filterStatus?: 'open' | 'acknowledged'
+): number {
+  const list = getMockAnomalies()
+  let count = 0
+  list.forEach((a) => {
+    if (!filterStatus || a.status === filterStatus || (status === 'resolved' && (a.status === 'open' || a.status === 'acknowledged'))) {
+      if (a.status !== status) {
+        a.status = status
+        count++
+      }
+    }
+  })
+
+  // Synchronize resource open anomaly flags
+  if (status === 'resolved') {
+    MOCK_RESOURCES.forEach((r) => {
+      r.open_anomalies = 0
+      if (r.status === 'anomalous') {
+        r.status = 'normal'
+      }
+    })
+  } else if (status === 'acknowledged') {
+    MOCK_RESOURCES.forEach((r) => {
+      r.open_anomalies = 0
+      if (r.status === 'anomalous') {
+        r.status = 'warning'
+      }
+    })
+  }
+
+  return count
+}
+
 export const MOCK_ANOMALIES = getMockAnomalies()
 
 export function getMockStatsOverview() {

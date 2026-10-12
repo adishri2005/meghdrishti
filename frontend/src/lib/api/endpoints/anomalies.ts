@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { AnomalySchema, type Anomaly } from '../types'
-import { MOCK_ANOMALIES, getMockAnomalies, updateMockAnomalyStatus } from '@/mocks/fixtures'
+import { MOCK_ANOMALIES, getMockAnomalies, updateMockAnomalyStatus, bulkUpdateMockAnomaliesStatus } from '@/mocks/fixtures'
 
 export interface AnomalyListParams {
   severity?: string
@@ -130,4 +130,36 @@ export async function resolveAnomaly(id: string | number): Promise<Anomaly> {
 export async function getAnomalyTimeline(id: string): Promise<AnomalyTimelineData> {
   const res = await apiClient.get(`/anomalies/${id}/timeline`)
   return res.data
+}
+
+export async function acknowledgeAllAnomalies(): Promise<number> {
+  if (import.meta.env.VITE_MOCK === 'true') {
+    return bulkUpdateMockAnomaliesStatus('acknowledged', 'open')
+  }
+
+  try {
+    const res = await apiClient.post('/anomalies/bulk-acknowledge')
+    return res.data.count ?? 0
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      return bulkUpdateMockAnomaliesStatus('acknowledged', 'open')
+    }
+    throw error
+  }
+}
+
+export async function resolveAllAnomalies(): Promise<number> {
+  if (import.meta.env.VITE_MOCK === 'true') {
+    return bulkUpdateMockAnomaliesStatus('resolved')
+  }
+
+  try {
+    const res = await apiClient.post('/anomalies/bulk-resolve')
+    return res.data.count ?? 0
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      return bulkUpdateMockAnomaliesStatus('resolved')
+    }
+    throw error
+  }
 }
