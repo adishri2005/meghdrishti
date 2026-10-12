@@ -103,26 +103,40 @@ export function TimeSeriesChart({
       })
     })
 
-    events.forEach((ev) => {
-      markLineData.push({
-        xAxis: ev.timeMs,
-        lineStyle: {
-          color: ev.color || '#38BDF8',
-          type: 'solid',
-          width: 1.5,
-        },
-        label: {
-          show: true,
-          position: 'insideStartTop',
-          formatter: ev.label,
-          color: ev.color || '#38BDF8',
-          fontSize: 10,
-          fontFamily: '"Geist Mono Variable", monospace',
-          backgroundColor: isDark ? 'rgba(16, 23, 32, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-          padding: [2, 4],
-          borderRadius: 4,
-        },
+    // Get timestamp domain from series to ensure event markers are only drawn if strictly inside range
+    let minTime = Infinity
+    let maxTime = -Infinity
+    series.forEach((s) => {
+      s.data.forEach(([t]) => {
+        if (t < minTime) minTime = t
+        if (t > maxTime) maxTime = t
       })
+    })
+
+    events.forEach((ev) => {
+      if (ev.timeMs >= minTime && ev.timeMs <= maxTime) {
+        markLineData.push({
+          xAxis: ev.timeMs,
+          lineStyle: {
+            color: ev.color || '#38BDF8',
+            type: 'dashed',
+            width: 1.5,
+          },
+          label: {
+            show: true,
+            position: 'insideEndTop',
+            formatter: ev.label,
+            color: ev.color || '#38BDF8',
+            fontSize: 9,
+            fontFamily: '"Geist Mono Variable", monospace',
+            backgroundColor: isDark ? 'rgba(16, 23, 32, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            padding: [2, 4],
+            borderRadius: 3,
+            borderWidth: 1,
+            borderColor: ev.color || '#38BDF8',
+          },
+        })
+      }
     })
 
     const eSeries = series.map((s) => ({
@@ -145,10 +159,11 @@ export function TimeSeriesChart({
 
     return {
       grid: {
-        top: 20,
-        right: 20,
+        top: 24,
+        right: 18,
         bottom: showDataZoom ? 50 : 25,
-        left: 48,
+        left: 8,
+        containLabel: true,
       },
       tooltip: {
         trigger: 'axis',
@@ -207,8 +222,14 @@ export function TimeSeriesChart({
       yAxis: {
         type: 'value',
         axisLabel: {
-          formatter: (v: number) =>
-            yAxisFormatter ? yAxisFormatter(v) : `${v}${yAxisUnit ? ' ' + yAxisUnit : ''}`,
+          formatter: (v: number) => {
+            if (yAxisFormatter) return yAxisFormatter(v)
+            if (yAxisUnit === '%') return `${v}%`
+            if (yAxisUnit === 's') return v < 1 ? `${Math.round(v * 1000)}ms` : `${v}s`
+            if (yAxisUnit === 'ms') return `${v}ms`
+            if (v >= 1000) return `${(v / 1000).toFixed(1)}k`
+            return `${Number(v.toFixed(3))}`
+          },
           fontSize: 10,
         },
       },

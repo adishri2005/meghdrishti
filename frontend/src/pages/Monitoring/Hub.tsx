@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
   Activity,
   Layers,
@@ -10,7 +9,6 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { PROM_QUERIES } from '@/lib/prom/queries'
-import { getDeployments } from '@/lib/api/endpoints/deployments'
 import { NativePanelCard } from '@/components/monitoring/NativePanelCard'
 import { GrafanaFrame } from '@/components/monitoring/GrafanaFrame'
 import { PrometheusFrame } from '@/components/monitoring/PrometheusFrame'
@@ -28,13 +26,6 @@ export default function MonitoringHub() {
   // Custom PromQL pre-fill query when navigating from panel
   const [promConsoleQuery, setPromConsoleQuery] = useState<string>(PROM_QUERIES.rps)
   const [promMode, setPromMode] = useState<'console' | 'embed'>('console')
-
-  // Fetch recent deployments for markLines on native charts
-  const { data: deployments = [] } = useQuery({
-    queryKey: ['deployments', 'monitoring'],
-    queryFn: () => getDeployments(10),
-    staleTime: 30000,
-  })
 
   // Sync tab with URL
   useEffect(() => {
@@ -170,7 +161,6 @@ export default function MonitoringHub() {
               description="Inbound HTTP requests per second"
               unit="req/s"
               color="hsl(var(--primary))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -182,7 +172,6 @@ export default function MonitoringHub() {
               description="95th percentile response latency across endpoints"
               unit="s"
               color="hsl(var(--warning))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -194,7 +183,6 @@ export default function MonitoringHub() {
               description="Server error rate partitioned by deployment color"
               unit="err/s"
               color="hsl(var(--danger))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -206,7 +194,6 @@ export default function MonitoringHub() {
               description="Cost records written to queue per second"
               unit="rec/s"
               color="hsl(var(--primary))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -218,7 +205,6 @@ export default function MonitoringHub() {
               description="Worker anomaly detection evaluations per second"
               unit="rec/s"
               color="hsl(var(--primary))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -230,7 +216,6 @@ export default function MonitoringHub() {
               description="Pending messages waiting in Redis Streams"
               unit="msgs"
               color="hsl(var(--warning))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -242,7 +227,6 @@ export default function MonitoringHub() {
               description="Pipeline latency from record ingestion to anomaly trigger"
               unit="s"
               color="hsl(var(--primary))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -253,7 +237,6 @@ export default function MonitoringHub() {
               query={PROM_QUERIES.anomaliesBySev}
               description="Hourly anomaly detection rate partitioned by severity"
               unit="events/h"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -265,7 +248,6 @@ export default function MonitoringHub() {
               description="Redis baseline lookup hit efficiency"
               unit="ratio"
               color="hsl(var(--primary))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -277,7 +259,6 @@ export default function MonitoringHub() {
               description="Node exporter host CPU load percentage"
               unit="%"
               color="hsl(var(--muted-foreground))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -289,7 +270,6 @@ export default function MonitoringHub() {
               description="Node exporter RAM utilization percentage"
               unit="%"
               color="hsl(var(--muted-foreground))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />
@@ -301,7 +281,6 @@ export default function MonitoringHub() {
               description="Concurrent client sessions connected to Postgres"
               unit="backends"
               color="hsl(var(--muted-foreground))"
-              deployments={deployments}
               onOpenPrometheus={handleOpenInPrometheus}
               onOpenGrafana={handleOpenInGrafana}
             />

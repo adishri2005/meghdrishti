@@ -21,45 +21,48 @@ function generatePrometheusMatrix(query: string, start: number, end: number, ste
     const ts = start + i * step
     let val = 24.0
 
-    if (query.includes('error') || query.includes('5..')) {
-      // Near-zero error ratio (0.01% - 0.04%), with realistic micro-variations
-      val = 0.0002 + Math.sin(i / 14) * 0.0001 + (i % 17 === 0 ? 0.0003 : 0)
-    } else if (query.includes('queue_lag') || query.includes('backlog') || query.includes('dlq')) {
-      // 0 msgs normal state with occasional small batch buffer
-      val = i > count - 8 && i < count - 4 ? 8 : i % 22 === 0 ? 3 : 0
-    } else if (query.includes('latency')) {
-      // Stable p95 latency in seconds (0.022s - 0.038s = 22ms - 38ms)
-      val = 0.026 + Math.sin(i / 11) * 0.005 + (i % 13) * 0.0004
-    } else if (query.includes('detection') || query.includes('mttd')) {
-      // Stable MTTD detection delay (1.8s - 2.8s)
-      val = 2.1 + Math.sin(i / 7) * 0.35 + (i % 5) * 0.08
-    } else if (query.includes('ingest') || query.includes('records_ingested')) {
-      // Ingestion rate (22 - 28 rec/s with realistic jitter)
-      val = 24.5 + Math.sin(i / 9) * 3.2 + (Math.sin(i * 3.7) * 0.8)
-    } else if (query.includes('processed')) {
-      // Processed rate tracking ingest
-      val = 24.2 + Math.sin((i - 1) / 9) * 3.1 + (Math.sin(i * 3.7) * 0.7)
-    } else if (query.includes('cpu')) {
-      // Host CPU usage % (18% - 32%)
-      val = 24.5 + Math.sin(i / 13) * 6.0 + (Math.sin(i * 2.1) * 2.5)
-    } else if (query.includes('memory') || query.includes('mem')) {
-      // Host RAM usage % (58% - 66%)
-      val = 62.4 + Math.sin(i / 20) * 3.5 + (Math.sin(i * 1.5) * 0.8)
-    } else if (query.includes('pg_stat') || query.includes('connections') || query.includes('numbackends')) {
-      // PostgreSQL active backend connections (8 - 14)
-      val = 11 + Math.floor(Math.sin(i / 8) * 2) + (i % 9 === 0 ? 1 : 0)
-    } else if (query.includes('anomalies_detected') || query.includes('severity')) {
-      // Anomaly detection frequency (0 - 4 events per hour)
-      val = i % 18 === 0 ? 3 : i % 29 === 0 ? 1 : 0
-    } else if (query.includes('http_requests') || query.includes('rps')) {
-      // Web request rate (180 - 320 req/s)
-      val = 240 + Math.sin(i / 6) * 45 + ((i % 7) * 4)
-    } else if (query.includes('cache_hit')) {
-      // Cache hit ratio (94% - 97%)
-      val = 0.952 + Math.sin(i / 15) * 0.012
+    const q = query.toLowerCase()
+
+    if (q.includes('status=~"5.."') || q.includes('5..') || (q.includes('error') && !q.includes('node_cpu'))) {
+      // 5xx Server Error Rate (clean 0.000 err/s with a subtle 0.04 bump during deployment rollout)
+      const isRollout = i >= Math.floor(count * 0.12) && i <= Math.floor(count * 0.17)
+      val = isRollout ? 0.04 : 0.000
+    } else if (q.includes('queue_lag') || q.includes('backlog') || q.includes('dlq')) {
+      // Redis Streams queue lag: 0 msgs normal, short 2 msg buffer during burst
+      const isBurst = i >= Math.floor(count * 0.70) && i <= Math.floor(count * 0.72)
+      val = isBurst ? 2 : 0
+    } else if (q.includes('api_latency') || q.includes('latencyp95') || q.includes('latency')) {
+      // API p95 Latency: Smooth 24ms - 30ms (0.024s - 0.030s)
+      val = 0.025 + Math.sin(i / 14) * 0.003 + (Math.sin(i * 2.1) * 0.001)
+    } else if (q.includes('detection_delay') || q.includes('detectionp95') || q.includes('detection')) {
+      // Detection Delay: Steady 2.1s - 2.3s
+      val = 2.18 + Math.sin(i / 16) * 0.06 + (Math.sin(i * 1.5) * 0.02)
+    } else if (q.includes('records_ingested') || (q.includes('ingest') && !q.includes('processed'))) {
+      // Ingestion throughput: ~24.5 rec/s
+      val = 24.5 + Math.sin((i / count) * Math.PI * 2) * 1.5 + (Math.sin(i * 1.7) * 0.4)
+    } else if (q.includes('records_processed') || q.includes('processed')) {
+      // Analytics worker throughput: matches ingestion (~24.3 rec/s)
+      val = 24.3 + Math.sin((i / count) * Math.PI * 2) * 1.5 + (Math.sin(i * 1.7) * 0.3)
+    } else if (q.includes('node_cpu') || q.includes('cpupct') || q.includes('cpu')) {
+      // Host CPU: 22% - 28%
+      val = 24.5 + Math.sin((i / count) * Math.PI * 2) * 2.8 + (Math.sin(i * 1.2) * 0.5)
+    } else if (q.includes('node_memory') || q.includes('mempct') || q.includes('memory') || q.includes('mem')) {
+      // Host RAM: 62.4% - 63.8%
+      val = 62.8 + Math.sin(i / 25) * 0.6
+    } else if (q.includes('pg_stat') || q.includes('pgconnections') || q.includes('backends') || q.includes('connection')) {
+      // Active database connections: 8-10
+      val = 9 + (i % 24 === 0 ? 1 : 0)
+    } else if (q.includes('anomalies_detected') || q.includes('anomaliesbysev') || q.includes('severity')) {
+      // Hourly anomaly rate: 0 normally, 1 event detected at incident
+      val = (i >= Math.floor(count * 0.74) && i <= Math.floor(count * 0.75)) ? 1 : 0
+    } else if (q.includes('cache_hits_total') || q.includes('cachehitratio') || q.includes('cache_hit')) {
+      // Cache hit ratio: 96.2% - 96.6%
+      val = 0.964 + Math.sin(i / 18) * 0.002
+    } else if (q.includes('api_requests_total') || q.includes('rps')) {
+      // Request rate: Diurnal curve 28 - 40 req/s
+      val = 33.0 + Math.sin((i / count) * Math.PI * 2 - 1.2) * 5.5 + (Math.sin(i * 1.4) * 0.6)
     } else {
-      // Default metric
-      val = 14.0 + Math.sin(i / 10) * 2.0
+      val = 24.0 + Math.sin((i / count) * Math.PI * 2) * 1.5
     }
 
     points.push([ts, Math.max(val, 0).toFixed(4)])
