@@ -82,7 +82,7 @@ jobs:
         run: docker build -f docker/Dockerfile -t ccad-api:ci-test .
 
       - name: Verify image
-        run: docker run --rm ccad-api:ci-test python -c "from app.main import app; print('OK')"
+        run: docker run --rm --entrypoint python ccad-api:ci-test -c "from app.main import app; print('OK')"
 
   frontend:
     runs-on: ubuntu-latest
