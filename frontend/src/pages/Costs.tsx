@@ -116,7 +116,7 @@ export default function Costs() {
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `costguard_spend_${groupBy}_${interval}.csv`)
+    link.setAttribute('download', `meghdrishti_spend_${groupBy}_${interval}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

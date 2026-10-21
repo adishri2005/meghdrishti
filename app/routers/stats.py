@@ -1,5 +1,5 @@
 """
-Stats and system health router for the CostGuard console.
+Stats and system health router for the Meghdrishti console.
 Provides unified overview metrics and live system status.
 """
 
@@ -19,7 +19,7 @@ from app.db import get_db
 from app.models import Anomaly, CostRecord, Resource
 from app.security import Principal, require_roles
 
-logger = logging.getLogger("ccad.stats")
+logger = logging.getLogger("meghdrishti.stats")
 router = APIRouter(tags=["Stats"])
 
 _START_TIME = time.time()

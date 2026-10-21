@@ -1,1 +1,1 @@
-"""Cloud Cost Anomaly Detection System (CCAD)."""
+"""Meghdrishti - Cloud Cost Anomaly Detection System."""

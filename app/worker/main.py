@@ -62,7 +62,7 @@ from app.queue import (
 from app.worker.alerts import dispatch_alerts
 from app.worker.metrics_server import start_metrics_server
 
-logger = logging.getLogger("ccad.worker")
+logger = logging.getLogger("meghdrishti.worker")
 
 # Graceful shutdown flag
 _shutdown = False

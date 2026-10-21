@@ -114,7 +114,7 @@ export function Sidebar() {
             {!isCollapsed && (
               <div className="flex flex-col min-w-0">
                 <span className="font-semibold text-xs tracking-tight text-foreground truncate">
-                  CostGuard
+                  Meghdrishti
                 </span>
                 <span className="text-[10px] text-muted-foreground tracking-wider uppercase truncate">
                   FinOps Control

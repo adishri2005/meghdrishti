@@ -16,7 +16,7 @@ from app.db import get_db
 from app.models import IngestionJob
 from app.security import Principal, require_roles
 
-logger = logging.getLogger("ccad.jobs")
+logger = logging.getLogger("meghdrishti.jobs")
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 
 

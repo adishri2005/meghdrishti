@@ -1,4 +1,4 @@
-# Cloud Cost Anomaly Detection (CCAD) & CostGuard
+# Meghdrishti: Cloud Cost Anomaly Detection System
 
 > Real-time streaming anomaly detection, diurnal baseline profiling, root-cause attribution, and FinOps observability console for cloud infrastructure spending.
 
@@ -26,7 +26,7 @@
 - [Installation & Quick Start](#installation--quick-start)
 - [Configuration](#configuration)
 - [Usage & Workflows](#usage--workflows)
-  - [CostGuard Web Console](#costguard-web-console)
+  - [Meghdrishti Web Console](#meghdrishti-web-console)
   - [Data Ingestion & Simulation](#data-ingestion--simulation)
   - [Anomaly Injection & Testing](#anomaly-injection--testing)
   - [Zero-Downtime Blue/Green Deployment](#zero-downtime-bluegreen-deployment)
@@ -43,9 +43,9 @@
 
 ## Overview
 
-**Cloud Cost Anomaly Detection (CCAD)** is an end-to-end FinOps and platform engineering observability platform designed to solve the critical problem of unpredicted cloud cost overruns. Modern distributed cloud infrastructures generate complex, multi-dimensional billing streams where sudden misconfigurations, unconstrained auto-scaling loops, memory leaks, and rogue batch workloads cause massive financial drift before monthly invoices arrive.
+**Meghdrishti** is an end-to-end FinOps and cloud cost anomaly detection platform designed to solve the critical problem of unpredicted cloud cost overruns. Modern distributed cloud infrastructures generate complex, multi-dimensional billing streams where sudden misconfigurations, unconstrained auto-scaling loops, memory leaks, and rogue batch workloads cause massive financial drift before monthly invoices arrive.
 
-CCAD ingests granular, hourly cost and usage records through a resilient REST API, queues them asynchronously via **Redis Streams**, and analyzes them using an asynchronous background worker that maintains diurnal baselines with **Welford's streaming algorithm**. The detection engine runs statistical evaluations (**z-score, percentage jump, EWMA drift, new-resource detection, and cluster-wide aggregate surges**), attributes root causes across dimensions (service, region, team), and dispatches webhook notifications. The unified **CostGuard** console provides single-origin, zero-trust access to operational dashboards, embedded PromQL metrics, Grafana telemetry, and live Server-Sent Events (SSE) logs under zero-downtime blue/green deployment orchestration.
+Meghdrishti ingests granular, hourly cost and usage records through a resilient REST API, queues them asynchronously via **Redis Streams**, and analyzes them using an asynchronous background worker that maintains diurnal baselines with **Welford's streaming algorithm**. The detection engine runs statistical evaluations (**z-score, percentage jump, EWMA drift, new-resource detection, and cluster-wide aggregate surges**), attributes root causes across dimensions (service, region, team), and dispatches webhook notifications. The unified **Meghdrishti** console provides single-origin, zero-trust access to operational dashboards, embedded PromQL metrics, Grafana telemetry, and live Server-Sent Events (SSE) logs under zero-downtime blue/green deployment orchestration.
 
 ---
 
@@ -60,7 +60,7 @@ CCAD ingests granular, hourly cost and usage records through a resilient REST AP
   - **New Resource Cold-Start (Rule D)**: Flags previously unseen cloud resources initiating non-trivial spend ($\ge \$1.00$) after 24 hours of cluster history.
   - **Aggregate Spike & Root Cause Attribution**: Aggregates hourly spend across the entire cluster, pinpoints cross-resource spikes, and ranks anomalous delta contributions grouped by service, region, and team.
 - **Alert Suppression & Escalation**: 6-hour sliding deduplication window prevents alert storms; consecutive anomalies increment occurrence counters, update peak spend, and escalate severity levels.
-- **CostGuard Mission Control Console**: Single-page application built with React 18, TypeScript, Tailwind CSS, and Apache ECharts featuring dark/light modes, interactive guided tours, real-time status monitoring, and virtualized SSE log streams.
+- **Meghdrishti Mission Control Console**: Single-page application built with React 18, TypeScript, Tailwind CSS, and Apache ECharts featuring dark/light modes, interactive guided tours, real-time status monitoring, and virtualized SSE log streams.
 - **Zero-Trust Reverse Proxy & Single-Origin Gateway**: Nginx gateway terminating TLS on port `:8443` with subrequest authentication (`/_auth_verify`), protecting embedded Prometheus PromQL and Grafana dashboards without exposing backend ports.
 - **Zero-Downtime Blue/Green Deployments**: Automated deployment scripts with advisory database locking, health-gate polling (`/health`), 15-second post-cutover rollback monitoring, and instantaneous upstream symlink switching.
 - **Chaos & Failure Engineering Tooling**: Automated failure injection tests measuring Mean Time to Recovery (MTTR) across worker crashes, Redis restarts, and simulated faulty releases.
@@ -75,7 +75,7 @@ CCAD ingests granular, hourly cost and usage records through a resilient REST AP
             ┌────────────────────────────────────┴────────────────────────────────────┐
             ▼                                                                         ▼
    FinOps / DevOps Engineer                                                  Automated Ingestion
- (CostGuard Web Console :8443)                                             (REST Client / simulate.py)
+ (Meghdrishti Web Console :8443)                                           (REST Client / simulate.py)
             │                                                                         │
             └────────────────────────────────────┬────────────────────────────────────┘
                                                  │ HTTPS (TLS 1.2/1.3)
@@ -83,7 +83,7 @@ CCAD ingests granular, hourly cost and usage records through a resilient REST AP
 ┌───────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ NGINX REVERSE PROXY & GATEWAY (:8443)                                                             │
 │                                                                                                   │
-│  ├── /                     ──► CostGuard Frontend SPA (React 18 + TS + Vite + ECharts)            │
+│  ├── /                     ──► Meghdrishti Frontend SPA (React 18 + TS + Vite + ECharts)          │
 │  ├── /api/v1/*             ──► Active Upstream API Node (FastAPI Blue/Green)                      │
 │  ├── /api/v1/admin/logs/stream ──► SSE Log Stream (Bufferless Proxying)                           │
 │  ├── /grafana/*            ──► Grafana Kiosk (Protected via /_auth_verify subrequest)             │
@@ -138,7 +138,7 @@ CCAD ingests granular, hourly cost and usage records through a resilient REST AP
 
 ## Tech Stack
 
-### Frontend (CostGuard Console)
+### Frontend (Meghdrishti Console)
 - **Framework & Core**: React 18.3, TypeScript 5.6 (strict mode), Vite 5.4
 - **State & Data Fetching**: TanStack Query v5 (React Query), Zustand v5
 - **Data Visualization**: Apache ECharts 5.6 (`echarts-for-react`)
@@ -224,10 +224,10 @@ CCAD ingests granular, hourly cost and usage records through a resilient REST AP
 │   ├── DEMO_SCRIPT.md             # Step-by-step viva presentation and demo walkthrough script
 │   ├── DEPLOYMENT.md              # Cloud deployment and host configuration instructions
 │   ├── EXPERIMENTS.md             # Controlled failure experiment benchmarks and evaluation results
-│   ├── FRONTEND.md                # CostGuard console UI/UX design specifications
+│   ├── FRONTEND.md                # Meghdrishti console UI/UX design specifications
 │   ├── GRAFANA_PANELS.md          # Grafana dashboard panel queries and PromQL references
 │   └── README_API.md              # Standalone API documentation
-├── frontend/                      # CostGuard React 18 single-page application
+├── frontend/                      # Meghdrishti React 18 single-page application
 │   ├── e2e/                       # Playwright end-to-end test suites and automated screenshot capture
 │   ├── src/                       # Application source code (components, pages, hooks, lib, store)
 │   ├── Dockerfile                 # Production Nginx container serving static frontend assets
@@ -328,12 +328,12 @@ make seed
 python scripts/simulate.py seed --days 14
 ```
 
-### 6. Access CostGuard & Services
-Once running, the single-origin CostGuard gateway is reachable at:
+### 6. Access Meghdrishti & Services
+Once running, the single-origin Meghdrishti gateway is reachable at:
 
 | Service / Interface | URL | Credentials / Notes |
 |---|---|---|
-| **CostGuard Web Console** | `https://localhost:8443/` | **Admin**: `admin` / `Admin@12345`<br>**Analyst**: `analyst` / `Analyst@12345` |
+| **Meghdrishti Web Console** | `https://localhost:8443/` | **Admin**: `admin` / `Admin@12345`<br>**Analyst**: `analyst` / `Analyst@12345` |
 | **Interactive API Docs (Swagger)** | `https://localhost:8443/docs` | Built-in OpenAPI specification |
 | **ReDoc API Reference** | `https://localhost:8443/redoc` | Formatted API documentation |
 | **Embedded Grafana Dashboards** | `https://localhost:8443/monitoring?tab=grafana` | Single-origin iframe protected via auth gate |
@@ -352,10 +352,10 @@ Application configuration is loaded using **Pydantic Settings** from the `.env` 
 | Variable | Description | Required in Production | Default / Example Value |
 |---|---|:---:|---|
 | `ENVIRONMENT` | Target environment mode (`development`, `staging`, `production`) | **Yes** | `development` |
-| `POSTGRES_USER` | PostgreSQL superuser username | **Yes** | `ccad` |
+| `POSTGRES_USER` | PostgreSQL superuser username | **Yes** | `meghdrishti` |
 | `POSTGRES_PASSWORD` | PostgreSQL superuser password | **Yes** (enforced in prod) | `change_me_pg` |
-| `POSTGRES_DB` | PostgreSQL primary database name | **Yes** | `ccad` |
-| `DATABASE_URL` | SQLAlchemy PostgreSQL connection URI with psycopg2 driver | **Yes** | `postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad` |
+| `POSTGRES_DB` | PostgreSQL primary database name | **Yes** | `meghdrishti` |
+| `DATABASE_URL` | SQLAlchemy PostgreSQL connection URI with psycopg2 driver | **Yes** | `postgresql+psycopg2://meghdrishti:change_me_pg@postgres:5432/meghdrishti` |
 | `REDIS_URL` | Redis instance connection URI | **Yes** | `redis://redis:6379/0` |
 | `JWT_SECRET` | Secret key for signing and validating JWTs (min 32 characters) | **Yes** (fails fast in prod) | `change_me_to_a_long_random_string` |
 | `JWT_ALGORITHM` | Cryptographic signature algorithm for JWT tokens | No | `HS256` |
@@ -385,9 +385,9 @@ When `ENVIRONMENT=production`, the application performs a strict startup check. 
 
 ## Usage & Workflows
 
-### CostGuard Web Console
+### Meghdrishti Web Console
 
-CostGuard provides distinct role-based experiences:
+Meghdrishti provides distinct role-based experiences:
 - **Admin Role** (`admin`): Full access to operational controls, threshold tuning, data simulation, user/client registration, and live SSE log streams.
 - **Analyst Role** (`analyst`): Access to cost analysis, anomaly triage, timeline comparisons, and reporting; administrative modifications are restricted.
 
@@ -628,7 +628,7 @@ The repository includes a production deployment workflow in `.github/workflows/d
 
 ## Screenshots & UI Showcase
 
-The CostGuard console provides unified visibility across the FinOps lifecycle:
+The Meghdrishti console provides unified visibility across the FinOps lifecycle:
 
 | View | Dark Mode | Light Mode |
 |---|---|---|
@@ -680,6 +680,6 @@ This project does not currently contain an explicit LICENSE file. All rights are
 ## Acknowledgements & Contact
 
 - **Author**: Aditya Shrivastava ([@adishri2005](https://github.com/adishri2005))
-- **Project**: Cloud Cost Anomaly Detection (CCAD) — Capstone Project P75
+- **Project**: Meghdrishti — Cloud Cost Anomaly Detection (Capstone Project P75)
 - **Security Inquiries**: Please consult [SECURITY.md](SECURITY.md) for responsible disclosure procedures.
 <!-- TODO: add official contact email or project website link -->

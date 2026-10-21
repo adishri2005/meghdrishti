@@ -1,5 +1,5 @@
 groups:
-  - name: ccad_alerts
+  - name: meghdrishti_alerts
     rules:
       - alert: HighErrorRate
         expr: |

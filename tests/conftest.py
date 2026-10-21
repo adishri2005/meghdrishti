@@ -1,4 +1,4 @@
-"""Test fixtures for CCAD unit and integration tests."""
+"""Test fixtures for Meghdrishti unit and integration tests."""
 
 import pytest
 from sqlalchemy import BigInteger, create_engine

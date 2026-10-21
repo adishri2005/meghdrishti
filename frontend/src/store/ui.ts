@@ -53,7 +53,7 @@ export const useUIStore = create<UIState>()(
       setReduceMotionOverride: (reduceMotionOverride) => set({ reduceMotionOverride }),
     }),
     {
-      name: 'costguard-ui-preferences',
+      name: 'meghdrishti-ui-preferences',
     }
   )
 )

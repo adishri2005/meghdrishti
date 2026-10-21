@@ -11,7 +11,7 @@
 
 ## Reporting a Vulnerability
 
-We take the security of Cloud Cost Anomaly Detection (CCAD) seriously. If you believe you have found a security vulnerability, please follow responsible disclosure guidelines:
+We take the security of Meghdrishti seriously. If you believe you have found a security vulnerability, please follow responsible disclosure guidelines:
 
 1. **Do not open a public issue.**
 2. Report vulnerabilities confidentially via email to: `security@example.com` or via GitHub Private Vulnerability Reporting.
@@ -37,16 +37,16 @@ If `JWT_SECRET` is suspected to be leaked:
 ### 2. Rotating Compromised Database Password (`POSTGRES_PASSWORD`)
 1. Update database user password in PostgreSQL:
    ```sql
-   ALTER USER ccad WITH PASSWORD 'NewStrongPassword#2026';
+   ALTER USER meghdrishti WITH PASSWORD 'NewStrongPassword#2026';
    ```
 2. Update `DATABASE_URL` in environment / secrets manager:
    ```bash
-   DATABASE_URL="postgresql+psycopg2://ccad:NewStrongPassword#2026@postgres:5432/ccad"
+   DATABASE_URL="postgresql+psycopg2://meghdrishti:NewStrongPassword#2026@postgres:5432/meghdrishti"
    ```
 3. Restart API and worker containers.
 
 ### 3. Rotating Compromised API Client Keys
-1. In the CostGuard console under Admin -> API Clients or via API:
+1. In the Meghdrishti console under Admin -> API Clients or via API:
    ```bash
    curl -X POST https://localhost:8443/api/v1/auth/api-clients \
      -H "Authorization: Bearer <ADMIN_JWT>" \

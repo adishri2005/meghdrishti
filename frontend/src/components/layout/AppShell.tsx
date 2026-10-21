@@ -58,7 +58,7 @@ export function AppShell() {
           <path d="m9 12 2 2 4-4" />
         </svg>
         <span className="font-mono text-xl font-bold tracking-tight text-foreground mb-1">
-          CostGuard
+          Meghdrishti
         </span>
         <span className="text-xs text-muted-foreground font-mono">
           Verifying security session...

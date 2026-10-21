@@ -31,8 +31,8 @@ class TestCookieSessionAndGatewayAuth:
             json={"username": "admin", "password": "Admin@12345"},
         )
         assert resp.status_code == 200
-        assert "ccad_token" in resp.cookies
-        cookie_val = resp.cookies["ccad_token"]
+        assert "meghdrishti_token" in resp.cookies or "ccad_token" in resp.cookies
+        cookie_val = resp.cookies.get("meghdrishti_token") or resp.cookies.get("ccad_token")
         assert len(cookie_val) > 20
 
     def test_auth_me_with_cookie_and_bearer(self, client):
@@ -50,7 +50,7 @@ class TestCookieSessionAndGatewayAuth:
         assert "expires_at" in data
 
         # With Cookie
-        client.cookies.set("ccad_token", token)
+        client.cookies.set("meghdrishti_token", token)
         resp = client.get("/api/v1/auth/me")
         assert resp.status_code == 200
         assert resp.json()["username"] == "admin"
@@ -63,26 +63,26 @@ class TestCookieSessionAndGatewayAuth:
 
         # Authorized with cookie returns 204 No Content
         token, _ = create_access_token("analyst", "analyst")
-        client.cookies.set("ccad_token", token)
+        client.cookies.set("meghdrishti_token", token)
         resp = client.get("/api/v1/auth/verify")
         assert resp.status_code == 204
 
     def test_logout_clears_cookie(self, client):
         token, _ = create_access_token("admin", "admin")
-        client.cookies.set("ccad_token", token)
+        client.cookies.set("meghdrishti_token", token)
 
         resp = client.post(
             "/api/v1/auth/logout",
-            headers={"X-Requested-With": "CostGuard"},
+            headers={"X-Requested-With": "Meghdrishti"},
         )
         assert resp.status_code == 200
         # Cookie deleted or empty
-        val = resp.cookies.get("ccad_token")
+        val = resp.cookies.get("meghdrishti_token")
         assert val is None or val == '""' or val == ""
 
     def test_csrf_defense_on_cookie_auth(self, client):
         token, _ = create_access_token("admin", "admin")
-        client.cookies.set("ccad_token", token)
+        client.cookies.set("meghdrishti_token", token)
 
         # POST without X-Requested-With should return 403 Forbidden
         resp = client.post(
@@ -92,10 +92,10 @@ class TestCookieSessionAndGatewayAuth:
         assert resp.status_code == 403
         assert "CSRF" in resp.json()["detail"] or "X-Requested-With" in resp.json()["detail"]
 
-        # POST with X-Requested-With: CostGuard should succeed
+        # POST with X-Requested-With: Meghdrishti should succeed
         resp = client.post(
             "/api/v1/auth/register",
-            headers={"X-Requested-With": "CostGuard"},
+            headers={"X-Requested-With": "Meghdrishti"},
             json={"username": "csrf_test_user", "password": "Password123!", "role": "analyst"},
         )
         assert resp.status_code == 201

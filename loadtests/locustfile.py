@@ -1,5 +1,5 @@
 """
-Locust load test file for CCAD.
+Locust load test file for Meghdrishti.
 
 Task weights: 70% reads, 30% writes to simulate realistic traffic.
 Each user logs in once, then performs weighted tasks.
@@ -18,8 +18,8 @@ RESOURCES = [
 GROUP_BY_OPTIONS = ["service", "region", "team", "resource_type"]
 
 
-class CCADUser(HttpUser):
-    """Simulated user making API requests to the CCAD system."""
+class MeghdrishtiUser(HttpUser):
+    """Simulated user making API requests to the Meghdrishti system."""
 
     wait_time = between(0.5, 2)
     host = os.environ.get("TARGET_URL", "https://localhost:8443")

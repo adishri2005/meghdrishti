@@ -77,7 +77,7 @@ export function TimeSeriesChart({
   yAxisFormatter,
   thresholds = [],
   events = [],
-  groupId = 'costguard-shared',
+  groupId = 'meghdrishti-shared',
   showArea = true,
   showDataZoom = false,
   className = '',
@@ -340,7 +340,7 @@ export function TimeSeriesChart({
       <ReactECharts
         ref={chartRef}
         option={option}
-        theme={isDark ? 'costguard-dark' : 'costguard-light'}
+        theme={isDark ? 'meghdrishti-dark' : 'meghdrishti-light'}
         style={{ height, width: '100%' }}
         opts={{ renderer: 'canvas' }}
       />

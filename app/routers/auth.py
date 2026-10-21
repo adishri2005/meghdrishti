@@ -40,7 +40,7 @@ from app.security import (
     verify_password,
 )
 
-logger = logging.getLogger("ccad.auth")
+logger = logging.getLogger("meghdrishti.auth")
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -58,7 +58,7 @@ async def login(
 ):
     """Authenticate with username/password and receive a JWT access token.
 
-    Sets an HttpOnly, SameSite=Strict cookie 'ccad_token' and returns
+    Sets an HttpOnly, SameSite=Strict cookie 'meghdrishti_token' and returns
     the token in the JSON body.
     """
     await check_login_rate_limit(request)
@@ -83,6 +83,16 @@ async def login(
     token, expires_in = create_access_token(user.username, user.role)
 
     # Set HttpOnly, SameSite=Strict cookie for browser sessions / gateways
+    response.set_cookie(
+        key="meghdrishti_token",
+        value=token,
+        max_age=expires_in,
+        httponly=True,
+        samesite="strict",
+        secure=request.url.scheme == "https",
+        path="/",
+    )
+    # Also set legacy ccad_token cookie during migration for compatibility
     response.set_cookie(
         key="ccad_token",
         value=token,
@@ -132,7 +142,8 @@ def logout(
     principal: Principal = Depends(get_current_principal),
     db: Session = Depends(get_db),
 ):
-    """Clear the ccad_token session cookie and record an audit log."""
+    """Clear session cookies and record an audit log."""
+    response.delete_cookie(key="meghdrishti_token", path="/")
     response.delete_cookie(key="ccad_token", path="/")
     ip = get_client_ip(request)
     audit(db, actor=principal.name, action="logout", result="success", ip=ip)

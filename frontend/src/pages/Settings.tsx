@@ -355,7 +355,7 @@ export default function Settings() {
         <div className="space-y-4">
           <div className="rounded-xl border border-border bg-surface p-5 shadow-xs space-y-4">
             <h3 className="text-xs font-semibold text-foreground">
-              CostGuard: Autonomous Cloud Spend Anomaly Detection System
+              Meghdrishti: Autonomous Cloud Spend Anomaly Detection System
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
               Project P75 implements an enterprise-grade FinOps observability platform providing sub-5-second

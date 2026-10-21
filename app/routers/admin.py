@@ -33,7 +33,7 @@ from app.schemas import (
 from app.security import Principal, audit, require_roles
 from app.simulator.generator import generate_hours
 
-logger = logging.getLogger("ccad.admin")
+logger = logging.getLogger("meghdrishti.admin")
 _APP_START_TIME = time.time()
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

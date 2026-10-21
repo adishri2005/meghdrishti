@@ -77,13 +77,13 @@ export const grafanaClient = {
       return [
         {
           id: 1,
-          uid: 'ccad-main',
-          title: 'CostGuard Overview',
-          uri: 'db/costguard-overview',
-          url: '/d/ccad-main/costguard-overview',
-          slug: 'costguard-overview',
+          uid: 'meghdrishti-main',
+          title: 'Meghdrishti Overview',
+          uri: 'db/meghdrishti-overview',
+          url: '/d/meghdrishti-main/meghdrishti-overview',
+          slug: 'meghdrishti-overview',
           type: 'dash-db',
-          tags: ['ccad', 'costguard'],
+          tags: ['meghdrishti'],
           isStarred: false,
         },
       ]
@@ -95,8 +95,8 @@ export const grafanaClient = {
    */
   buildEmbedUrl(options: GrafanaEmbedOptions): string {
     const {
-      uid = 'ccad-main',
-      slug = 'costguard-overview',
+      uid = 'meghdrishti-main',
+      slug = 'meghdrishti-overview',
       panelId,
       from = 'now-1h',
       to = 'now',

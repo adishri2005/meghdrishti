@@ -53,7 +53,7 @@ request_user_var: ContextVar[str] = ContextVar("request_user", default="")
 request_role_var: ContextVar[str] = ContextVar("request_role", default="")
 
 
-class CCadJsonFormatter(_BaseFormatter):
+class MeghdrishtiJsonFormatter(_BaseFormatter):
     """Custom JSON formatter that injects request context into every log line."""
 
     def add_fields(self, log_record: dict, record: logging.LogRecord, message_dict: dict) -> None:
@@ -82,7 +82,7 @@ def setup_logging() -> None:
     settings = get_settings()
     log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
 
-    formatter = CCadJsonFormatter(
+    formatter = MeghdrishtiJsonFormatter(
         fmt="%(timestamp)s %(level)s %(logger)s %(message)s"
     )
 

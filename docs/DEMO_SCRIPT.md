@@ -1,6 +1,6 @@
 # Demo Script (Viva Walkthrough)
 
-This script walks through a 15–20 minute live demonstration of the CCAD system. Each section includes the commands to run and what to explain.
+This script walks through a 15–20 minute live demonstration of the Meghdrishti system. Each section includes the commands to run and what to explain.
 
 ---
 
@@ -78,7 +78,7 @@ curl -sk "https://localhost:8443/api/v1/anomalies/$ANOMALY_ID" \
 
 ## 5. Show Grafana Dashboard (2 min)
 
-Open `http://localhost:3000` → CCAD dashboard.
+Open `http://localhost:3000` → Meghdrishti dashboard.
 
 **Point out**: Request rate, queue lag during processing, anomaly detection count, detection delay p95.
 

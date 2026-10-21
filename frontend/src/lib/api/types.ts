@@ -150,7 +150,7 @@ export type SystemStatus = z.infer<typeof SystemStatusSchema>
 export const LogRecordSchema = z.object({
   timestamp: z.string().optional().default(''),
   level: z.string().optional().default('INFO'),
-  logger: z.string().optional().default('ccad'),
+  logger: z.string().optional().default('meghdrishti'),
   event: z.string().optional().default(''),
   message: z.string().optional().default(''),
   request_id: z.string().optional(),

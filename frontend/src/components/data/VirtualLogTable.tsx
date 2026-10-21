@@ -123,7 +123,7 @@ export function VirtualLogTable({
 
                   {/* Logger & Event */}
                   <div className="col-span-2 truncate text-foreground text-[11px]">
-                    <div className="text-muted-foreground truncate">{log.logger || 'ccad'}</div>
+                    <div className="text-muted-foreground truncate">{log.logger || 'meghdrishti'}</div>
                     {log.event && (
                       <div className="text-primary font-medium truncate text-[10px]">
                         {highlightMatch(log.event)}

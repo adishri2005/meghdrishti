@@ -8,12 +8,12 @@ import {
   type TourId,
 } from '@/lib/tours/tourDefinitions'
 
-const STORAGE_KEY = 'costguard-completed-tours'
-const FIRST_VISIT_KEY = 'costguard-first-visit-done'
+const STORAGE_KEY = 'meghdrishti-completed-tours'
+const FIRST_VISIT_KEY = 'meghdrishti-first-visit-done'
 
 function getCompletedTours(): Set<TourId> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('costguard-completed-tours')
     if (raw) return new Set(JSON.parse(raw))
   } catch {
     // ignore
@@ -28,7 +28,7 @@ function markTourCompleted(tourId: TourId) {
 }
 
 function isFirstVisit(): boolean {
-  return !localStorage.getItem(FIRST_VISIT_KEY)
+  return !localStorage.getItem(FIRST_VISIT_KEY) && !localStorage.getItem('costguard-first-visit-done')
 }
 
 function markFirstVisitDone() {
@@ -36,7 +36,7 @@ function markFirstVisitDone() {
 }
 
 /**
- * Returns a unified driver.js config with CostGuard theming.
+ * Returns a unified driver.js config with Meghdrishti theming.
  */
 function getDriverConfig(onComplete?: () => void): Config {
   return {

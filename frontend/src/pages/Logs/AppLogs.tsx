@@ -80,7 +80,7 @@ export default function AppLogs() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `costguard_logs_${Date.now()}.ndjson`)
+    link.setAttribute('download', `meghdrishti_logs_${Date.now()}.ndjson`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

@@ -669,7 +669,7 @@ export const MOCK_APP_LOGS = Array.from({ length: 80 }).map((_, i) => {
     'model_drift_evaluated',
     'dlq_check_passed',
   ]
-  const loggers = ['ccad.detector', 'ccad.worker', 'ccad.api', 'ccad.security', 'ccad.db']
+  const loggers = ['meghdrishti.detector', 'meghdrishti.worker', 'meghdrishti.api', 'meghdrishti.security', 'meghdrishti.db']
   const lvl = levels[i % levels.length]
   const evt = events[i % events.length]
   const ts = new Date(Date.now() - i * 45000).toISOString()

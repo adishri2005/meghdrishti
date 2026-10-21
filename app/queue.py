@@ -18,7 +18,7 @@ from typing import Any, Optional
 from app.cache import get_redis
 from app.metrics import RECORDS_INGESTED
 
-logger = logging.getLogger("ccad.queue")
+logger = logging.getLogger("meghdrishti.queue")
 
 # Stream names (constants so they're referenced consistently)
 STREAM_COST_RECORDS = "cost_records"

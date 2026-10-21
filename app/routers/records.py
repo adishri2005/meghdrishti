@@ -25,7 +25,7 @@ from app.schemas import (
 )
 from app.security import Principal, get_current_principal, require_ingest
 
-logger = logging.getLogger("ccad.records")
+logger = logging.getLogger("meghdrishti.records")
 router = APIRouter(prefix="/records", tags=["Ingestion"])
 
 

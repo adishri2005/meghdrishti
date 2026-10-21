@@ -71,7 +71,7 @@ function generatePrometheusMatrix(query: string, start: number, end: number, ste
 
   return [
     {
-      metric: { job: 'ccad-api', instance: 'localhost:8000' },
+      metric: { job: 'meghdrishti-api', instance: 'localhost:8000' },
       values: points,
     },
   ]
@@ -79,7 +79,9 @@ function generatePrometheusMatrix(query: string, start: number, end: number, ste
 
 function getMockUser(): { username: string; role: 'admin' | 'analyst' } | null {
   try {
-    const raw = typeof window !== 'undefined' ? localStorage.getItem('ccad_mock_user') : null
+    const raw = typeof window !== 'undefined'
+      ? (localStorage.getItem('meghdrishti_mock_user') || localStorage.getItem('ccad_mock_user'))
+      : null
     if (raw) return JSON.parse(raw)
   } catch {
     // ignore
@@ -90,8 +92,9 @@ function getMockUser(): { username: string; role: 'admin' | 'analyst' } | null {
 function setMockUser(user: { username: string; role: 'admin' | 'analyst' } | null) {
   try {
     if (user && typeof window !== 'undefined') {
-      localStorage.setItem('ccad_mock_user', JSON.stringify(user))
+      localStorage.setItem('meghdrishti_mock_user', JSON.stringify(user))
     } else if (typeof window !== 'undefined') {
+      localStorage.removeItem('meghdrishti_mock_user')
       localStorage.removeItem('ccad_mock_user')
     }
   } catch {
@@ -109,6 +112,7 @@ export const handlers = [
     if (body.username === 'admin' && (body.password === 'admin123' || body.password === 'Admin@12345')) {
       setMockUser({ username: 'admin', role: 'admin' })
       if (typeof document !== 'undefined') {
+        document.cookie = `meghdrishti_token=${DEV_ADMIN_TOKEN}; path=/; max-age=86400; SameSite=Lax`
         document.cookie = `ccad_token=${DEV_ADMIN_TOKEN}; path=/; max-age=86400; SameSite=Lax`
       }
       return HttpResponse.json({
@@ -121,6 +125,7 @@ export const handlers = [
     if (body.username === 'analyst' && (body.password === 'analyst123' || body.password === 'Analyst@12345')) {
       setMockUser({ username: 'analyst', role: 'analyst' })
       if (typeof document !== 'undefined') {
+        document.cookie = `meghdrishti_token=${DEV_ADMIN_TOKEN}; path=/; max-age=86400; SameSite=Lax`
         document.cookie = `ccad_token=${DEV_ADMIN_TOKEN}; path=/; max-age=86400; SameSite=Lax`
       }
       return HttpResponse.json({
@@ -434,7 +439,7 @@ export const handlers = [
       {
         timestamp: new Date().toISOString(),
         level: 'INFO',
-        logger: 'ccad.worker',
+        logger: 'meghdrishti.worker',
         event: 'record_processed',
         message: 'Processed hourly cost record for eks-ml-storage-04',
         request_id: 'req-9871',
@@ -442,7 +447,7 @@ export const handlers = [
       {
         timestamp: new Date(Date.now() - 2000).toISOString(),
         level: 'WARNING',
-        logger: 'ccad.detector',
+        logger: 'meghdrishti.detector',
         event: 'anomaly_detected',
         message: 'Anomaly detected for eks-ml-storage-04: z_score=6.8',
         request_id: 'req-9870',
@@ -553,7 +558,7 @@ export const handlers = [
       data: {
         groups: [
           {
-            name: 'ccad_alerts',
+            name: 'meghdrishti_alerts',
             file: '/etc/prometheus/alert_rules.yml',
             rules: [
               {
@@ -640,11 +645,11 @@ export const handlers = [
     return HttpResponse.json([
       {
         id: 1,
-        uid: 'ccad-main',
-        title: 'CostGuard Overview',
-        url: '/grafana/d/ccad-main/costguard-overview',
+        uid: 'meghdrishti-main',
+        title: 'Meghdrishti Overview',
+        url: '/grafana/d/meghdrishti-main/meghdrishti-overview',
         type: 'dash-db',
-        tags: ['ccad', 'costguard'],
+        tags: ['meghdrishti'],
       },
     ])
   }),

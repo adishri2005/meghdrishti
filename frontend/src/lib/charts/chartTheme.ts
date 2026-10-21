@@ -250,6 +250,8 @@ let registered = false
 
 export function registerChartThemes() {
   if (!registered) {
+    echarts.registerTheme('meghdrishti-dark', darkTheme)
+    echarts.registerTheme('meghdrishti-light', lightTheme)
     echarts.registerTheme('costguard-dark', darkTheme)
     echarts.registerTheme('costguard-light', lightTheme)
     registered = true

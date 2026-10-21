@@ -28,7 +28,7 @@ from app.logging_setup import (
 )
 from app.metrics import API_LATENCY, API_REQUESTS, APP_VERSION_INFO
 
-logger = logging.getLogger("ccad.main")
+logger = logging.getLogger("meghdrishti.main")
 
 
 def create_app() -> FastAPI:
@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="Cloud Cost Anomaly Detection API",
+        title="Meghdrishti API",
         description=(
             "REST API for ingesting cloud cost data, detecting anomalies "
             "using statistical methods (z-score, percentage jump, EWMA drift), "

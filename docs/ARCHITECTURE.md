@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Cloud Cost Anomaly Detection (CCAD) system ingests simulated cloud usage/cost records through a REST API, queues them via Redis Streams for asynchronous processing, stores them in PostgreSQL, learns per-resource baselines, detects unusual cost increases using statistical methods, and identifies the responsible resources.
+The Meghdrishti Cloud Cost Anomaly Detection system ingests simulated cloud usage/cost records through a REST API, queues them via Redis Streams for asynchronous processing, stores them in PostgreSQL, learns per-resource baselines, detects unusual cost increases using statistical methods, and identifies the responsible resources.
 
 ## Why PostgreSQL (not NoSQL)?
 
@@ -22,7 +22,7 @@ graph TB
     end
 
     subgraph "Frontend Layer"
-        Frontend["CostGuard Console :80<br/>React 18 + TS + ECharts"]
+        Frontend["Meghdrishti Console :80<br/>React 18 + TS + ECharts"]
     end
 
     subgraph "Application Layer"

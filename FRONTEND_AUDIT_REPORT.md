@@ -1,4 +1,4 @@
-# CostGuard Frontend Engineering, Security & UX Audit Report
+# Meghdrishti Frontend Engineering, Security & UX Audit Report
 
 **Audit Target**: `frontend/` (React 18 + Vite + TypeScript + Tailwind CSS)  
 **Branch**: `hardening/frontend-audit`  
@@ -72,7 +72,7 @@ The application was audited for semantic correctness, keyboard operability, focu
 | `Topbar.tsx:132`| Live Mode Switch | `<button>` | Toggle live polling | **Verified**: `aria-pressed`, distinct active state |
 | `Topbar.tsx:148`| Manual Refresh | `<button>` | Invalidate queries | **Verified**: `aria-label="Manually refresh dashboard metrics"` |
 | `Topbar.tsx:162`| Theme Toggle | `<button>` | Switch dark/light | **Verified**: `aria-label="Toggle dark and light theme"`, smooth transition |
-| `Sidebar.tsx:42`| CostGuard Brand Logo | `Link` (`<a>`) | Navigate to `/` | **Verified**: Internal router navigation, no reload |
+| `Sidebar.tsx:42`| Meghdrishti Brand Logo | `Link` (`<a>`) | Navigate to `/` | **Verified**: Internal router navigation, no reload |
 | `Sidebar.tsx:70`| Sidebar Collapse Toggle | `<button>` | Collapse / expand | **Verified**: `aria-label="Toggle sidebar collapse"`, preserved in store |
 | `Sidebar.tsx:95`| Overview Nav Link | `NavLink` | Navigate to `/` | **Verified**: `aria-current="page"` when active |
 | `Sidebar.tsx:105`| Anomalies Nav Link | `NavLink` | Navigate to `/anomalies` | **Verified**: Unacknowledged count badge displayed |

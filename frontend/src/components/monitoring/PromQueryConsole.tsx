@@ -82,7 +82,7 @@ export function PromQueryConsole({
   // Load history from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('costguard_prom_history')
+      const saved = localStorage.getItem('meghdrishti_prom_history') || localStorage.getItem('costguard_prom_history')
       if (saved) {
         setHistory(JSON.parse(saved).slice(0, 20))
       }
@@ -107,7 +107,7 @@ export function PromQueryConsole({
     const next = [expr, ...history.filter((h) => h !== expr)].slice(0, 20)
     setHistory(next)
     try {
-      localStorage.setItem('costguard_prom_history', JSON.stringify(next))
+      localStorage.setItem('meghdrishti_prom_history', JSON.stringify(next))
     } catch {}
   }
 

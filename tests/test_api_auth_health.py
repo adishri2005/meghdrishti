@@ -32,7 +32,7 @@ class TestHealthAndMetricsEndpoints:
         resp = client.get("/metrics")
         assert resp.status_code == 200
         assert "text/plain" in resp.headers.get("content-type", "")
-        assert "ccad" in resp.text or "python" in resp.text
+        assert any(k in resp.text for k in ("meghdrishti", "ccad", "python"))
 
     def test_request_id_middleware(self, client):
         custom_rid = "custom-test-uuid-1234"

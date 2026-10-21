@@ -11,7 +11,7 @@ import threading
 
 from prometheus_client import start_http_server
 
-logger = logging.getLogger("ccad.worker.metrics")
+logger = logging.getLogger("meghdrishti.worker.metrics")
 
 _started = False
 

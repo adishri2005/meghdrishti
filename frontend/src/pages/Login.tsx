@@ -90,7 +90,7 @@ export default function Login() {
             </svg>
           </div>
           <span className="font-semibold text-base tracking-tight text-foreground font-mono">
-            CostGuard
+            Meghdrishti
           </span>
         </div>
 
@@ -121,7 +121,7 @@ export default function Login() {
       <div className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm space-y-6">
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Sign in to CostGuard</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">Sign in to Meghdrishti</h2>
             <p className="text-xs text-muted-foreground">
               Enter your credentials to access the telemetry console.
             </p>

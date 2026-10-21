@@ -37,10 +37,10 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     # --- Postgres ---
-    database_url: str = "postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad"
-    postgres_user: str = "ccad"
+    database_url: str = "postgresql+psycopg2://meghdrishti:change_me_pg@postgres:5432/meghdrishti"
+    postgres_user: str = "meghdrishti"
     postgres_password: str = "change_me_pg"
-    postgres_db: str = "ccad"
+    postgres_db: str = "meghdrishti"
 
     # --- Redis ---
     redis_url: str = "redis://redis:6379/0"
@@ -111,7 +111,7 @@ class Settings(BaseSettings):
             else:
                 if val == default_val or "change_me" in str(val).lower():
                     import logging
-                    logging.getLogger("ccad.config").warning(
+                    logging.getLogger("meghdrishti.config").warning(
                         f"INSECURE DEFAULT: '{name}' is using default development credentials."
                     )
         return self

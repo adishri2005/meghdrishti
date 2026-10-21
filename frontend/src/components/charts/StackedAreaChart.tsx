@@ -55,7 +55,7 @@ export function StackedAreaChart({
   anomalies = [],
   onAnomalyClick,
   height = 320,
-  groupId = 'costguard-shared',
+  groupId = 'meghdrishti-shared',
   showLegend = true,
   className = '',
 }: StackedAreaChartProps) {
@@ -286,7 +286,7 @@ export function StackedAreaChart({
       <ReactECharts
         ref={chartRef}
         option={option}
-        theme={isDark ? 'costguard-dark' : 'costguard-light'}
+        theme={isDark ? 'meghdrishti-dark' : 'meghdrishti-light'}
         style={{ height, width: '100%' }}
         opts={{ renderer: 'canvas' }}
         onEvents={onEvents}

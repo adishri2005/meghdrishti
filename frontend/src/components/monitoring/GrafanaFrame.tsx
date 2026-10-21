@@ -23,8 +23,8 @@ export function GrafanaFrame({
   const { from, to, preset } = timeRange
   
   const [dashboards, setDashboards] = useState<GrafanaDashboardSearchResult[]>([])
-  const [selectedDashboard, setSelectedDashboard] = useState<string>('ccad-main')
-  const [selectedSlug, setSelectedSlug] = useState<string>('costguard-overview')
+  const [selectedDashboard, setSelectedDashboard] = useState<string>('meghdrishti-main')
+  const [selectedSlug, setSelectedSlug] = useState<string>('meghdrishti-overview')
   const [kiosk, setKiosk] = useState<boolean>(defaultKiosk)
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
@@ -43,7 +43,7 @@ export function GrafanaFrame({
         setDashboards(list)
         const current = list.find((d) => d.uid === selectedDashboard)
         if (current) {
-          setSelectedSlug(current.slug || 'costguard-overview')
+          setSelectedSlug(current.slug || 'meghdrishti-overview')
         }
       }
     })
@@ -110,6 +110,8 @@ export function GrafanaFrame({
   const handleReauthAndReload = () => {
     if (typeof document !== 'undefined') {
       document.cookie =
+        'meghdrishti_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MjAwMDAwMDAwMH0.DLR8ja99MFa-CXyB3FeV1Z7b13LKcx1m_cVOiBA3NqM; path=/; max-age=86400; SameSite=Lax'
+      document.cookie =
         'ccad_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MjAwMDAwMDAwMH0.DLR8ja99MFa-CXyB3FeV1Z7b13LKcx1m_cVOiBA3NqM; path=/; max-age=86400; SameSite=Lax'
     }
     setLoading(true)
@@ -135,7 +137,7 @@ export function GrafanaFrame({
   const handleDashboardSelect = (uid: string) => {
     setSelectedDashboard(uid)
     const match = dashboards.find((d) => d.uid === uid)
-    if (match) setSelectedSlug(match.slug || 'costguard-overview')
+    if (match) setSelectedSlug(match.slug || 'meghdrishti-overview')
   }
 
   return (
@@ -264,7 +266,7 @@ export function GrafanaFrame({
             ref={iframeRef}
             key={reloadKey}
             src={embedUrl}
-            title="CostGuard Grafana Observability Dashboard"
+            title="Meghdrishti Grafana Observability Dashboard"
             onLoad={handleIframeLoad}
             referrerPolicy="same-origin"
             loading="lazy"

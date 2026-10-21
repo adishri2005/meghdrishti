@@ -19,7 +19,7 @@ from app.models import SettingsRow
 from app.schemas import ThresholdsResponse, ThresholdsUpdateRequest
 from app.security import Principal, audit, require_roles
 
-logger = logging.getLogger("ccad.config")
+logger = logging.getLogger("meghdrishti.config")
 router = APIRouter(prefix="/config", tags=["Configuration"])
 
 

@@ -68,6 +68,8 @@ export function PrometheusFrame({
   const handleReauthAndReload = () => {
     if (typeof document !== 'undefined') {
       document.cookie =
+        'meghdrishti_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MjAwMDAwMDAwMH0.DLR8ja99MFa-CXyB3FeV1Z7b13LKcx1m_cVOiBA3NqM; path=/; max-age=86400; SameSite=Lax'
+      document.cookie =
         'ccad_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MjAwMDAwMDAwMH0.DLR8ja99MFa-CXyB3FeV1Z7b13LKcx1m_cVOiBA3NqM; path=/; max-age=86400; SameSite=Lax'
     }
     setLoading(true)
@@ -188,7 +190,7 @@ export function PrometheusFrame({
             ref={iframeRef}
             key={reloadKey}
             src={prometheusUrl}
-            title="CostGuard Prometheus Web Console"
+            title="Meghdrishti Prometheus Web Console"
             onLoad={handleIframeLoad}
             referrerPolicy="same-origin"
             loading="lazy"

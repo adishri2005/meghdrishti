@@ -1,6 +1,6 @@
-# CostGuard Console Frontend Documentation
+# Meghdrishti Console Frontend Documentation
 
-**CostGuard** is the enterprise-grade FinOps and Observability web console for the Cloud Cost Anomaly Detection System (Project P75). Built with React 18, TypeScript (strict mode), Tailwind CSS, shadcn/ui primitives, and Apache ECharts, it unifies cost anomaly exploration, root-cause diagnostics, pipeline simulation, live log streaming, blue/green deployment tracking, native Prometheus PromQL analytics, and embedded Grafana dashboards behind a single secure origin.
+**Meghdrishti** is the enterprise-grade FinOps and Observability web console for the Cloud Cost Anomaly Detection System (Project P75). Built with React 18, TypeScript (strict mode), Tailwind CSS, shadcn/ui primitives, and Apache ECharts, it unifies cost anomaly exploration, root-cause diagnostics, pipeline simulation, live log streaming, blue/green deployment tracking, native Prometheus PromQL analytics, and embedded Grafana dashboards behind a single secure origin.
 
 ---
 
@@ -9,7 +9,7 @@
 ```
                       +---------------------------------------+
                       |               Browser                 |
-                      |   CostGuard SPA (React 18 + Vite)     |
+                      |  Meghdrishti SPA (React 18 + Vite)    |
                       +-------------------+-------------------+
                                           |
                         HTTPS :8443 (Single Secure Origin)
@@ -46,7 +46,7 @@
 | **Framework** | React 18.3 + TypeScript 5.6 | Strict mode, zero `any`, Zod schema boundary validation |
 | **Build Tool** | Vite 5.4 | Fast HMR, manual chunk splitting (`echarts`, `vendor`, `types`) |
 | **Styling** | Tailwind CSS 3.4 + Radix UI | CSS variables, responsive design down to 360px |
-| **Visualizations** | Apache ECharts 5 | Custom `costguard-dark` and `costguard-light` themes, LTTB downsampling |
+| **Visualizations** | Apache ECharts 5 | Custom `meghdrishti-dark` and `meghdrishti-light` themes, LTTB downsampling |
 | **State Management**| TanStack Query v5 + Zustand | Server cache with auto-refresh; client UI preferences persisted |
 | **Tables & Lists** | TanStack Table v8 + TanStack Virtual | Virtualized application log table handling 10,000+ rows smoothly |
 | **Testing** | Vitest, MSW 2, Playwright | 28 unit/component tests + 3 end-to-end integration flows |
@@ -66,7 +66,7 @@ npm run dev
 Open `http://localhost:5173/` in your browser.
 
 ### Full Stack Production Integration
-To run CostGuard integrated with the entire Docker Compose stack:
+To run Meghdrishti integrated with the entire Docker Compose stack:
 
 ```bash
 # Build and launch all services (API, Worker, Postgres, Redis, Prometheus, Grafana, Nginx, Frontend)
@@ -77,7 +77,7 @@ make fe-build
 ```
 
 Access the console at:
-- **CostGuard Console**: `https://localhost:8443/`
+- **Meghdrishti Console**: `https://localhost:8443/`
 - **Embedded Grafana Dashboard**: `https://localhost:8443/monitoring?tab=grafana`
 - **Embedded Prometheus Console**: `https://localhost:8443/monitoring?tab=prometheus`
 
@@ -89,7 +89,7 @@ Access the console at:
 
 ## 4. PromQL Named Query Reference
 
-CostGuard draws native charts using standard Prometheus HTTP API requests (`/prometheus/api/v1/query_range`). The queries executed by the frontend include:
+Meghdrishti draws native charts using standard Prometheus HTTP API requests (`/prometheus/api/v1/query_range`). The queries executed by the frontend include:
 
 | Metric Name | PromQL Expression | Purpose |
 |---|---|---|

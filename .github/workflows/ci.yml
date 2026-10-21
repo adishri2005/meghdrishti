@@ -13,13 +13,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: ccad
+          POSTGRES_USER: meghdrishti
           POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: ccad
+          POSTGRES_DB: meghdrishti
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U ccad"
+          --health-cmd="pg_isready -U meghdrishti"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -35,7 +35,7 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgresql+psycopg2://ccad:test_password@localhost:5432/ccad
+      DATABASE_URL: postgresql+psycopg2://meghdrishti:test_password@localhost:5432/meghdrishti
       REDIS_URL: redis://localhost:6379/0
       JWT_SECRET: ci-test-secret-not-for-production
       LOG_LEVEL: WARNING
@@ -79,10 +79,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -f docker/Dockerfile -t ccad-api:ci-test .
+        run: docker build -f docker/Dockerfile -t meghdrishti-api:ci-test .
 
       - name: Verify image
-        run: docker run --rm --entrypoint python ccad-api:ci-test -c "from app.main import app; print('OK')"
+        run: docker run --rm --entrypoint python meghdrishti-api:ci-test -c "from app.main import app; print('OK')"
 
   frontend:
     runs-on: ubuntu-latest

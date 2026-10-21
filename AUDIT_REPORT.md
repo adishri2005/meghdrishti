@@ -1,6 +1,6 @@
 # Backend Audit, Security Hardening, & Reliability Report
 
-**Repository**: `cloud-cost-anomaly-detection` (CostGuard / CCAD)  
+**Repository**: `cloud-cost-anomaly-detection` (Meghdrishti)  
 **Branch**: `hardening/backend-audit`  
 **Date**: October 12, 2026  
 **Auditor**: Principal Backend Engineer, Application Security Engineer, & SRE  
@@ -52,7 +52,7 @@ If existing environments were ever initialized using default credentials from `.
 - **`JWT_SECRET`**: Run `openssl rand -hex 32` and populate in production environment.
 - **`ADMIN_PASSWORD`** / **`ANALYST_PASSWORD`**: Set distinct, high-entropy passwords.
 - **`SERVICE_API_KEY`**: Re-generate backend pipeline API key.
-- **`POSTGRES_PASSWORD`**: Update database user password via `ALTER USER ccad WITH PASSWORD '...'`.
+- **`POSTGRES_PASSWORD`**: Update database user password via `ALTER USER meghdrishti WITH PASSWORD '...'`.
 
 ### 2. Breaking Changes Needing Approval
 - **Migration from `python-jose` to `PyJWT`**:

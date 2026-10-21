@@ -21,7 +21,7 @@ from app.cache import redis_healthy
 from app.config import get_settings
 from app.schemas import HealthResponse, LivenessResponse
 
-logger = logging.getLogger("ccad.health")
+logger = logging.getLogger("meghdrishti.health")
 
 router = APIRouter(tags=["Health"])
 

@@ -1,7 +1,7 @@
 import type { DriveStep, Side } from 'driver.js'
 
 /**
- * Tour definitions for every major page/route in CostGuard.
+ * Tour definitions for every major page/route in Meghdrishti.
  * Each definition is an array of DriveStep objects, targeting DOM elements
  * by their `id` attribute (prefixed with `#tour-`).
  *
@@ -9,7 +9,7 @@ import type { DriveStep, Side } from 'driver.js'
  */
 
 // ─── Shared Styles ───────────────────────────────────────────────────────
-const popoverClass = 'costguard-tour-popover'
+const popoverClass = 'meghdrishti-tour-popover'
 
 function step(
   element: string,
@@ -34,9 +34,9 @@ function step(
 export const welcomeTour: DriveStep[] = [
   {
     popover: {
-      title: 'Welcome to CostGuard',
+      title: 'Welcome to Meghdrishti',
       description:
-        'CostGuard is your AI-powered FinOps control center for real-time cloud cost anomaly detection, monitoring, and multi-cloud spend governance. Let us give you a quick tour!',
+        'Meghdrishti is your AI-powered FinOps control center for real-time cloud cost anomaly detection, monitoring, and multi-cloud spend governance. Let us give you a quick tour!',
       popoverClass,
     },
   },
@@ -377,7 +377,7 @@ export const settingsTour: DriveStep[] = [
     popover: {
       title: 'System Settings',
       description:
-        'Configure CostGuard behavior: anomaly detection thresholds, notification preferences, team management, and system configuration. Admin access required.',
+        'Configure Meghdrishti behavior: anomaly detection thresholds, notification preferences, team management, and system configuration. Admin access required.',
       popoverClass,
     },
   },
@@ -403,7 +403,7 @@ export type TourId =
   | 'settings'
 
 export const TOUR_DEFINITIONS: Record<TourId, { title: string; steps: DriveStep[] }> = {
-  welcome: { title: 'Welcome to CostGuard', steps: welcomeTour },
+  welcome: { title: 'Welcome to Meghdrishti', steps: welcomeTour },
   overview: { title: 'Overview Dashboard', steps: overviewTour },
   anomalies: { title: 'Anomaly Detection', steps: anomaliesTour },
   costs: { title: 'Cost Explorer', steps: costsTour },

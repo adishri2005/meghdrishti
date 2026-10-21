@@ -1,9 +1,9 @@
-# Grafana Panel Mapping (CostGuard Overview)
+# Grafana Panel Mapping (Meghdrishti Overview)
 
-The Grafana dashboard `monitoring/grafana/dashboards/ccad.json` is provisioned with UID `ccad-main` and title `CostGuard Overview`.
+The Grafana dashboard `monitoring/grafana/dashboards/meghdrishti.json` is provisioned with UID `meghdrishti-main` and title `Meghdrishti Overview`.
 
 The frontend console embeds individual panels using Grafana's solo embed URL pattern:
-`/grafana/d-solo/ccad-main/costguard-overview?orgId=1&panelId=<id>&theme=dark`
+`/grafana/d-solo/meghdrishti-main/meghdrishti-overview?orgId=1&panelId=<id>&theme=dark`
 
 ## Panel ID to Title & Metric Mapping
 

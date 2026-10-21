@@ -24,7 +24,7 @@ export function StatusStrip() {
       try {
         const res = await axios.get('/api/v1/system/status', {
           withCredentials: true,
-          headers: { 'X-Requested-With': 'CostGuard' },
+          headers: { 'X-Requested-With': 'Meghdrishti' },
         })
         return res.data
       } catch {

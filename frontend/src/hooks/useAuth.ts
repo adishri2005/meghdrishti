@@ -58,8 +58,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Ignore network failure on logout
     } finally {
       try {
-        localStorage.setItem('ccad_logout_sync', String(Date.now()))
-        localStorage.removeItem('ccad_logout_sync')
+        localStorage.setItem('meghdrishti_logout_sync', String(Date.now()))
+        localStorage.removeItem('meghdrishti_logout_sync')
       } catch {
         // Storage might be unavailable or restricted
       }
@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 // Cross-tab logout listener
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
-    if (event.key === 'ccad_logout_sync' && event.newValue) {
+    if ((event.key === 'meghdrishti_logout_sync' || event.key === 'ccad_logout_sync') && event.newValue) {
       useAuthStore.setState({ user: null })
       if (!window.location.pathname.startsWith('/login')) {
         window.location.href = '/login'

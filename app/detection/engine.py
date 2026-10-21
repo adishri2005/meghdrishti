@@ -27,7 +27,7 @@ from app.detection.rules import DetectionConfig, evaluate
 from app.metrics import ANOMALIES_DETECTED, DETECTION_DELAY
 from app.models import Anomaly, Baseline, ResourceState
 
-logger = logging.getLogger("ccad.detection")
+logger = logging.getLogger("meghdrishti.detection")
 
 
 def get_baseline_stats(

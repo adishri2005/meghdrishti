@@ -80,7 +80,7 @@ openapi: ## Export OpenAPI spec to docs/openapi.json
 	$(PYTHON) scripts/export_openapi.py
 
 db-shell: ## Open psql shell
-	$(COMPOSE) exec postgres psql -U ccad ccad
+	$(COMPOSE) exec postgres psql -U meghdrishti meghdrishti
 
 redis-cli: ## Open Redis CLI
 	$(COMPOSE) exec redis redis-cli
@@ -89,7 +89,7 @@ clean: ## Remove results and cached files
 	rm -rf results/*.csv results/*.md results/*.json results/*.log results/*.txt
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
-# === Frontend (CostGuard Console) ===
+# === Frontend (Meghdrishti Console) ===
 fe-install: ## Install frontend dependencies
 	cd frontend && npm ci
 

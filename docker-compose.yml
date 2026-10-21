@@ -3,19 +3,19 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-ccad}
+      POSTGRES_USER: ${POSTGRES_USER:-meghdrishti}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_pg}
-      POSTGRES_DB: ${POSTGRES_DB:-ccad}
+      POSTGRES_DB: ${POSTGRES_DB:-meghdrishti}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ccad}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-meghdrishti}"]
       interval: 5s
       timeout: 3s
       retries: 5
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   redis:
     image: redis:7-alpine
@@ -29,7 +29,7 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   # --- Application (Blue/Green) ---
   api-blue:
@@ -38,10 +38,10 @@ services:
       dockerfile: docker/Dockerfile
       args:
         APP_VERSION: ${BLUE_TAG:-1.0.0}
-    image: ccad-api:${BLUE_TAG:-1.0.0}
+    image: meghdrishti-api:${BLUE_TAG:-1.0.0}
     command: ["api"]
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://meghdrishti:change_me_pg@postgres:5432/meghdrishti}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       JWT_SECRET: ${JWT_SECRET:-change_me_to_a_long_random_string}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
@@ -72,7 +72,7 @@ services:
       start_period: 30s
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   api-green:
     build:
@@ -80,10 +80,10 @@ services:
       dockerfile: docker/Dockerfile
       args:
         APP_VERSION: ${GREEN_TAG:-1.0.0}
-    image: ccad-api:${GREEN_TAG:-1.0.0}
+    image: meghdrishti-api:${GREEN_TAG:-1.0.0}
     command: ["api"]
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://meghdrishti:change_me_pg@postgres:5432/meghdrishti}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       JWT_SECRET: ${JWT_SECRET:-change_me_to_a_long_random_string}
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
@@ -114,7 +114,7 @@ services:
       start_period: 30s
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
     profiles:
       - green
 
@@ -125,10 +125,10 @@ services:
       dockerfile: docker/Dockerfile
       args:
         APP_VERSION: ${BLUE_TAG:-1.0.0}
-    image: ccad-api:${BLUE_TAG:-1.0.0}
+    image: meghdrishti-api:${BLUE_TAG:-1.0.0}
     command: ["worker"]
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://meghdrishti:change_me_pg@postgres:5432/meghdrishti}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_VERSION: ${BLUE_TAG:-1.0.0}
       APP_COLOR: blue
@@ -150,7 +150,7 @@ services:
       start_period: 15s
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   # --- Frontend Console ---
   frontend:
@@ -159,7 +159,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ || exit 1"]
       interval: 10s
@@ -181,7 +181,7 @@ services:
       - frontend
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   # --- Monitoring ---
   prometheus:
@@ -198,7 +198,7 @@ services:
       - '--web.route-prefix=/'
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   grafana:
     image: grafana/grafana:11.2.0
@@ -219,7 +219,7 @@ services:
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   redis-exporter:
     image: oliver006/redis_exporter:v1.63.0
@@ -229,23 +229,23 @@ services:
       - redis
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.15.0
     environment:
-      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-ccad}:${POSTGRES_PASSWORD:-change_me_pg}@postgres:5432/${POSTGRES_DB:-ccad}?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-meghdrishti}:${POSTGRES_PASSWORD:-change_me_pg}@postgres:5432/${POSTGRES_DB:-meghdrishti}?sslmode=disable"
     depends_on:
       - postgres
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
   node-exporter:
     image: prom/node-exporter:v1.8.2
     restart: unless-stopped
     networks:
-      - ccad-net
+      - meghdrishti-net
 
 volumes:
   pgdata:
@@ -257,5 +257,5 @@ volumes:
   grafana-data:
 
 networks:
-  ccad-net:
+  meghdrishti-net:
     driver: bridge

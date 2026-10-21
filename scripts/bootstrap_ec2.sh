@@ -1,8 +1,8 @@
 #!/bin/bash
-# Bootstrap a fresh Ubuntu EC2 instance for CCAD
+# Bootstrap a fresh Ubuntu EC2 instance for Meghdrishti
 set -e
 
-echo "=== CCAD EC2 Bootstrap ==="
+echo "=== Meghdrishti EC2 Bootstrap ==="
 
 # Update system
 sudo apt-get update

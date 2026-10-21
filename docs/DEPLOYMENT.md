@@ -86,4 +86,4 @@ curl -sk https://localhost:8443/api/v1/anomalies -H "Authorization: Bearer $(cur
 - **Scale workers**: `docker compose up -d --scale worker=3`
 - **Update**: `git pull && bash scripts/deploy.sh <new-version>`
 - **Rollback**: `bash scripts/rollback.sh`
-- **Backup DB**: `docker compose exec postgres pg_dump -U ccad ccad > backup.sql`
+- **Backup DB**: `docker compose exec postgres pg_dump -U meghdrishti meghdrishti > backup.sql`

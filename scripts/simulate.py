@@ -164,7 +164,7 @@ def cmd_inject(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CCAD Simulation Client")
+    parser = argparse.ArgumentParser(description="Meghdrishti Simulation Client")
     parser.add_argument("--base-url", default=None)
     parser.add_argument("--api-key", default=None)
     parser.add_argument("--username", default=None)

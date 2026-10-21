@@ -117,7 +117,7 @@ export function useLogStream(options: UseLogStreamOptions = {}) {
             const record: LogRecord = {
               timestamp: new Date().toISOString(),
               level: 'INFO',
-              logger: 'ccad.system',
+              logger: 'meghdrishti.system',
               event: 'stream_raw',
               message: event.data,
             }

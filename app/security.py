@@ -31,7 +31,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import get_db
 
-logger = logging.getLogger("ccad.security")
+logger = logging.getLogger("meghdrishti.security")
 
 # ---------------------------------------------------------------------------
 # Password hashing (bcrypt directly — passlib is broken on bcrypt>=4.1)
@@ -166,13 +166,16 @@ async def check_login_rate_limit(request: Request) -> None:
 
 
 def _get_jwt_principal(request: Request, db: Session) -> Optional[Principal]:
-    """Try to extract a principal from Authorization: Bearer header OR ccad_token cookie."""
+    """Try to extract a principal from Authorization: Bearer header OR meghdrishti_token / ccad_token cookie."""
     auth_header = request.headers.get("Authorization", "")
     token = None
     from_cookie = False
 
     if auth_header.startswith("Bearer "):
         token = auth_header[7:].strip()
+    elif "meghdrishti_token" in request.cookies:
+        token = request.cookies.get("meghdrishti_token")
+        from_cookie = True
     elif "ccad_token" in request.cookies:
         token = request.cookies.get("ccad_token")
         from_cookie = True
@@ -180,10 +183,10 @@ def _get_jwt_principal(request: Request, db: Session) -> Optional[Principal]:
     if not token:
         return None
 
-    # CSRF check: For state-changing requests authenticated by cookie, require X-Requested-With: CostGuard
+    # CSRF check: For state-changing requests authenticated by cookie, require X-Requested-With: Meghdrishti
     if from_cookie and request.method in ("POST", "PUT", "DELETE", "PATCH"):
         csrf = request.headers.get("X-Requested-With", "")
-        if csrf != "CostGuard":
+        if csrf not in ("Meghdrishti", "CostGuard"):
             raise HTTPException(
                 status_code=403,
                 detail="CSRF validation failed: missing or invalid X-Requested-With header",

@@ -30,7 +30,7 @@ from app.schemas import (
 )
 from app.security import Principal, require_roles
 
-logger = logging.getLogger("ccad.costs")
+logger = logging.getLogger("meghdrishti.costs")
 router = APIRouter(prefix="/costs", tags=["Costs"])
 
 

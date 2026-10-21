@@ -1,4 +1,4 @@
-# CostGuard Design System & Frontend Architecture
+# Meghdrishti Design System & Frontend Architecture
 
 > **Elevated, Minimalist Cloud FinOps Platform**  
 > Inspired by the craft and restraint of Linear, Vercel, Stripe, and Things 3.
@@ -7,7 +7,7 @@
 
 ## 1. Design Philosophy
 
-The CostGuard redesign transforms a cluttered operational dashboard into a calm, intentional, high-density mission control. The guiding tenets are:
+The Meghdrishti redesign transforms a cluttered operational dashboard into a calm, intentional, high-density mission control. The guiding tenets are:
 
 1. **Content Over Decoration**:
    - Eliminated distracting background dot grids, rainbow badge palettes, loud glow borders, and heavy drop shadows.

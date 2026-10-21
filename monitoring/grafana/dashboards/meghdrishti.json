@@ -130,12 +130,12 @@
   ],
   "refresh": "5s",
   "schemaVersion": 39,
-  "tags": ["ccad", "costguard"],
+  "tags": ["meghdrishti"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "CostGuard Overview",
-  "uid": "ccad-main",
+  "title": "Meghdrishti Overview",
+  "uid": "meghdrishti-main",
   "version": 2
 }

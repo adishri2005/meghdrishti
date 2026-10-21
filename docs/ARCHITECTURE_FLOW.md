@@ -1,6 +1,6 @@
-# Cloud Cost Anomaly Detection (CCAD) / CostGuard: Architecture & Data Flow
+# Meghdrishti: Architecture & Data Flow
 
-CostGuard (Cloud Cost Anomaly Detection — Project P75) is a distributed FinOps observability platform that continuously monitors cloud infrastructure spending, establishes historical spending baselines per resource using streaming statistical algorithms, flags unusual cost spikes and creeping drift, isolates root-cause contributors across organizational dimensions, dispatches automated alerts, and provides a zero-downtime, blue/green deployed operational console with native PromQL metrics and embedded Grafana dashboards.
+Meghdrishti (Cloud Cost Anomaly Detection — Project P75) is a distributed FinOps observability platform that continuously monitors cloud infrastructure spending, establishes historical spending baselines per resource using streaming statistical algorithms, flags unusual cost spikes and creeping drift, isolates root-cause contributors across organizational dimensions, dispatches automated alerts, and provides a zero-downtime, blue/green deployed operational console with native PromQL metrics and embedded Grafana dashboards.
 
 ---
 
@@ -15,7 +15,7 @@ CostGuard (Cloud Cost Anomaly Detection — Project P75) is a distributed FinOps
 | **Stream Processing Worker**| Python 3.11 Background Consumer | Redis client, SQLAlchemy 2.0, HTTPX (Alert Webhooks) | [app/worker/main.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/worker/main.py), [app/worker/alerts.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/worker/alerts.py) |
 | **Relational Database** | PostgreSQL 16 Alpine | SQLAlchemy ORM, Alembic migrations, psycopg2 | [app/models.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/models.py), [app/db.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/db.py) |
 | **Telemetry & Observability**| Prometheus v2.54.0, Grafana 11.2.0 | Redis Exporter v1.63, Postgres Exporter v0.15, Node Exporter v1.8.2 | [monitoring/prometheus.yml](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/monitoring/prometheus.yml), [monitoring/alert_rules.yml](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/monitoring/alert_rules.yml) |
-| **Container & Orchestration**| Docker Compose (11 Containers) | Bridge networking (`ccad-net`), Named volumes, Health check probes | [docker-compose.yml](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/docker-compose.yml) |
+| **Container & Orchestration**| Docker Compose (11 Containers) | Bridge networking (`meghdrishti-net`), Named volumes, Health check probes | [docker-compose.yml](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/docker-compose.yml) |
 
 ---
 
@@ -57,7 +57,7 @@ flowchart TB
         UpstreamFile["/etc/nginx/active/upstream.inc"]:::be
     end
 
-    subgraph FRONTEND_LAYER ["3. FRONTEND CONSOLE (CostGuard React 18 SPA)"]
+    subgraph FRONTEND_LAYER ["3. FRONTEND CONSOLE (Meghdrishti React 18 SPA)"]
         UI_Overview("Overview Dashboard (ECharts)"):::fe
         UI_Costs("Costs Explorer & Treemap"):::fe
         UI_Anomalies("Anomalies Triage Table & BandChart"):::fe
@@ -209,7 +209,7 @@ flowchart TB
 ## 5. Step-by-Step Walkthrough of the Master Diagram
 
 ### Step 1: Client Request Inception
-An engineer accesses the CostGuard Web Console (`https://localhost:8443`) or an automated ingestion client (`scripts/simulate.py` / CI runner) submits billing telemetry to the Nginx reverse gateway.
+An engineer accesses the Meghdrishti Web Console (`https://localhost:8443`) or an automated ingestion client (`scripts/simulate.py` / CI runner) submits billing telemetry to the Nginx reverse gateway.
 
 ### Step 2: Gateway Routing & TLS Termination
 `nginx:1.27-alpine` terminates TLS on port `8443`, injects OWASP headers, and routes traffic based on URL prefix:
@@ -218,7 +218,7 @@ An engineer accesses the CostGuard Web Console (`https://localhost:8443`) or an 
 - `/grafana/*` and `/prometheus/*` are routed through an internal `auth_request /_auth_verify` sub-request.
 
 ### Step 3: Auth Verification Sub-request
-`GET /api/v1/auth/verify` validates the `ccad_token` cookie or `Authorization: Bearer` JWT. If the principal lacks `admin` or `analyst` roles, Nginx returns HTTP `401 Unauthorized` or `403 Forbidden`, preventing unauthorized access to raw monitoring endpoints.
+`GET /api/v1/auth/verify` validates the `meghdrishti_token` cookie or `Authorization: Bearer` JWT. If the principal lacks `admin` or `analyst` roles, Nginx returns HTTP `401 Unauthorized` or `403 Forbidden`, preventing unauthorized access to raw monitoring endpoints.
 
 ### Step 4: Monitoring Proxy Access
 Upon successful verification, Nginx proxies requests to Grafana (`grafana:3000`) or Prometheus (`prometheus:9090`), stripping prefixes where appropriate.
@@ -275,7 +275,7 @@ Normal records update Welford statistics and write back to PostgreSQL and Redis 
 Webhook alerts are dispatched via HTTP POST (timeout 3s) and recorded in `alerts`. After database transaction commit, the worker issues `XACK` to acknowledge messages in Redis.
 
 ### Step 17: UI Data Retrieval & Visualization
-The CostGuard frontend fetches cached summaries, anomaly timelines with $\pm 3\sigma$ confidence bands (BandChart), and live PromQL telemetry, completing the operational loop.
+The Meghdrishti frontend fetches cached summaries, anomaly timelines with $\pm 3\sigma$ confidence bands (BandChart), and live PromQL telemetry, completing the operational loop.
 
 ---
 
@@ -710,7 +710,7 @@ flowchart TD
 | `GET` | `/metrics` | `prometheus_metrics` | Public | Prometheus scrape target | None $\rightarrow$ Prometheus text exposition | [app/routers/health.py:100](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/health.py#L100) |
 | `POST`| `/api/v1/auth/login` | `login` | Public | User authentication & cookie grant | `{"username", "password"}` $\rightarrow$ `{"access_token", "expires_in", "role"}` | [app/routers/auth.py:48](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L48) |
 | `GET` | `/api/v1/auth/me` | `get_me` | Analyst / Admin | Current session identity | None $\rightarrow$ `{"username", "role", "expires_at"}` | [app/routers/auth.py:110](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L110) |
-| `POST`| `/api/v1/auth/logout` | `logout` | Authenticated | Clears `ccad_token` cookie | None $\rightarrow$ `{"status": "ok"}` | [app/routers/auth.py:125](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L125) |
+| `POST`| `/api/v1/auth/logout` | `logout` | Authenticated | Clears `meghdrishti_token` cookie | None $\rightarrow$ `{"status": "ok"}` | [app/routers/auth.py:125](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L125) |
 | `GET` | `/api/v1/auth/verify` | `verify_session` | Public / Gateway | Fast check for Nginx `auth_request` | None $\rightarrow$ HTTP 204 No Content (or 401) | [app/routers/auth.py:142](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L142) |
 | `GET` | `/api/v1/auth/users` | `list_users` | Admin | List all registered users | None $\rightarrow$ `[{"id", "username", "role", "is_active"}]` | [app/routers/auth.py:161](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L161) |
 | `POST`| `/api/v1/auth/register` | `register` | Admin | Register new operator account | `{"username", "password", "role"}` $\rightarrow$ `{"id", "username", "role"}` | [app/routers/auth.py:183](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/app/routers/auth.py#L183) |
@@ -772,7 +772,7 @@ Defined in [app/config.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CA
 | Environment Variable | Default Value | Purpose | Impact on Behavior |
 |---|---|---|---|
 | `ENVIRONMENT` | `development` | Deployment tier | In `production`, default passwords and short secrets trigger startup errors. |
-| `DATABASE_URL` | `postgresql+psycopg2://ccad:change_me_pg@postgres:5432/ccad` | SQLAlchemy database URI | Defines target PostgreSQL database connection pool. |
+| `DATABASE_URL` | `postgresql+psycopg2://meghdrishti:change_me_pg@postgres:5432/meghdrishti` | SQLAlchemy database URI | Defines target PostgreSQL database connection pool. |
 | `REDIS_URL` | `redis://redis:6379/0` | Redis instance connection | Connects queue consumer, caches, and rate-limiting counters. |
 | `JWT_SECRET` | `change_me_to_a_long_random_string` | HS256 JWT signature key | Cryptographic key for session validation. Fails fast in prod if default. |
 | `JWT_EXPIRE_MINUTES` | `30` | Access token lifespan | Sets session cookie and JWT expiry timestamp. |
@@ -788,7 +788,7 @@ Defined in [app/config.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CA
 | `LOG_FILE` | `/var/log/app/app.log` | Log destination | File tailed by the SSE `/logs/stream` endpoint. |
 | `ALERT_WEBHOOK_URL` | `""` (empty) | Notification endpoint | If set, worker dispatches JSON incident payloads via HTTP POST. |
 | `HTTP_PORT` | `8080` | External HTTP port | Plain HTTP entry point (redirects to HTTPS 8443). |
-| `HTTPS_PORT` | `8443` | External HTTPS port | Secure TLS entry point for the CostGuard console. |
+| `HTTPS_PORT` | `8443` | External HTTPS port | Secure TLS entry point for the Meghdrishti console. |
 
 ---
 
@@ -870,4 +870,4 @@ This architecture documentation is derived directly from the following verified 
 - [alembic/versions/0001_initial.py](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/alembic/versions/0001_initial.py) — Initial PostgreSQL schema migration
 - [monitoring/prometheus.yml](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/monitoring/prometheus.yml) — Prometheus scrape configurations
 - [monitoring/alert_rules.yml](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/monitoring/alert_rules.yml) — 6 automated alert rules
-- [monitoring/grafana/dashboards/ccad.json](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/monitoring/grafana/dashboards/ccad.json) — 14-panel Grafana dashboard
+- [monitoring/grafana/dashboards/meghdrishti.json](file:///c:/Users/adity/Downloads/CCVT/Semester%207/CAD%20P75/application/monitoring/grafana/dashboards/meghdrishti.json) — 14-panel Grafana dashboard

@@ -31,10 +31,10 @@ export default defineConfig({
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req) => {
             const cookie = req.headers.cookie || ''
-            if (!cookie.includes('ccad_token=')) {
+            if (!cookie.includes('meghdrishti_token=') && !cookie.includes('ccad_token=')) {
               proxyReq.setHeader(
                 'cookie',
-                cookie ? `${cookie}; ccad_token=${DEV_SESSION_TOKEN}` : `ccad_token=${DEV_SESSION_TOKEN}`
+                cookie ? `${cookie}; meghdrishti_token=${DEV_SESSION_TOKEN}; ccad_token=${DEV_SESSION_TOKEN}` : `meghdrishti_token=${DEV_SESSION_TOKEN}; ccad_token=${DEV_SESSION_TOKEN}`
               )
             }
           })
@@ -47,10 +47,10 @@ export default defineConfig({
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req) => {
             const cookie = req.headers.cookie || ''
-            if (!cookie.includes('ccad_token=')) {
+            if (!cookie.includes('meghdrishti_token=') && !cookie.includes('ccad_token=')) {
               proxyReq.setHeader(
                 'cookie',
-                cookie ? `${cookie}; ccad_token=${DEV_SESSION_TOKEN}` : `ccad_token=${DEV_SESSION_TOKEN}`
+                cookie ? `${cookie}; meghdrishti_token=${DEV_SESSION_TOKEN}; ccad_token=${DEV_SESSION_TOKEN}` : `meghdrishti_token=${DEV_SESSION_TOKEN}; ccad_token=${DEV_SESSION_TOKEN}`
               )
             }
           })

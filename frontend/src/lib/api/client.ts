@@ -22,7 +22,7 @@ export const apiClient = axios.create({
   baseURL: '/api/v1',
   withCredentials: true,
   headers: {
-    'X-Requested-With': 'CostGuard',
+    'X-Requested-With': 'Meghdrishti',
     'Content-Type': 'application/json',
   },
 })

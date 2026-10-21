@@ -18,7 +18,7 @@ import redis as redis_lib
 from app.config import get_settings
 from app.metrics import CACHE_HITS, CACHE_MISSES
 
-logger = logging.getLogger("ccad.cache")
+logger = logging.getLogger("meghdrishti.cache")
 
 _redis_client: Optional[redis_lib.Redis] = None
 

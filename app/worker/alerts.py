@@ -20,7 +20,7 @@ import httpx
 from app.config import get_settings
 from app.models import Alert, Anomaly
 
-logger = logging.getLogger("ccad.alerts")
+logger = logging.getLogger("meghdrishti.alerts")
 
 
 def dispatch_alerts(db) -> None:

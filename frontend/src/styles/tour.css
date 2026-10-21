@@ -1,8 +1,8 @@
 /*
- * CostGuard – driver.js Tour Theme Overrides
+ * Meghdrishti – driver.js Tour Theme Overrides
  * ───────────────────────────────────────────
  * Styled to match the app's dark/light design system.
- * Targets the default driver.js classes plus our custom `.costguard-tour-popover`.
+ * Targets the default driver.js classes plus our custom `.meghdrishti-tour-popover`.
  */
 
 /* ── Overlay ───────────────────────────────────────────────────────── */
@@ -12,7 +12,7 @@
 }
 
 /* ── Popover Container ─────────────────────────────────────────────── */
-.driver-popover.costguard-tour-popover {
+.driver-popover.meghdrishti-tour-popover {
   background: hsl(var(--surface)) !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 14px !important;
@@ -27,7 +27,7 @@
   color: hsl(var(--foreground)) !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-title {
+.driver-popover.meghdrishti-tour-popover .driver-popover-title {
   font-size: 15px !important;
   font-weight: 700 !important;
   letter-spacing: -0.01em !important;
@@ -36,7 +36,7 @@
   line-height: 1.4 !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-description {
+.driver-popover.meghdrishti-tour-popover .driver-popover-description {
   font-size: 12.5px !important;
   line-height: 1.65 !important;
   color: hsl(var(--muted-foreground)) !important;
@@ -44,19 +44,19 @@
 }
 
 /* ── Arrow ─────────────────────────────────────────────────────────── */
-.driver-popover.costguard-tour-popover .driver-popover-arrow {
+.driver-popover.meghdrishti-tour-popover .driver-popover-arrow {
   border: 1px solid hsl(var(--border)) !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-arrow-side-left,
-.driver-popover.costguard-tour-popover .driver-popover-arrow-side-right,
-.driver-popover.costguard-tour-popover .driver-popover-arrow-side-top,
-.driver-popover.costguard-tour-popover .driver-popover-arrow-side-bottom {
+.driver-popover.meghdrishti-tour-popover .driver-popover-arrow-side-left,
+.driver-popover.meghdrishti-tour-popover .driver-popover-arrow-side-right,
+.driver-popover.meghdrishti-tour-popover .driver-popover-arrow-side-top,
+.driver-popover.meghdrishti-tour-popover .driver-popover-arrow-side-bottom {
   background: hsl(var(--surface)) !important;
 }
 
 /* ── Progress Bar ──────────────────────────────────────────────────── */
-.driver-popover.costguard-tour-popover .driver-popover-progress-text {
+.driver-popover.meghdrishti-tour-popover .driver-popover-progress-text {
   font-size: 10px !important;
   font-family: var(--font-geist-mono, 'Geist Mono', 'JetBrains Mono', monospace) !important;
   color: hsl(var(--muted-foreground)) !important;
@@ -66,16 +66,16 @@
 }
 
 /* ── Navigation Buttons ────────────────────────────────────────────── */
-.driver-popover.costguard-tour-popover .driver-popover-footer {
+.driver-popover.meghdrishti-tour-popover .driver-popover-footer {
   margin-top: 16px !important;
   gap: 8px !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-navigation-btns {
+.driver-popover.meghdrishti-tour-popover .driver-popover-navigation-btns {
   gap: 6px !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-prev-btn {
+.driver-popover.meghdrishti-tour-popover .driver-popover-prev-btn {
   background: hsl(var(--surface-elevated, var(--muted))) !important;
   color: hsl(var(--foreground)) !important;
   border: 1px solid hsl(var(--border)) !important;
@@ -88,13 +88,13 @@
   font-family: inherit !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-prev-btn:hover {
+.driver-popover.meghdrishti-tour-popover .driver-popover-prev-btn:hover {
   background: hsl(var(--muted)) !important;
   border-color: hsl(var(--border-strong, var(--border))) !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-next-btn,
-.driver-popover.costguard-tour-popover .driver-popover-close-btn-text {
+.driver-popover.meghdrishti-tour-popover .driver-popover-next-btn,
+.driver-popover.meghdrishti-tour-popover .driver-popover-close-btn-text {
   background: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
   border: none !important;
@@ -108,14 +108,14 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-next-btn:hover,
-.driver-popover.costguard-tour-popover .driver-popover-close-btn-text:hover {
+.driver-popover.meghdrishti-tour-popover .driver-popover-next-btn:hover,
+.driver-popover.meghdrishti-tour-popover .driver-popover-close-btn-text:hover {
   opacity: 0.9 !important;
   transform: translateY(-0.5px) !important;
 }
 
 /* ── Close X Button ────────────────────────────────────────────────── */
-.driver-popover.costguard-tour-popover .driver-popover-close-btn {
+.driver-popover.meghdrishti-tour-popover .driver-popover-close-btn {
   color: hsl(var(--muted-foreground)) !important;
   font-size: 16px !important;
   width: 28px !important;
@@ -129,7 +129,7 @@
   right: 14px !important;
 }
 
-.driver-popover.costguard-tour-popover .driver-popover-close-btn:hover {
+.driver-popover.meghdrishti-tour-popover .driver-popover-close-btn:hover {
   background: hsl(var(--muted)) !important;
   color: hsl(var(--foreground)) !important;
 }
@@ -154,6 +154,6 @@
   }
 }
 
-.driver-popover.costguard-tour-popover {
+.driver-popover.meghdrishti-tour-popover {
   animation: driver-popover-entrance 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }

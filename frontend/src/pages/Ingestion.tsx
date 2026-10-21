@@ -313,7 +313,7 @@ export default function Ingestion() {
                   lag msgs
                 </span>
               </div>
-              <p className="text-[11px] text-muted-foreground">ccad_costs stream buffer</p>
+              <p className="text-[11px] text-muted-foreground">meghdrishti_costs stream buffer</p>
             </div>
             <div className="text-[10px] font-mono text-muted-foreground flex items-center justify-between pt-1 border-t border-border/50">
               <span>DLQ: {dlqLength}</span>

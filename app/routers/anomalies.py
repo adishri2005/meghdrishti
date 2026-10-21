@@ -26,7 +26,7 @@ from app.schemas import (
 )
 from app.security import Principal, audit, require_roles
 
-logger = logging.getLogger("ccad.anomalies")
+logger = logging.getLogger("meghdrishti.anomalies")
 router = APIRouter(prefix="/anomalies", tags=["Anomalies"])
 
 

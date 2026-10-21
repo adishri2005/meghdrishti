@@ -30,7 +30,7 @@ echo "Active: $ACTIVE_COLOR | Standby: $STANDBY | Faulty: $FAULTY"
 echo "[$(date -Iseconds)] deploy_started version=$VERSION standby=$STANDBY" | tee -a "$RESULTS_DIR/deploy_timeline.log"
 
 # --- Build image ---
-echo "Building image ccad-api:${VERSION}..."
+echo "Building image meghdrishti-api:${VERSION}..."
 docker compose build --build-arg APP_VERSION="$VERSION" "api-${STANDBY}"
 
 # --- Start standby ---

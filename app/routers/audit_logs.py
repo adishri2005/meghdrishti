@@ -18,7 +18,7 @@ from app.db import get_db
 from app.models import AuditLog
 from app.security import Principal, require_roles
 
-logger = logging.getLogger("ccad.audit_logs")
+logger = logging.getLogger("meghdrishti.audit_logs")
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 
 

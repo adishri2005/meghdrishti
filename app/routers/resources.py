@@ -19,7 +19,7 @@ from app.db import get_db
 from app.models import Anomaly, Baseline, CostRecord, Resource
 from app.security import Principal, require_roles
 
-logger = logging.getLogger("ccad.resources")
+logger = logging.getLogger("meghdrishti.resources")
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
 
