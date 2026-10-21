@@ -58,7 +58,9 @@ jobs:
         run: ruff check app/ tests/
 
       - name: Run unit & integration tests with coverage
-        run: pytest tests/ -v --tb=short --cov=app --cov-report=xml:results/coverage.xml --cov-report=term --junitxml=results/junit.xml
+        run: |
+          mkdir -p results
+          python -m pytest tests/ -v --tb=short --cov=app --cov-report=xml:results/coverage.xml --cov-report=term --junitxml=results/junit.xml
 
       - name: Run migrations
         run: alembic upgrade head

@@ -27,3 +27,4 @@ ignore = [
 minversion = "7.0"
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+pythonpath = ["."]
