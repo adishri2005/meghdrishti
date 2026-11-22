@@ -1,0 +1,143 @@
+erDiagram
+    users {
+        BigInteger id PK
+        String username UK
+        String password_hash
+        String role
+        Boolean is_active
+        DateTime created_at
+    }
+
+    api_clients {
+        BigInteger id PK
+        String name UK
+        String api_key_hash UK
+        String role
+        Boolean is_active
+        DateTime created_at
+    }
+
+    resources {
+        BigInteger id PK
+        String resource_id UK
+        String type
+        String service
+        String region
+        String team_tag
+        DateTime first_seen
+    }
+
+    ingestion_jobs {
+        UUID id PK
+        String submitted_by
+        Integer record_count
+        Integer processed_count
+        Integer failed_count
+        String status
+        Boolean backfill
+        DateTime created_at
+        DateTime finished_at
+    }
+
+    cost_records {
+        BigInteger id PK
+        BigInteger resource_id FK
+        DateTime ts
+        Numeric usage_quantity
+        Numeric unit_cost
+        Numeric cost
+        UUID job_id FK
+        DateTime created_at
+    }
+
+    baselines {
+        BigInteger resource_id PK_FK
+        Integer hour_of_day PK
+        Integer n
+        Float mean
+        Float m2
+        DateTime updated_at
+    }
+
+    resource_state {
+        BigInteger resource_id PK_FK
+        Float ewma_ratio
+        DateTime last_ts
+        DateTime updated_at
+    }
+
+    anomalies {
+        BigInteger id PK
+        String scope
+        BigInteger resource_id FK
+        DateTime detected_at
+        DateTime record_ts
+        Float observed_cost
+        Float expected_cost
+        Float z_score
+        Float pct_increase
+        String severity
+        String method
+        Text root_cause_summary
+        JSONB root_cause
+        String status
+        Integer occurrences
+        Float peak_cost
+        DateTime last_seen_ts
+    }
+
+    alerts {
+        BigInteger id PK
+        BigInteger anomaly_id FK
+        String channel
+        DateTime sent_at
+        String delivery_status
+        Text detail
+    }
+
+    audit_logs {
+        BigInteger id PK
+        String actor
+        String action
+        String entity
+        String entity_id
+        String ip
+        String result
+        JSONB detail
+        DateTime ts
+    }
+
+    settings {
+        String key PK
+        JSONB value
+        String updated_by
+        DateTime updated_at
+    }
+
+    deployments {
+        BigInteger id PK
+        String version
+        String color
+        String status
+        DateTime deployed_at
+        DateTime activated_at
+        DateTime rolled_back_at
+        Text note
+    }
+
+    ground_truth_anomalies {
+        BigInteger id PK
+        String resource_id
+        String kind
+        DateTime start_ts
+        DateTime end_ts
+        Float multiplier
+        DateTime created_at
+    }
+
+    resources ||--o{ cost_records : "has"
+    resources ||--o{ baselines : "has"
+    resources ||--o| resource_state : "has"
+    resources ||--o{ anomalies : "flagged_in"
+    ingestion_jobs ||--o{ cost_records : "contains"
+    anomalies ||--o{ alerts : "triggers"

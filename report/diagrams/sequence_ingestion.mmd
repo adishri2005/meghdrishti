@@ -1,0 +1,40 @@
+sequenceDiagram
+    participant C as Client
+    participant N as Nginx Gateway
+    participant A as FastAPI (Blue)
+    participant R as Redis Stream
+    participant W as Detection Worker
+    participant P as PostgreSQL
+    participant WH as Webhook
+
+    C->>N: POST /api/v1/records/batch (HTTPS)
+    N->>A: Proxy to active upstream
+    A->>A: Validate JWT / API Key
+    A->>A: Validate Pydantic schema (1-5000 records)
+    A->>P: INSERT ingestion_jobs (status=queued)
+    loop For each record in batch
+        A->>R: XADD cost_records {payload, job_id, enqueued_at}
+    end
+    A-->>C: 202 Accepted {job_id, accepted, status}
+
+    Note over W: Consumer group loop (XREADGROUP)
+    R->>W: Deliver batch of messages
+    W->>W: Parse + sort by timestamp
+    loop For each record
+        W->>P: Upsert resource (INSERT or SELECT)
+        W->>P: INSERT cost_record (ON CONFLICT DO NOTHING)
+        W->>P: Load baseline (n, mean, m2)
+        W->>W: Welford update baseline
+        W->>W: Evaluate rules (z-score, pct, EWMA, new-resource)
+        alt Anomaly detected
+            W->>P: INSERT/UPDATE anomaly
+            W->>P: INSERT alert
+        end
+        W->>P: Save updated baseline
+    end
+    W->>W: Aggregate check per hour
+    W->>P: COMMIT transaction
+    W->>R: XACK batch
+    opt Webhook configured
+        W->>WH: POST alert notification
+    end

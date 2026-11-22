@@ -1,0 +1,58 @@
+graph TB
+    subgraph "External Access"
+        User["FinOps / DevOps Engineer"]
+        Client["API Client / simulate.py"]
+    end
+
+    subgraph "Unified Gateway Layer"
+        Nginx["Nginx 1.27 Gateway :8443<br/>TLS Termination + auth_request"]
+    end
+
+    subgraph "Frontend Layer"
+        Frontend["Meghdrishti Console<br/>React 18 + TS + ECharts"]
+    end
+
+    subgraph "Application Layer - Blue/Green"
+        BlueAPI["API Blue :8000<br/>FastAPI 0.115 (Active)"]
+        GreenAPI["API Green :8000<br/>FastAPI 0.115 (Standby)"]
+        Worker["Detection Worker :8001<br/>Redis Streams Consumer"]
+    end
+
+    subgraph "Data Layer"
+        Redis["Redis 7<br/>Streams + Cache"]
+        Postgres["PostgreSQL 16<br/>13 Tables + JSONB"]
+    end
+
+    subgraph "Observability Stack"
+        Prometheus["Prometheus v2.54"]
+        Grafana["Grafana 11.2"]
+        RedisExp["Redis Exporter"]
+        PgExp["Postgres Exporter"]
+        NodeExp["Node Exporter"]
+    end
+
+    User -->|"HTTPS :8443"| Nginx
+    Client -->|"HTTPS :8443 /api"| Nginx
+
+    Nginx -->|"/ (SPA)"| Frontend
+    Nginx -->|"/api/ (upstream.inc)"| BlueAPI
+    Nginx -.->|"standby"| GreenAPI
+    Nginx -->|"/grafana/ (auth_request)"| Grafana
+    Nginx -->|"/prometheus/ (auth_request)"| Prometheus
+
+    BlueAPI -->|"XADD"| Redis
+    BlueAPI -->|"Read/Write"| Postgres
+
+    Redis -->|"XREADGROUP"| Worker
+    Worker -->|"Write Anomalies"| Postgres
+    Worker -->|"Cache Baselines"| Redis
+
+    Prometheus -->|"Scrape /metrics"| BlueAPI
+    Prometheus -->|"Scrape /metrics"| Worker
+    Prometheus -->|"Scrape"| RedisExp
+    Prometheus -->|"Scrape"| PgExp
+    Prometheus -->|"Scrape"| NodeExp
+    RedisExp --> Redis
+    PgExp --> Postgres
+
+    Grafana -->|"Query"| Prometheus

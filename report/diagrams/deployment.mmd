@@ -1,0 +1,50 @@
+flowchart TD
+    subgraph "Host Machine (EC2 / Local Docker)"
+        subgraph "meghdrishti-net (Docker Bridge Network)"
+            subgraph "Gateway"
+                NGINX["nginx:1.27-alpine<br/>:80, :443 → Host :8080, :8443<br/>TLS + Reverse Proxy"]
+            end
+
+            subgraph "Application Containers"
+                BLUE["api-blue<br/>python:3.11-slim<br/>FastAPI :8000<br/>(Active)"]
+                GREEN["api-green<br/>python:3.11-slim<br/>FastAPI :8000<br/>(Standby - profile: green)"]
+                WORKER["worker<br/>python:3.11-slim<br/>Stream Consumer :8001"]
+                FE["frontend<br/>nginx (static SPA)<br/>:80"]
+            end
+
+            subgraph "Data Stores"
+                PG["postgres:16-alpine<br/>:5432<br/>Volume: pgdata"]
+                REDIS["redis:7-alpine<br/>:6379<br/>Volume: redisdata<br/>AOF + 256MB LRU"]
+            end
+
+            subgraph "Observability"
+                PROM["prom/prometheus:v2.54.0<br/>:9090<br/>Volume: prometheus-data"]
+                GRAF["grafana/grafana:11.2.0<br/>:3000<br/>Volume: grafana-data"]
+                RE["redis_exporter:v1.63"]
+                PE["postgres_exporter:v0.15"]
+                NE["node_exporter:v1.8.2"]
+            end
+        end
+    end
+
+    NGINX --> FE
+    NGINX --> BLUE
+    NGINX -.-> GREEN
+    NGINX --> GRAF
+    NGINX --> PROM
+
+    BLUE --> PG
+    BLUE --> REDIS
+    GREEN --> PG
+    GREEN --> REDIS
+    WORKER --> PG
+    WORKER --> REDIS
+
+    PROM --> BLUE
+    PROM --> WORKER
+    PROM --> RE
+    PROM --> PE
+    PROM --> NE
+    RE --> REDIS
+    PE --> PG
+    GRAF --> PROM

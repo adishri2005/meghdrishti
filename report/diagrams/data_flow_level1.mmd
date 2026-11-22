@@ -1,0 +1,17 @@
+flowchart TD
+    A["External Client"] -->|"POST /api/v1/records/batch<br/>1-5000 records"| B["1.0 API Gateway<br/>(Nginx + FastAPI)"]
+    B -->|"Validate + Create Job"| C["1.1 Ingestion<br/>Router"]
+    C -->|"XADD payload"| D["2.0 Redis Stream<br/>(cost_records)"]
+    D -->|"XREADGROUP batch"| E["3.0 Detection<br/>Worker"]
+    E -->|"Upsert Resource"| F["4.0 PostgreSQL<br/>Database"]
+    E -->|"Load Baseline"| G["3.1 Welford<br/>Baseline Engine"]
+    G -->|"n, mean, m2"| H["3.2 Rule<br/>Evaluation"]
+    H -->|"z-score, pct, EWMA"| I["3.3 Anomaly<br/>Creation"]
+    I -->|"INSERT anomaly"| F
+    E -->|"Aggregate Check"| J["3.4 Root Cause<br/>Attribution"]
+    J -->|"Top contributors"| I
+    I -->|"Webhook POST"| K["5.0 Alert<br/>Dispatcher"]
+    F -->|"Query"| L["6.0 Analytics<br/>API"]
+    L -->|"JSON responses"| M["7.0 Meghdrishti<br/>Console (SPA)"]
+    E -->|"Cache baseline"| N["Redis Cache"]
+    L -->|"Cached summaries"| N

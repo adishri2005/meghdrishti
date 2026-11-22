@@ -1,0 +1,29 @@
+flowchart LR
+    Admin["Admin User"]
+    Analyst["Analyst User"]
+    Pipeline["Ingestion Pipeline<br/>(API Client)"]
+    System["Meghdrishti System"]
+
+    Admin -->|"Login / Logout"| System
+    Admin -->|"Ingest Cost Records"| System
+    Admin -->|"Simulate Data"| System
+    Admin -->|"Inject Anomalies"| System
+    Admin -->|"View / Triage Anomalies"| System
+    Admin -->|"Acknowledge / Resolve"| System
+    Admin -->|"Configure Thresholds"| System
+    Admin -->|"Manage Users"| System
+    Admin -->|"View Audit Logs"| System
+    Admin -->|"Deploy New Version"| System
+    Admin -->|"View Live Logs (SSE)"| System
+    Admin -->|"Monitor Grafana/Prometheus"| System
+
+    Analyst -->|"Login / Logout"| System
+    Analyst -->|"View Dashboard"| System
+    Analyst -->|"View / Triage Anomalies"| System
+    Analyst -->|"Acknowledge / Resolve"| System
+    Analyst -->|"Explore Costs"| System
+    Analyst -->|"Browse Resources"| System
+    Analyst -->|"View Deployments"| System
+
+    Pipeline -->|"Submit Batch Records<br/>(API Key Auth)"| System
+    Pipeline -->|"Query Job Status"| System

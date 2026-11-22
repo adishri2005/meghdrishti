@@ -1,0 +1,4 @@
+flowchart LR
+    A["External Source<br/>(FinOps Engineer /<br/>Automated Pipeline)"] -->|"Cost Records<br/>HTTPS POST"| B["Meghdrishti<br/>System"]
+    B -->|"Anomaly Alerts<br/>Webhook"| C["Notification<br/>Channel<br/>(Slack / Teams)"]
+    B -->|"Dashboard<br/>HTTPS"| D["FinOps Analyst<br/>(Browser)"]
