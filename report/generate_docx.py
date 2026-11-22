@@ -397,6 +397,38 @@ def process_markdown(doc: Document, md_text: str):
             i += 1
             continue
 
+        # --- Image embeds ---
+        img_match = re.match(r'^!\[(.*?)\]\((.*?)\)$', line.strip())
+        if img_match:
+            alt_text = img_match.group(1)
+            img_rel_path = img_match.group(2)
+            
+            # Try multiple candidate paths
+            candidate1 = REPORT_MD.parent / img_rel_path
+            candidate2 = REPORT_MD.parent / "screenshots" / Path(img_rel_path).name
+            candidate3 = REPORT_MD.parent.parent / "docs" / "screenshots" / Path(img_rel_path).name
+            
+            chosen_img = None
+            for cand in [candidate1, candidate2, candidate3]:
+                if cand.exists():
+                    chosen_img = cand
+                    break
+            
+            if chosen_img:
+                p = doc.add_paragraph()
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.space_before = Pt(8)
+                p.paragraph_format.space_after = Pt(4)
+                run = p.add_run()
+                run.add_picture(str(chosen_img), width=Inches(5.5))
+            else:
+                p = doc.add_paragraph()
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                run = p.add_run(f"[{alt_text}]")
+                run.italic = True
+            i += 1
+            continue
+
         # --- Screenshot / figure placeholders ---
         if line.strip().startswith('[INSERT SCREENSHOT') or line.strip().startswith('[INSERT RESULT') or line.strip().startswith('[INSERT'):
             p = doc.add_paragraph()
