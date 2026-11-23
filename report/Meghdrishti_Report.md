@@ -611,14 +611,14 @@ erDiagram
         UUID job_id FK
     }
     baselines {
-        BigInteger resource_id PK_FK
+        BigInteger resource_id PK, FK
         Integer hour_of_day PK
         Integer n
         Float mean
         Float m2
     }
     resource_state {
-        BigInteger resource_id PK_FK
+        BigInteger resource_id PK, FK
         Float ewma_ratio
     }
     anomalies {

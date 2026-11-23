@@ -51,7 +51,7 @@ erDiagram
     }
 
     baselines {
-        BigInteger resource_id PK_FK
+        BigInteger resource_id PK, FK
         Integer hour_of_day PK
         Integer n
         Float mean
@@ -60,7 +60,7 @@ erDiagram
     }
 
     resource_state {
-        BigInteger resource_id PK_FK
+        BigInteger resource_id PK, FK
         Float ewma_ratio
         DateTime last_ts
         DateTime updated_at
