@@ -95,53 +95,184 @@ Testing with 128 automated test cases at 75% code coverage, along with controlle
 
 ## TABLE OF CONTENTS
 
-*[Auto-generated in .docx — see formatted document]*
+**Front Matter**
+
+- [Certificate](#certificate)
+- [Declaration](#declaration)
+- [Acknowledgement](#acknowledgement)
+- [Abstract](#abstract)
+- [List of Figures](#list-of-figures)
+- [List of Tables](#list-of-tables)
+- [List of Abbreviations](#list-of-abbreviations)
+
+**Chapter 1: Introduction**
+
+- [1.1 Background](#11-background)
+- [1.2 Problem Statement](#12-problem-statement)
+- [1.3 Motivation](#13-motivation)
+- [1.4 Objectives](#14-objectives)
+- [1.5 Scope and Limitations](#15-scope-and-limitations)
+- [1.6 Report Organization](#16-report-organization)
+- [1.7 Chapter Summary](#17-chapter-summary)
+
+**[Chapter 2: Literature Review and Related Work](#chapter-2-literature-review-and-related-work)**
+
+- [2.1 Overview](#21-overview)
+- [2.2 Statistical Foundations](#22-statistical-foundations)
+  - [2.2.1 Z-Score Based Detection](#221-z-score-based-detection)
+  - [2.2.2 Welford's Online Algorithm](#222-welfords-online-algorithm)
+  - [2.2.3 Exponentially Weighted Moving Average (EWMA)](#223-exponentially-weighted-moving-average-ewma)
+  - [2.2.4 Knuth's Presentation of Online Algorithms](#224-knuths-presentation-of-online-algorithms)
+- [2.3 Cloud Cost Management Tools](#23-cloud-cost-management-tools)
+  - [2.3.1 AWS Cost Anomaly Detection](#231-aws-cost-anomaly-detection)
+  - [2.3.2 Google Cloud FinOps Hub](#232-google-cloud-finops-hub)
+  - [2.3.3 Azure Cost Management](#233-azure-cost-management)
+  - [2.3.4 Open-Source Alternatives](#234-open-source-alternatives)
+- [2.4 Anomaly Detection in Distributed Systems](#24-anomaly-detection-in-distributed-systems)
+- [2.5 Deployment and Operations](#25-deployment-and-operations)
+- [2.6 Message Queue and Stream Processing](#26-message-queue-and-stream-processing)
+- [2.7 Comparison of Existing Solutions](#27-comparison-of-existing-solutions)
+- [2.8 Identified Gap](#28-identified-gap)
+- [2.9 Chapter Summary](#29-chapter-summary)
+
+**[Chapter 3: Requirement Analysis](#chapter-3-requirement-analysis)**
+
+- [3.1 Overview](#31-overview)
+- [3.2 Functional Requirements](#32-functional-requirements)
+- [3.3 Non-Functional Requirements](#33-non-functional-requirements)
+- [3.4 User Roles and Use Cases](#34-user-roles-and-use-cases)
+- [3.5 Hardware and Software Requirements](#35-hardware-and-software-requirements)
+- [3.6 Feasibility Analysis](#36-feasibility-analysis)
+  - [3.6.1 Technical Feasibility](#361-technical-feasibility)
+  - [3.6.2 Economic Feasibility](#362-economic-feasibility)
+  - [3.6.3 Operational Feasibility](#363-operational-feasibility)
+- [3.7 Chapter Summary](#37-chapter-summary)
+
+**[Chapter 4: System Design](#chapter-4-system-design)**
+
+- [4.1 Overview](#41-overview)
+- [4.2 Overall Architecture](#42-overall-architecture)
+- [4.3 Component Description](#43-component-description)
+- [4.4 Data Flow](#44-data-flow)
+  - [4.4.1 Level 0 — Context Diagram](#441-level-0--context-diagram)
+  - [4.4.2 Level 1 — Detailed Data Flow](#442-level-1--detailed-data-flow)
+- [4.5 Database Design](#45-database-design)
+- [4.6 API Design](#46-api-design)
+- [4.7 Detection Algorithm Design](#47-detection-algorithm-design)
+- [4.8 Security Design](#48-security-design)
+- [4.9 Deployment Architecture](#49-deployment-architecture)
+- [4.10 Chapter Summary](#410-chapter-summary)
+
+**[Chapter 5: Implementation](#chapter-5-implementation)**
+
+- [5.1 Technology Stack](#51-technology-stack)
+- [5.2 Development Environment Setup](#52-development-environment-setup)
+- [5.3 Backend Core Modules](#53-backend-core-modules)
+  - [5.3.1 Configuration Management](#531-configuration-management-appconfigpy)
+  - [5.3.2 Database Models](#532-database-models-appmodelspy)
+  - [5.3.3 Application Factory](#533-application-factory-appmainpy)
+- [5.4 Detection Pipeline Implementation](#54-detection-pipeline-implementation)
+  - [5.4.1 Welford Online Baseline](#541-welford-online-baseline-appdetectionbaselinepy)
+  - [5.4.2 Detection Rules](#542-detection-rules-appdetectionrulespy)
+  - [5.4.3 Detection Engine](#543-detection-engine-appdetectionenginepy)
+  - [5.4.4 Root Cause Analysis](#544-root-cause-analysis-appdetectionroot_causepy)
+- [5.5 Background Worker](#55-background-worker-appworkermainpy)
+- [5.6 Alert Dispatch](#56-alert-dispatch-appworkeralertspy)
+- [5.7 Authentication and Security](#57-authentication-and-security-appsecuritypy)
+- [5.8 API Routers](#58-api-routers)
+- [5.9 Frontend Implementation](#59-frontend-implementation)
+- [5.10 Reverse Proxy and Gateway](#510-reverse-proxy-and-gateway-nginxnginxconf)
+- [5.11 Containerization and Deployment](#511-containerization-and-deployment)
+  - [5.11.1 Docker Compose Stack](#5111-docker-compose-stack)
+  - [5.11.2 Blue/Green Deployment](#5112-bluegreen-deployment)
+  - [5.11.3 CI/CD Pipeline](#5113-cicd-pipeline)
+- [5.12 Challenges and Solutions](#512-challenges-and-solutions)
+- [5.13 Chapter Summary](#513-chapter-summary)
+
+**[Chapter 6: Testing and Validation](#chapter-6-testing-and-validation)**
+
+- [6.1 Test Strategy](#61-test-strategy)
+- [6.2 Test Cases](#62-test-cases)
+- [6.3 Test Results](#63-test-results)
+- [6.4 Security Audit Results](#64-security-audit-results)
+- [6.5 Performance Observations](#65-performance-observations)
+- [6.6 Chapter Summary](#66-chapter-summary)
+
+**[Chapter 7: Results and Discussion](#chapter-7-results-and-discussion)**
+
+- [7.1 Objectives vs. Achievements](#71-objectives-vs-achievements)
+- [7.2 System Screenshots](#72-system-screenshots)
+- [7.3 Detection Quality Analysis](#73-detection-quality-analysis)
+- [7.4 Failure Recovery Analysis](#74-failure-recovery-analysis)
+- [7.5 Discussion](#75-discussion)
+- [7.6 Chapter Summary](#76-chapter-summary)
+
+**[Chapter 8: Conclusion and Future Scope](#chapter-8-conclusion-and-future-scope)**
+
+- [8.1 Conclusion](#81-conclusion)
+- [8.2 Future Scope](#82-future-scope)
+
+**[References](#references)**
+
+**Appendices**
+
+- [Appendix A: Setup and Run Instructions](#appendix-a-setup-and-run-instructions)
+- [Appendix B: Selected Code Listings](#appendix-b-selected-code-listings)
+- [Appendix C: User Manual](#appendix-c-user-manual)
+- [Appendix D: Screenshots](#appendix-d-screenshots)
+- [Appendix E: Project Timeline](#appendix-e-project-timeline)
 
 ---
 
 ## LIST OF FIGURES
 
-| Figure No. | Caption | Page |
-|------------|---------|------|
-| Fig. 4.1 | Overall System Architecture | — |
-| Fig. 4.2 | Data Flow Diagram — Level 0 (Context Diagram) | — |
-| Fig. 4.3 | Data Flow Diagram — Level 1 | — |
-| Fig. 4.4 | Use Case Diagram | — |
-| Fig. 4.5 | Sequence Diagram — Cost Record Ingestion and Detection | — |
-| Fig. 4.6 | Entity-Relationship Diagram | — |
-| Fig. 4.7 | Deployment Diagram — Docker Container Topology | — |
-| Fig. 4.8 | Detection Pipeline Flow | — |
-| Fig. 5.1 | Welford Update Algorithm — Code Snippet | — |
-| Fig. 5.2 | Detection Rule Evaluation — Code Snippet | — |
-| Fig. 5.3 | Worker Batch Processing — Code Snippet | — |
-| Fig. 7.1 | Overview Dashboard (Dark Mode) | — |
-| Fig. 7.2 | Anomalies Triage View (Dark Mode) | — |
-| Fig. 7.3 | Cost Explorer (Dark Mode) | — |
-| Fig. 7.4 | Resources Inventory (Dark Mode) | — |
-| Fig. 7.5 | Monitoring Hub (Dark Mode) | — |
-| Fig. 7.6 | Deployments and Blue/Green View (Dark Mode) | — |
+| Figure No. | Caption | Section |
+|------------|---------|---------|
+| [Fig. 4.1](#42-overall-architecture) | Overall System Architecture | [§4.2](#42-overall-architecture) |
+| [Fig. 4.2](#441-level-0--context-diagram) | Data Flow Diagram — Level 0 (Context Diagram) | [§4.4.1](#441-level-0--context-diagram) |
+| [Fig. 4.3](#442-level-1--detailed-data-flow) | Data Flow Diagram — Level 1 | [§4.4.2](#442-level-1--detailed-data-flow) |
+| [Fig. 4.6](#45-database-design) | Entity-Relationship Diagram | [§4.5](#45-database-design) |
+| [Fig. 4.7](#49-deployment-architecture) | Deployment Diagram — Docker Container Topology | [§4.9](#49-deployment-architecture) |
+| [Fig. 4.8](#47-detection-algorithm-design) | Detection Pipeline Flow | [§4.7](#47-detection-algorithm-design) |
+| [Fig. 7.1](#72-system-screenshots) | Login Page (Dark Theme) | [§7.2](#72-system-screenshots) |
+| [Fig. 7.2](#72-system-screenshots) | Overview Dashboard — Cost Trends and Anomaly Summary | [§7.2](#72-system-screenshots) |
+| [Fig. 7.3](#72-system-screenshots) | Anomalies Page — Severity Filtering and Status Management | [§7.2](#72-system-screenshots) |
+| [Fig. 7.4](#72-system-screenshots) | Cost History Explorer — Date Range and Resource Grouping | [§7.2](#72-system-screenshots) |
+| [Fig. 7.5](#72-system-screenshots) | Resource Catalog with Baseline Statistics | [§7.2](#72-system-screenshots) |
+| [Fig. 7.6](#72-system-screenshots) | Data Ingestion and Job Tracking Interface | [§7.2](#72-system-screenshots) |
+| [Fig. 7.7](#72-system-screenshots) | Monitoring Overview — Grafana Dashboard Integration | [§7.2](#72-system-screenshots) |
+| [Fig. 7.8](#72-system-screenshots) | Prometheus Metrics Query Interface | [§7.2](#72-system-screenshots) |
+| [Fig. 7.9](#72-system-screenshots) | Structured Application Log Viewer | [§7.2](#72-system-screenshots) |
+| [Fig. 7.10](#72-system-screenshots) | Audit Log Viewer — Security Events | [§7.2](#72-system-screenshots) |
+| [Fig. 7.11](#72-system-screenshots) | Blue/Green Deployment Status Page | [§7.2](#72-system-screenshots) |
+| [Fig. 7.12](#72-system-screenshots) | Detection Threshold Configuration Interface | [§7.2](#72-system-screenshots) |
 
 ---
 
 ## LIST OF TABLES
 
-| Table No. | Caption | Page |
-|-----------|---------|------|
-| Table 2.1 | Comparison of Existing Solutions with Meghdrishti | — |
-| Table 3.1 | Functional Requirements | — |
-| Table 3.2 | Non-Functional Requirements | — |
-| Table 3.3 | Hardware Requirements | — |
-| Table 3.4 | Software Requirements | — |
-| Table 4.1 | Database Tables and Their Purposes | — |
-| Table 4.2 | Key API Endpoints | — |
-| Table 4.3 | Detection Thresholds — Default Configuration | — |
-| Table 4.4 | Severity Classification Matrix | — |
-| Table 5.1 | Backend Module Descriptions | — |
-| Table 5.2 | Frontend Component Hierarchy | — |
-| Table 5.3 | Technology Stack with Versions | — |
-| Table 6.1 | Backend Test Cases Summary | — |
-| Table 6.2 | Test Coverage by Module | — |
-| Table 7.1 | Objectives vs. Achievements | — |
+| Table No. | Caption | Section |
+|-----------|---------|---------|
+| [Table 2.1](#27-comparison-of-existing-solutions) | Comparison of Existing Solutions with Meghdrishti | [§2.7](#27-comparison-of-existing-solutions) |
+| [Table 3.1](#32-functional-requirements) | Functional Requirements | [§3.2](#32-functional-requirements) |
+| [Table 3.2](#33-non-functional-requirements) | Non-Functional Requirements | [§3.3](#33-non-functional-requirements) |
+| [Table 3.3](#35-hardware-and-software-requirements) | Hardware Requirements | [§3.5](#35-hardware-and-software-requirements) |
+| [Table 3.4](#35-hardware-and-software-requirements) | Software Requirements | [§3.5](#35-hardware-and-software-requirements) |
+| [Table 4.1](#45-database-design) | Database Tables and Their Purposes | [§4.5](#45-database-design) |
+| [Table 4.2](#46-api-design) | Key API Endpoints | [§4.6](#46-api-design) |
+| [Table 4.3](#47-detection-algorithm-design) | Detection Thresholds — Default Configuration | [§4.7](#47-detection-algorithm-design) |
+| [Table 4.4](#47-detection-algorithm-design) | Severity Classification Matrix | [§4.7](#47-detection-algorithm-design) |
+| [Table 5.1](#51-technology-stack) | Technology Stack | [§5.1](#51-technology-stack) |
+| [Table 5.2](#58-api-routers) | API Router Summary | [§5.8](#58-api-routers) |
+| [Table 5.3](#5111-docker-compose-stack) | Container Configuration Summary | [§5.11.1](#5111-docker-compose-stack) |
+| [Table 5.4](#512-challenges-and-solutions) | Development Challenges and Solutions | [§5.12](#512-challenges-and-solutions) |
+| [Table 6.1](#62-test-cases) | Representative Test Cases | [§6.2](#62-test-cases) |
+| [Table 6.2](#63-test-results) | Test Suite Summary | [§6.3](#63-test-results) |
+| [Table 6.3](#63-test-results) | Module-Level Coverage | [§6.3](#63-test-results) |
+| [Table 6.4](#64-security-audit-results) | Security Audit Findings Summary | [§6.4](#64-security-audit-results) |
+| [Table 6.5](#65-performance-observations) | Expected Load Test Performance | [§6.5](#65-performance-observations) |
+| [Table 7.1](#71-objectives-vs-achievements) | Objectives Achievement Matrix | [§7.1](#71-objectives-vs-achievements) |
+| [Table E.1](#appendix-e-project-timeline) | Project Timeline | [Appendix E](#appendix-e-project-timeline) |
 
 ---
 
